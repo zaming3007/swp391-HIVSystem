@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - HIVSystem.Web</title>
+    <title>@ViewData["Title"] - HIV Healthcare System</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -41,19 +41,19 @@
                                 </a>
                             </li>
                         }
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
-                                <i class="fas fa-shield-alt"></i> Privacy
-                            </a>
-                        </li>
-                        @if (!string.IsNullOrEmpty(Context.Session.GetString("Username")))
+                        else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Test" asp-action="Database">
-                                    <i class="fas fa-database"></i> Database Test
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
                                 </a>
                             </li>
                         }
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="About">
+                                <i class="fas fa-info-circle"></i> Giới thiệu
+                            </a>
+                        </li>
                     </ul>
                     
                     <!-- User Info & Logout -->
@@ -93,7 +93,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - HIVSystem.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - HIV Healthcare System - <a asp-area="" asp-controller="Home" asp-action="About">Giới thiệu</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

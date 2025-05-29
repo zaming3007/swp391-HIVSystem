@@ -18,6 +18,25 @@ public class HomeController : Controller
         return View();
     }
 
+    public IActionResult About()
+    {
+        return View();
+    }
+
+    public IActionResult Dashboard()
+    {
+        // Kiểm tra user đã login chưa
+        var username = HttpContext.Session.GetString("Username");
+        if (string.IsNullOrEmpty(username))
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        ViewBag.Username = username;
+        ViewBag.FullName = HttpContext.Session.GetString("FullName");
+        return View();
+    }
+
     public IActionResult Privacy()
     {
         return View();

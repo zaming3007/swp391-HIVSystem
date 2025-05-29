@@ -1,7 +1,7 @@
 @model HIVHealthcareSystem.Models.LoginViewModel
 
 @{
-    ViewData["Title"] = "Login - HIV Healthcare System";
+    ViewData["Title"] = "Đăng nhập - HIV Healthcare System";
 }
 
 <div class="container">
@@ -29,7 +29,7 @@
                             <label asp-for="Username" class="form-label">
                                 <i class="fas fa-user"></i> Tên đăng nhập
                             </label>
-                            <input asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" />
+                            <input asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" autofocus />
                             <span asp-validation-for="Username" class="text-danger"></span>
                         </div>
                         
@@ -65,15 +65,6 @@
                             <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
                         </a>
                     </div>
-                    
-                    <div class="text-center mt-3">
-                        <small class="text-muted">
-                            🧪 <strong>Tài khoản test:</strong><br>
-                            admin / admin123<br>
-                            doctor / doctor123<br>
-                            patient / patient123
-                        </small>
-                    </div>
                 </div>
             </div>
         </div>
@@ -102,6 +93,7 @@
     .btn {
         border-radius: 10px;
         padding: 12px 20px;
+        transition: all 0.3s ease;
     }
     
     body {
