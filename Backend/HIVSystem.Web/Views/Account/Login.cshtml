@@ -1,0 +1,131 @@
+@model HIVHealthcareSystem.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login - HIV Healthcare System";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">
+                        <i class="fas fa-user-md"></i> HIV Healthcare System
+                    </h3>
+                    <p class="text-center mb-0 small">Đăng nhập vào tài khoản</p>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+                    {
+                        <div class="alert alert-success">
+                            @ViewBag.SuccessMessage
+                        </div>
+                    }
+                    
+                    <form asp-action="Login" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Username" class="form-label">
+                                <i class="fas fa-user"></i> Tên đăng nhập
+                            </label>
+                            <input asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock"></i> Mật khẩu
+                            </label>
+                            <input asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label">Ghi nhớ đăng nhập</label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Separator -->
+                    <div class="text-center my-3">
+                        <hr class="my-3">
+                        <small class="text-muted">Chưa có tài khoản?</small>
+                    </div>
+                    
+                    <!-- Register Link -->
+                    <div class="d-grid">
+                        <a asp-action="Register" class="btn btn-outline-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Đăng ký tài khoản mới
+                        </a>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            🧪 <strong>Tài khoản test:</strong><br>
+                            admin / admin123<br>
+                            doctor / doctor123<br>
+                            patient / patient123
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+    }
+    
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+    
+    .btn {
+        border-radius: 10px;
+        padding: 12px 20px;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .container {
+        width: 100%;
+    }
+    
+    hr {
+        margin: 0.5rem 0;
+    }
+    
+    .btn-outline-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style> 

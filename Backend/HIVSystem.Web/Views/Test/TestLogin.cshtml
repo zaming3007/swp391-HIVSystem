@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Test Login";
+}
+
+<div class="container">
+    <h2><i class="fas fa-sign-in-alt"></i> Test Login</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            @if (ViewBag.Result != null)
+            {
+                <div class="alert @(ViewBag.Success == true ? "alert-success" : "alert-danger")">
+                    <h4>@ViewBag.Result</h4>
+                </div>
+            }
+
+            <div class="card">
+                <div class="card-header">
+                    <h4>🔐 Test Login Form</h4>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="/Test/TestLogin">
+                        <div class="mb-3">
+                            <label class="form-label">Username:</label>
+                            <input type="text" name="username" class="form-control" value="@(ViewBag.Username ?? "admin")" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password:</label>
+                            <input type="text" name="password" class="form-control" value="@(ViewBag.Password ?? "admin123")" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Test Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            @if (ViewBag.StoredHash != null)
+            {
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>🔍 Chi tiết Password Hash</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Password Hash trong database:</strong>
+                                <div class="form-control bg-light" style="font-family: monospace; word-break: break-all;">
+                                    @ViewBag.StoredHash
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Password Hash từ input:</strong>
+                                <div class="form-control bg-light" style="font-family: monospace; word-break: break-all;">
+                                    @ViewBag.InputHash
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Kết quả so sánh:</strong>
+                                @if (ViewBag.StoredHash == ViewBag.InputHash)
+                                {
+                                    <span class="badge bg-success fs-6">✅ KHỚP - Login sẽ thành công</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger fs-6">❌ KHÔNG KHỚP - Login sẽ thất bại</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>📋 Test Accounts</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Admin:</strong>
+                        <div>Username: <code>admin</code></div>
+                        <div>Password: <code>admin123</code></div>
+                        <a href="/Test/TestLogin?username=admin&password=admin123" class="btn btn-sm btn-outline-primary">Test</a>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Doctor:</strong>
+                        <div>Username: <code>doctor</code></div>
+                        <div>Password: <code>doctor123</code></div>
+                        <a href="/Test/TestLogin?username=doctor&password=doctor123" class="btn btn-sm btn-outline-primary">Test</a>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Patient:</strong>
+                        <div>Username: <code>patient</code></div>
+                        <div>Password: <code>patient123</code></div>
+                        <a href="/Test/TestLogin?username=patient&password=patient123" class="btn btn-sm btn-outline-primary">Test</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4>🛠️ Fix Tools</h4>
+                </div>
+                <div class="card-body">
+                    <a href="/Test/FixPasswordHashes" class="btn btn-warning w-100 mb-2">
+                        <i class="fas fa-wrench"></i> Fix Password Hashes
+                    </a>
+                    <a href="/Test/Database" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-database"></i> Database Test
+                    </a>
+                    <a href="/Account/Login" class="btn btn-success w-100">
+                        <i class="fas fa-sign-in-alt"></i> Real Login Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

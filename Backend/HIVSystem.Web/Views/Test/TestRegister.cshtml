@@ -1,0 +1,222 @@
+@{
+    ViewData["Title"] = "Test chức năng Đăng ký";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user-plus text-success"></i> Test chức năng Đăng ký</h2>
+                <div>
+                    <a asp-action="Database" class="btn btn-outline-primary">
+                        <i class="fas fa-database"></i> Database Test
+                    </a>
+                    <a asp-action="UserStats" class="btn btn-outline-success">
+                        <i class="fas fa-chart-bar"></i> User Stats
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Register Form -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-user-plus"></i> Chức năng Đăng ký User</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Test tính năng đăng ký user mới vào hệ thống HIV Healthcare:</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>✅ Tính năng hoàn thành:</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Form đăng ký đầy đủ
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Validation dữ liệu
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Kiểm tra username trùng
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Kiểm tra email trùng
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Lưu database tự động
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Plain text password
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    UI đẹp và responsive
+                                    <span class="badge bg-success rounded-pill">✓</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>🎯 Các vai trò có thể đăng ký:</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-user-shield text-danger"></i> Quản trị viên</span>
+                                    <span class="badge bg-danger rounded-pill">Role ID: 1</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-user-md text-primary"></i> Bác sĩ</span>
+                                    <span class="badge bg-primary rounded-pill">Role ID: 2</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-procedures text-success"></i> Bệnh nhân</span>
+                                    <span class="badge bg-success rounded-pill">Role ID: 3</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-user-nurse text-warning"></i> Y tá</span>
+                                    <span class="badge bg-warning rounded-pill">Role ID: 4</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-pills text-info"></i> Dược sĩ</span>
+                                    <span class="badge bg-info rounded-pill">Role ID: 5</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-user-plus"></i> Test Đăng ký User mới
+                        </a>
+                        <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Test Đăng nhập
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Thông tin test</h5>
+                </div>
+                <div class="card-body">
+                    <h6>📋 Dữ liệu test mẫu:</h6>
+                    <div class="mb-3">
+                        <small class="text-muted">Username:</small><br>
+                        <code>testuser2025</code>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Email:</small><br>
+                        <code>test@hivhealthcare.com</code>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Password:</small><br>
+                        <code>test123456</code>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Họ tên:</small><br>
+                        <code>Nguyen Van Test</code>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="fas fa-lightbulb"></i> 
+                            <strong>Tip:</strong> Thử đăng ký với dữ liệu này để test validation và database insertion.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-cogs"></i> Database Actions</h6>
+                </div>
+                <div class="card-body">
+                    <a asp-action="UserStats" class="btn btn-outline-success btn-sm w-100 mb-2">
+                        <i class="fas fa-chart-bar"></i> Xem thống kê Users
+                    </a>
+                    <a asp-action="Database" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <i class="fas fa-database"></i> Database Test
+                    </a>
+                    <a asp-action="CreatePlainTextUsers" class="btn btn-outline-warning btn-sm w-100">
+                        <i class="fas fa-users-cog"></i> Reset Test Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Scenarios -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clipboard-check"></i> Kịch bản Test</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-success">✅ Test Case 1: Đăng ký thành công</h6>
+                            <ol class="small">
+                                <li>Điền đầy đủ thông tin hợp lệ</li>
+                                <li>Chọn vai trò phù hợp</li>
+                                <li>Password và Confirm Password khớp</li>
+                                <li>Username và Email chưa tồn tại</li>
+                                <li>Click "Đăng ký"</li>
+                                <li>Kết quả: Chuyển về Login với thông báo thành công</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h6 class="text-warning">⚠️ Test Case 2: Validation Error</h6>
+                            <ol class="small">
+                                <li>Để trống các field bắt buộc</li>
+                                <li>Nhập email không đúng format</li>
+                                <li>Password quá ngắn (&lt; 6 ký tự)</li>
+                                <li>Password và Confirm không khớp</li>
+                                <li>Click "Đăng ký"</li>
+                                <li>Kết quả: Hiển thị lỗi validation</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h6 class="text-danger">❌ Test Case 3: Username/Email trùng</h6>
+                            <ol class="small">
+                                <li>Điền thông tin với username đã tồn tại</li>
+                                <li>Hoặc email đã được sử dụng</li>
+                                <li>Các field khác điền đúng</li>
+                                <li>Click "Đăng ký"</li>
+                                <li>Kết quả: Hiển thị lỗi trùng dữ liệu</li>
+                                <li>Form giữ nguyên dữ liệu đã nhập</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        border: none;
+        padding: 0.5rem 0;
+    }
+    
+    .badge {
+        font-size: 0.75em;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style> 

@@ -1,0 +1,230 @@
+@model HIVHealthcareSystem.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header text-center bg-primary text-white">
+                    <h3><i class="fas fa-user-plus"></i> Đăng ký tài khoản</h3>
+                    <p class="mb-0">Tạo tài khoản mới cho hệ thống HIV Healthcare</p>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <!-- Thông tin đăng nhập -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-key"></i> Thông tin đăng nhập
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Username" class="form-label">
+                                        <i class="fas fa-user"></i> @Html.DisplayNameFor(m => m.Username)
+                                    </label>
+                                    <input asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope"></i> @Html.DisplayNameFor(m => m.Email)
+                                    </label>
+                                    <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Password" class="form-label">
+                                        <i class="fas fa-lock"></i> @Html.DisplayNameFor(m => m.Password)
+                                    </label>
+                                    <input asp-for="Password" class="form-control" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" />
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ConfirmPassword" class="form-label">
+                                        <i class="fas fa-lock"></i> @Html.DisplayNameFor(m => m.ConfirmPassword)
+                                    </label>
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin cá nhân -->
+                        <div class="row mb-4 mt-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-id-card"></i> Thông tin cá nhân
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="FullName" class="form-label">
+                                        <i class="fas fa-user-circle"></i> @Html.DisplayNameFor(m => m.FullName)
+                                    </label>
+                                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên đầy đủ" />
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label">
+                                        <i class="fas fa-phone"></i> @Html.DisplayNameFor(m => m.PhoneNumber)
+                                    </label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Nhập số điện thoại" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="DateOfBirth" class="form-label">
+                                        <i class="fas fa-calendar"></i> @Html.DisplayNameFor(m => m.DateOfBirth)
+                                    </label>
+                                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Gender" class="form-label">
+                                        <i class="fas fa-venus-mars"></i> @Html.DisplayNameFor(m => m.Gender)
+                                    </label>
+                                    <select asp-for="Gender" class="form-control">
+                                        <option value="">-- Chọn giới tính --</option>
+                                        <option value="Male">Nam</option>
+                                        <option value="Female">Nữ</option>
+                                        <option value="Other">Khác</option>
+                                    </select>
+                                    <span asp-validation-for="Gender" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label asp-for="RoleID" class="form-label">
+                                        <i class="fas fa-user-tag"></i> @Html.DisplayNameFor(m => m.RoleID)
+                                    </label>
+                                    <select asp-for="RoleID" class="form-control">
+                                        <option value="">-- Chọn vai trò --</option>
+                                        @foreach (var role in (List<HIVHealthcareSystem.Models.RoleOption>)ViewBag.Roles)
+                                        {
+                                            <option value="@role.Value" title="@role.Description">@role.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="RoleID" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i> @Html.DisplayNameFor(m => m.Address)
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="2" placeholder="Nhập địa chỉ chi tiết"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tùy chọn -->
+                        <div class="row mb-4 mt-4">
+                            <div class="col-12">
+                                <h5 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-cog"></i> Tùy chọn
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-check mb-3">
+                                    <input asp-for="IsAnonymous" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsAnonymous" class="form-check-label">
+                                        <i class="fas fa-user-secret"></i> @Html.DisplayNameFor(m => m.IsAnonymous)
+                                        <small class="text-muted">(Thông tin cá nhân sẽ được bảo mật)</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-user-plus"></i> Đăng ký
+                                </button>
+                                <a asp-action="Login" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Đã có tài khoản? Đăng nhập
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Thông tin vai trò -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Thông tin về các vai trò</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var role in (List<HIVHealthcareSystem.Models.RoleOption>)ViewBag.Roles)
+                        {
+                            <div class="col-md-6 mb-2">
+                                <strong>@role.Text:</strong> @role.Description
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Show role description on hover
+        $(document).ready(function() {
+            $('select[name="RoleID"] option').each(function() {
+                var description = $(this).attr('title');
+                if (description) {
+                    $(this).attr('data-bs-toggle', 'tooltip');
+                    $(this).attr('data-bs-placement', 'right');
+                    $(this).attr('title', description);
+                }
+            });
+            
+            // Initialize Bootstrap tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+} 

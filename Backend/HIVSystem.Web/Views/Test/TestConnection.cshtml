@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Test Connection String";
+}
+
+<div class="container">
+    <h2><i class="fas fa-plug"></i> Test Connection String</h2>
+    
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger">
+            <h4>❌ Lỗi:</h4>
+            <p>@ViewBag.Error</p>
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="alert alert-info">
+            <p>@ViewBag.Message</p>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🔗 Connection String hiện tại</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Connection String:</strong></label>
+                        <div class="form-control" style="background-color: #f8f9fa; min-height: 60px; word-break: break-all;">
+                            <code>@ViewBag.ConnectionString</code>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Trạng thái kết nối:</strong></label>
+                        <div>
+                            @if (ViewBag.CanConnect == true)
+                            {
+                                <span class="badge bg-success fs-6">✅ Kết nối thành công</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">❌ Kết nối thất bại</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>🔧 Kiểm tra và sửa lỗi</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h5>⚠️ Những lý do thường gây lỗi kết nối:</h5>
+                    <ul>
+                        <li><strong>SQL Server chưa chạy:</strong> Kiểm tra SQL Server Service có đang chạy không</li>
+                        <li><strong>Database chưa tồn tại:</strong> Tạo database có tên "HIVHealthcareSystem"</li>
+                        <li><strong>SQL Authentication chưa enable:</strong> Kiểm tra SQL Server có cho phép SQL Authentication không</li>
+                        <li><strong>User 'sa' bị disable:</strong> Kiểm tra account 'sa' có enable không</li>
+                        <li><strong>Password sai:</strong> Kiểm tra password của user 'sa'</li>
+                        <li><strong>Port 1433 bị block:</strong> Kiểm tra firewall có block port 1433 không</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-info">
+                    <h5>💡 Các Connection String thử khác (SQL Authentication):</h5>
+                    <div class="mb-2">
+                        <strong>SQL Server với port 1433:</strong>
+                        <code>Server=localhost,1433;Database=HIVHealthcareSystem;User Id=sa;Password=12345;TrustServerCertificate=True</code>
+                    </div>
+                    <div class="mb-2">
+                        <strong>SQL Server với dấu chấm:</strong>
+                        <code>Server=.,1433;Database=HIVHealthcareSystem;User Id=sa;Password=12345;TrustServerCertificate=True</code>
+                    </div>
+                    <div class="mb-2">
+                        <strong>SQL Server Express:</strong>
+                        <code>Server=localhost\\SQLEXPRESS,1433;Database=HIVHealthcareSystem;User Id=sa;Password=12345;TrustServerCertificate=True</code>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Nếu dùng Windows Authentication:</strong>
+                        <code>Server=localhost;Database=HIVHealthcareSystem;Trusted_Connection=True;TrustServerCertificate=True</code>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger">
+                    <h5>🔒 Cấu hình SQL Server Authentication:</h5>
+                    <ol>
+                        <li>Mở SQL Server Management Studio (SSMS)</li>
+                        <li>Right-click server → Properties → Security</li>
+                        <li>Chọn "SQL Server and Windows Authentication mode"</li>
+                        <li>Restart SQL Server service</li>
+                        <li>Enable account 'sa' và set password</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>🛠️ Các bước kiểm tra cho SQL Authentication</h4>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li><strong>Kiểm tra SQL Server đang chạy:</strong>
+                        <ul>
+                            <li>Mở "Services" (Windows + R → services.msc)</li>
+                            <li>Tìm "SQL Server (MSSQLSERVER)" hoặc "SQL Server (SQLEXPRESS)"</li>
+                            <li>Đảm bảo service đang "Running"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Enable SQL Authentication:</strong>
+                        <ul>
+                            <li>Mở SSMS, kết nối với Windows Authentication</li>
+                            <li>Right-click server name → Properties</li>
+                            <li>Security tab → chọn "SQL Server and Windows Authentication mode"</li>
+                            <li>Restart SQL Server service</li>
+                        </ul>
+                    </li>
+                    <li><strong>Enable user 'sa':</strong>
+                        <ul>
+                            <li>Trong SSMS: Security → Logins → sa</li>
+                            <li>Right-click sa → Properties</li>
+                            <li>General tab: set password là "12345"</li>
+                            <li>Status tab: Login = Enabled</li>
+                        </ul>
+                    </li>
+                    <li><strong>Tạo database:</strong>
+                        <ul>
+                            <li>Right-click Databases → New Database</li>
+                            <li>Tên database: "HIVHealthcareSystem"</li>
+                            <li>Click OK để tạo</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="/Test/Database" class="btn btn-primary">
+            <i class="fas fa-database"></i> Quay lại Database Test
+        </a>
+        <a href="/Account/Login" class="btn btn-success">
+            <i class="fas fa-sign-in-alt"></i> Test Đăng nhập
+        </a>
+    </div>
+</div> 

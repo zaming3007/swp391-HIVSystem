@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Test Hash Password";
+}
+
+<div class="container">
+    <h2><i class="fas fa-key"></i> Test Hash Password</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🔐 Hash Password Result</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Original Password:</strong></label>
+                        <div class="form-control-plaintext">
+                            <code>@ViewBag.Password</code>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>SHA256 Hash:</strong></label>
+                        <div class="form-control-plaintext">
+                            <code style="word-break: break-all;">@ViewBag.Hash</code>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Lưu ý:</strong> Hash này sẽ được so sánh với hash trong database khi đăng nhập.</p>
+                        <p>Nếu đăng nhập thất bại, có thể do hash trong database khác với hash này.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🧪 Test khác</h4>
+                </div>
+                <div class="card-body">
+                    <form method="get">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password to hash:</label>
+                            <input type="text" class="form-control" id="password" name="password" value="@ViewBag.Password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calculator"></i> Tính Hash
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <a href="/Test/Database" class="btn btn-secondary">
+                        <i class="fas fa-database"></i> Kiểm tra Database
+                    </a>
+                    
+                    <a href="/Account/Login" class="btn btn-success">
+                        <i class="fas fa-sign-in-alt"></i> Test Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>📚 Hướng dẫn debug đăng nhập</h4>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li><strong>Kiểm tra database:</strong> Vào <a href="/Test/Database">/Test/Database</a> để xem có user nào không</li>
+                    <li><strong>Tạo user test:</strong> Nếu chưa có user, click "Tạo User Test"</li>
+                    <li><strong>Kiểm tra hash:</strong> Đảm bảo hash password trong database khớp với hash ở đây</li>
+                    <li><strong>Test đăng nhập:</strong> Thử đăng nhập với username: <code>admin</code>, password: <code>admin123</code></li>
+                </ol>
+                
+                <div class="alert alert-warning mt-3">
+                    <h5>⚠️ Những lý do thường gây lỗi đăng nhập:</h5>
+                    <ul>
+                        <li>Database chưa có user nào</li>
+                        <li>User bị set IsActive = false</li>
+                        <li>Hash password không khớp</li>
+                        <li>Username hoặc password gõ sai</li>
+                        <li>Connection string sai</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

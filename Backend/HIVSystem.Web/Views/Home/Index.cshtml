@@ -1,0 +1,111 @@
+﻿@{
+    ViewData["Title"] = "HIV Healthcare System";
+}
+
+<div class="container">
+    <div class="text-center">
+        <h1 class="display-4">🏥 HIV Healthcare System</h1>
+        <p class="lead">Hệ thống Quản lý Chăm sóc Sức khỏe HIV</p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @Html.Raw(TempData["SuccessMessage"])
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <div class="alert alert-success">
+            <h4>✅ Đã đăng nhập thành công!</h4>
+            <p><strong>Username:</strong> @Context.Session.GetString("Username")</p>
+            <p><strong>Full Name:</strong> @Context.Session.GetString("FullName")</p>
+            <p><strong>User ID:</strong> @Context.Session.GetString("UserId")</p>
+            
+            <form method="post" action="/Account/Logout" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h3>🔐 Đăng nhập để sử dụng hệ thống</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <p>Hệ thống quản lý thông tin bệnh nhân HIV, bác sĩ, và các dịch vụ chăm sóc sức khỏe.</p>
+                        
+                        <a href="/Account/Login" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                        </a>
+                        
+                        <hr>
+                        
+                        <h5>🧪 Test Accounts (Plain Text Password):</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Admin:</strong><br>
+                                <small>admin / admin123</small>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Doctor:</strong><br>
+                                <small>doctor / doctor123</small>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Patient:</strong><br>
+                                <small>patient / patient123</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>🔧 Database Tools</h4>
+                </div>
+                <div class="card-body">
+                    <a href="/Test/Database" class="btn btn-info w-100 mb-2">
+                        <i class="fas fa-database"></i> Database Test
+                    </a>
+                    <a href="/Test/ConvertToPlainText" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-unlock"></i> Convert to Plain Text
+                    </a>
+                    <a href="/Test/CreatePlainTextUsers" class="btn btn-primary w-100">
+                        <i class="fas fa-user-plus"></i> Create Plain Text Users
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>📋 Tính năng hệ thống</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li>✅ Quản lý thông tin bệnh nhân</li>
+                        <li>✅ Quản lý bác sĩ và nhân viên</li>
+                        <li>✅ Đặt lịch hẹn</li>
+                        <li>✅ Quản lý thuốc ARV</li>
+                        <li>✅ Theo dõi kết quả xét nghiệm</li>
+                        <li>✅ Kế hoạch điều trị</li>
+                        <li>✅ Plain text passwords (No hash)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
