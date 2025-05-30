@@ -6,6 +6,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Add API Controllers
+builder.Services.AddControllers();
+
+// Add CORS for React app
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -30,6 +45,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS
+app.UseCors("ReactApp");
+
 app.UseRouting();
 
 // Add Session middleware
@@ -38,6 +57,9 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+// Map API Controllers
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

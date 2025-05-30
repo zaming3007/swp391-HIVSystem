@@ -26,31 +26,13 @@ namespace HIVHealthcareSystem.Models
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Họ tên là bắt buộc")]
-        [StringLength(100, ErrorMessage = "Họ tên không được quá 100 ký tự")]
-        [Display(Name = "Họ và tên")]
+        // Các trường này sẽ được đặt giá trị mặc định trong controller
         public string FullName { get; set; } = string.Empty;
-
-        [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-        [Display(Name = "Số điện thoại")]
         public string? PhoneNumber { get; set; }
-
-        [DataType(DataType.Date)]
-        [Display(Name = "Ngày sinh")]
         public DateTime? DateOfBirth { get; set; }
-
-        [Display(Name = "Giới tính")]
         public string? Gender { get; set; }
-
-        [StringLength(255, ErrorMessage = "Địa chỉ không được quá 255 ký tự")]
-        [Display(Name = "Địa chỉ")]
         public string? Address { get; set; }
-
-        [Required(ErrorMessage = "Vai trò là bắt buộc")]
-        [Display(Name = "Vai trò")]
-        public int RoleID { get; set; }
-
-        [Display(Name = "Đăng ký ẩn danh")]
+        public int RoleID { get; set; } = 3; // Mặc định là khách hàng (role ID = 3)
         public bool IsAnonymous { get; set; } = false;
     }
 

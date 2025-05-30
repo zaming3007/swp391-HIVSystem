@@ -13,33 +13,25 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    // All routes now go to React SPA
     public IActionResult Index()
     {
-        return View();
+        return View("React");
     }
 
     public IActionResult About()
     {
-        return View();
+        return View("React");
     }
 
     public IActionResult Dashboard()
     {
-        // Kiểm tra user đã login chưa
-        var username = HttpContext.Session.GetString("Username");
-        if (string.IsNullOrEmpty(username))
-        {
-            return RedirectToAction("Login", "Account");
-        }
-
-        ViewBag.Username = username;
-        ViewBag.FullName = HttpContext.Session.GetString("FullName");
-        return View();
+        return View("React");
     }
 
     public IActionResult Privacy()
     {
-        return View();
+        return View("React");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

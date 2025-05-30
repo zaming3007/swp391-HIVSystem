@@ -23,7 +23,13 @@ namespace HIVHealthcareSystem.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            return View("~/Views/Home/React.cshtml");
+        }
+
+        [HttpGet]
+        public IActionResult ReactLogin()
+        {
+            return View("~/Views/Home/React.cshtml");
         }
 
         [HttpPost]
@@ -93,16 +99,12 @@ namespace HIVHealthcareSystem.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-            var model = new RegisterViewModel();
-            ViewBag.Roles = GetRoleOptions();
-            return View(model);
+            return View("~/Views/Home/React.cshtml");
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            ViewBag.Roles = GetRoleOptions();
-
             if (ModelState.IsValid)
             {
                 try
@@ -127,19 +129,19 @@ namespace HIVHealthcareSystem.Controllers
                         return View(model);
                     }
 
-                    // Tạo user mới
+                    // Tạo user mới với thông tin mặc định
                     var newUser = new User
                     {
                         Username = model.Username,
                         PasswordHash = model.Password, // Lưu plain text password
                         Email = model.Email,
-                        FullName = model.FullName,
-                        PhoneNumber = model.PhoneNumber,
-                        DateOfBirth = model.DateOfBirth,
-                        Gender = model.Gender,
-                        Address = model.Address,
-                        RoleID = model.RoleID,
-                        IsAnonymous = model.IsAnonymous,
+                        FullName = model.Username, // Đặt FullName mặc định là Username
+                        PhoneNumber = null,
+                        DateOfBirth = null,
+                        Gender = null,
+                        Address = null,
+                        RoleID = 3, // Mặc định là khách hàng (role ID = 3)
+                        IsAnonymous = false,
                         IsActive = true,
                         CreatedDate = DateTime.Now
                     };
@@ -167,15 +169,63 @@ namespace HIVHealthcareSystem.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            return View("~/Views/Home/React.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            var username = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(username))
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                    if (user == null)
+                    {
+                        return RedirectToAction("Login");
+                    }
+
+                    // Cập nhật thông tin
+                    user.FullName = model.FullName;
+                    user.PhoneNumber = model.PhoneNumber;
+                    user.DateOfBirth = model.DateOfBirth;
+                    user.Gender = model.Gender;
+                    user.Address = model.Address;
+                    user.ModifiedDate = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+
+                    // Cập nhật session với FullName mới
+                    HttpContext.Session.SetString("FullName", user.FullName);
+
+                    TempData["SuccessMessage"] = "Cập nhật thông tin cá nhân thành công!";
+                    return RedirectToAction("Profile");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Lỗi khi cập nhật: {ex.Message}");
+                }
+            }
+
+            return View(model);
+        }
+
         private List<RoleOption> GetRoleOptions()
         {
             return new List<RoleOption>
             {
                 new RoleOption { Value = 1, Text = "Quản trị viên", Description = "Quản lý toàn bộ hệ thống" },
                 new RoleOption { Value = 2, Text = "Bác sĩ", Description = "Chẩn đoán và điều trị bệnh nhân" },
-                new RoleOption { Value = 3, Text = "Bệnh nhân", Description = "Người sử dụng dịch vụ chăm sóc sức khỏe" },
-                new RoleOption { Value = 4, Text = "Y tá", Description = "Hỗ trợ chăm sóc bệnh nhân" },
-                new RoleOption { Value = 5, Text = "Dược sĩ", Description = "Quản lý và cấp phát thuốc" }
+                new RoleOption { Value = 3, Text = "Khách hàng", Description = "Người sử dụng dịch vụ chăm sóc sức khỏe" }
             };
         }
 
