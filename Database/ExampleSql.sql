@@ -5,8 +5,7 @@ GO
 INSERT INTO Roles (RoleName, Description, IsActive) VALUES 
 ('Admin', N'Quản trị viên hệ thống', 1),
 ('Doctor', N'Bác sĩ điều trị', 1),
-('Patient', N'Bệnh nhân', 1),
-('Anonymous', N'Người dùng ẩn danh', 1);
+('Customer', N'Khách hàng', 1);
 
 -- Thêm dữ liệu vào bảng Users
 -- Trong thực tế, bạn nên mã hóa mật khẩu bằng bcrypt hoặc một thuật toán mã hóa an toàn khác
@@ -14,9 +13,8 @@ INSERT INTO Users (Username, PasswordHash, Email, FullName, PhoneNumber, DateOfB
 ('admin', 'admin123', 'admin@hivsystem.com', N'Nguyễn Quản Trị', '0901234567', '1985-05-15', 'Male', N'Hà Nội', 1, 1),
 ('doctor1', 'doctor123', 'doctor1@hivsystem.com', N'Trần Bác Sĩ', '0912345678', '1980-10-20', 'Male', N'Hà Nội', 2, 1),
 ('doctor2', 'doctor123', 'doctor2@hivsystem.com', N'Lê Thị Bác Sĩ', '0923456789', '1982-03-25', 'Female', N'Hồ Chí Minh', 2, 1),
-('patient1', 'patient123', 'patient1@example.com', N'Phạm Văn Bệnh', '0934567890', '1990-07-12', 'Male', N'Đà Nẵng', 3, 1),
-('patient2', 'patient123', 'patient2@example.com', N'Hoàng Thị Nhân', '0945678901', '1988-12-05', 'Female', N'Hồ Chí Minh', 3, 1),
-('anonymous1', 'anon123', 'anon1@example.com', 'Anonymous User', NULL, NULL, NULL, NULL, 4, 1);
+('customer1', 'customer123', 'customer1@example.com', N'Phạm Văn Khách', '0934567890', '1990-07-12', 'Male', N'Đà Nẵng', 3, 1),
+('customer2', 'customer123', 'customer2@example.com', N'Hoàng Thị Hàng', '0945678901', '1988-12-05', 'Female', N'Hồ Chí Minh', 3, 1);
 
 -- Thêm dữ liệu vào bảng Facilities (Cơ sở y tế)
 INSERT INTO Facilities (FacilityName, Address, City, PhoneNumber, Email, Description, IsActive) VALUES 

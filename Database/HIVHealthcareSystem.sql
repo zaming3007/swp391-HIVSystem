@@ -1,4 +1,6 @@
-﻿USE HIVHealthcareSystem;
+﻿CREATE DATABASE HIVHealthcareSystem;
+
+USE HIVHealthcareSystem;
 GO
 
 -- Tạo bảng Roles (Vai trò người dùng)
