@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Appointment Creation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-bug me-2"></i>
+                            Debug Appointment Creation
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="status" class="mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <button id="checkDatabase" class="btn btn-info">
+                                        <i class="fas fa-database me-2"></i>
+                                        1. Kiểm tra Database
+                                    </button>
+                                    <button id="checkDoctors" class="btn btn-primary">
+                                        <i class="fas fa-user-md me-2"></i>
+                                        2. Kiểm tra Doctors
+                                    </button>
+                                    <button id="checkFacilities" class="btn btn-success">
+                                        <i class="fas fa-hospital me-2"></i>
+                                        3. Kiểm tra Facilities
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <button id="testCreateAppointment" class="btn btn-warning">
+                                        <i class="fas fa-calendar-plus me-2"></i>
+                                        4. Test Tạo Appointment
+                                    </button>
+                                    <button id="checkAppointments" class="btn btn-secondary">
+                                        <i class="fas fa-list me-2"></i>
+                                        5. Kiểm tra Appointments
+                                    </button>
+                                    <button id="sqlFix" class="btn btn-danger">
+                                        <i class="fas fa-magic me-2"></i>
+                                        🚨 SQL Fix Nhanh
+                                    </button>
+                                    <button id="fixForeignKey" class="btn btn-warning">
+                                        <i class="fas fa-unlink me-2"></i>
+                                        🔧 Fix Foreign Key
+                                    </button>
+                                    <button id="testProfile" class="btn btn-info">
+                                        <i class="fas fa-user-cog me-2"></i>
+                                        👤 Test Profile Debug
+                                    </button>
+                                    <a href="/database-init.html" class="btn btn-outline-primary">
+                                        <i class="fas fa-tools me-2"></i>
+                                        Database Init Tool
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="results" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        function showResults(title, data, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+
+            let content = `
+                <div class="card border-${type}">
+                    <div class="card-header bg-${type} text-white">
+                        <h5 class="mb-0">${title}</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-light p-3 rounded" style="max-height: 500px; overflow-y: auto; font-size: 12px;">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = content;
+        }
+
+        // 1. Check Database Schema
+        document.getElementById('checkDatabase').addEventListener('click', async () => {
+            showStatus('Đang kiểm tra database schema...', 'info');
+            try {
+                const response = await fetch('/api/database/check-schema');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Kiểm tra database hoàn tất!', 'success');
+                    showResults('Database Schema Status', data, 'info');
+                } else {
+                    showStatus(`Lỗi: ${data.message}`, 'danger');
+                    showResults('Database Error', data, 'danger');
+                }
+            } catch (error) {
+                showStatus(`Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // 2. Check Doctors
+        document.getElementById('checkDoctors').addEventListener('click', async () => {
+            showStatus('Đang kiểm tra danh sách bác sĩ...', 'info');
+            try {
+                const response = await fetch('/api/appointments/doctors/available');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Tìm thấy ${data.doctors.length} bác sĩ!`, 'success');
+                    showResults('Available Doctors', data, 'success');
+                } else {
+                    showStatus(`Lỗi: ${data.message}`, 'danger');
+                    showResults('Doctors Error', data, 'danger');
+                }
+            } catch (error) {
+                showStatus(`Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // 3. Check Facilities
+        document.getElementById('checkFacilities').addEventListener('click', async () => {
+            showStatus('Đang kiểm tra cơ sở y tế...', 'info');
+            try {
+                // Direct SQL query to check facilities
+                const response = await fetch('/api/database/check-schema');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Facilities count: ${data.facilitiesCount}`, data.facilitiesCount > 0 ? 'success' : 'warning');
+                    showResults('Facilities Status', data, data.facilitiesCount > 0 ? 'success' : 'warning');
+                } else {
+                    showStatus(`Lỗi: ${data.message}`, 'danger');
+                }
+            } catch (error) {
+                showStatus(`Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // 4. Test Create Appointment
+        document.getElementById('testCreateAppointment').addEventListener('click', async () => {
+            showStatus('Đang test tạo appointment...', 'info');
+            try {
+                // First get available doctors
+                const doctorsResponse = await fetch('/api/appointments/doctors/available');
+                const doctorsData = await doctorsResponse.json();
+
+                if (!doctorsResponse.ok || !doctorsData.doctors || doctorsData.doctors.length === 0) {
+                    showStatus('Không có bác sĩ nào để test', 'warning');
+                    return;
+                }
+
+                // Create test appointment
+                const testAppointment = {
+                    doctorId: doctorsData.doctors[0].doctorID,
+                    appointmentDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+                    appointmentTime: '09:00',
+                    patientInfo: {
+                        fullName: 'Test Patient Debug',
+                        phoneNumber: '0123456789',
+                        email: 'debug@test.com',
+                        purpose: 'Debug test appointment creation',
+                        isAnonymous: false
+                    }
+                };
+
+                console.log('Sending appointment request:', testAppointment);
+
+                const response = await fetch('/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testAppointment)
+                });
+
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    data = { rawResponse: responseText, parseError: e.message };
+                }
+
+                if (response.ok) {
+                    showStatus('Tạo appointment thành công!', 'success');
+                    showResults('Appointment Created Successfully', data, 'success');
+                } else {
+                    showStatus(`Lỗi tạo appointment: ${data.message || 'Unknown error'}`, 'danger');
+                    showResults('Appointment Creation Error', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: data,
+                        requestData: testAppointment
+                    }, 'danger');
+                }
+            } catch (error) {
+                showStatus(`Lỗi kết nối: ${error.message}`, 'danger');
+                showResults('Network Error', {
+                    error: error.message,
+                    stack: error.stack
+                }, 'danger');
+            }
+        });
+
+        // 5. Check Appointments
+        document.getElementById('checkAppointments').addEventListener('click', async () => {
+            showStatus('Đang kiểm tra danh sách appointments...', 'info');
+            try {
+                const response = await fetch('/api/appointments/my-appointments');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus(`Tìm thấy ${data.appointments.length} appointments!`, 'success');
+                    showResults('My Appointments', data, 'success');
+                } else {
+                    showStatus(`Lỗi: ${data.message}`, 'warning');
+                    showResults('Appointments Error', data, 'warning');
+                }
+            } catch (error) {
+                showStatus(`Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // SQL Fix
+        document.getElementById('sqlFix').addEventListener('click', async () => {
+            showStatus('🚨 Đang thực thi SQL Fix để khắc phục lỗi...', 'warning');
+            try {
+                const response = await fetch('/api/database/execute-sql-fix', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('✅ SQL Fix thành công! Hãy test lại appointment.', 'success');
+                    showResults('SQL Fix Results', data, 'success');
+                } else {
+                    showStatus(`❌ SQL Fix thất bại: ${data.message}`, 'danger');
+                    showResults('SQL Fix Error', data, 'danger');
+                }
+            } catch (error) {
+                showStatus(`❌ Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // Fix Foreign Key
+        document.getElementById('fixForeignKey').addEventListener('click', async () => {
+            showStatus('🔧 Đang khắc phục Foreign Key constraint...', 'warning');
+            try {
+                const response = await fetch('/api/database/fix-foreign-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('✅ Foreign Key đã được khắc phục! Hãy test lại appointment.', 'success');
+                    showResults('Foreign Key Fix Results', data, 'success');
+                } else {
+                    showStatus(`❌ Khắc phục Foreign Key thất bại: ${data.message}`, 'danger');
+                    showResults('Foreign Key Fix Error', data, 'danger');
+                }
+            } catch (error) {
+                showStatus(`❌ Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // Test Profile Debug
+        document.getElementById('testProfile').addEventListener('click', async () => {
+            showStatus('👤 Đang test profile debug...', 'info');
+            try {
+                const response = await fetch('/api/database/test-profile');
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('✅ Profile debug hoàn tất!', 'success');
+                    showResults('Profile Debug Results', data, 'success');
+                } else {
+                    showStatus(`❌ Profile debug thất bại: ${data.message}`, 'danger');
+                    showResults('Profile Debug Error', data, 'danger');
+                }
+            } catch (error) {
+                showStatus(`❌ Lỗi kết nối: ${error.message}`, 'danger');
+            }
+        });
+
+        // Auto-run database check on load
+        window.addEventListener('load', () => {
+            document.getElementById('checkDatabase').click();
+        });
+    </script>
+</body>
+
+</html>

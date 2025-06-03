@@ -1,0 +1,932 @@
+@{
+    ViewData["Title"] = "Đặt Lịch Khám & Điều Trị HIV";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/css/appointment-booking.css" rel="stylesheet" />
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h2 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Đặt Lịch Khám & Điều Trị HIV
+                    </h2>
+                    <p class="mb-0 mt-2">Chọn ngày, giờ và bác sĩ phù hợp với bạn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Status Check -->
+    @if (Context.Session.GetString("Username") == null)
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Yêu cầu đăng nhập</h5>
+                    <p class="mb-3">Để đặt lịch khám và quản lý hồ sơ, bạn cần đăng nhập vào hệ thống.</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                        </button>
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            <i class="fas fa-user-plus me-2"></i>Đăng Ký Tài Khoản
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="enableAnonymousBooking()">
+                            <i class="fas fa-user-secret me-2"></i>Đặt Lịch Ẩn Danh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-user-check me-2"></i>Đã đăng nhập</h5>
+                    <p class="mb-0">Xin chào <strong>@Context.Session.GetString("FullName")</strong>! Bạn có thể đặt lịch khám và theo dõi lịch sử trong hồ sơ cá nhân.</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Booking Form (Hidden by default if not logged in) -->
+    <div id="booking-form" @(Context.Session.GetString("Username") == null ? "style=display:none;" : "")>
+        <!-- Progress Bar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="progress" style="height: 10px;">
+                    <div id="progress-bar" class="progress-bar bg-primary" style="width: 25%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small id="step1-label" class="text-primary fw-bold">1. Chọn ngày</small>
+                    <small id="step2-label" class="text-muted">2. Chọn giờ</small>
+                    <small id="step3-label" class="text-muted">3. Chọn bác sĩ</small>
+                    <small id="step4-label" class="text-muted">4. Thông tin</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alert-container"></div>
+
+        <!-- Step 1: Date Selection -->
+        <div id="step1" class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar me-2"></i>
+                    Bước 1: Chọn Ngày Khám
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Chọn ngày khám:</label>
+                        <input type="date" id="appointment-date" class="form-control" />
+                        <small class="text-muted">* Chỉ nhận lịch khám từ Thứ 2 đến Thứ 6</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Time Selection -->
+        <div id="step2" class="card" style="display: none;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Bước 2: Chọn Giờ Khám
+                </h5>
+                <small id="selected-date-display"></small>
+            </div>
+            <div class="card-body">
+                <div id="time-slots-container" class="row"></div>
+                <button class="btn btn-secondary" onclick="goToStep(1)">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại chọn ngày
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Doctor Selection -->
+        <div id="step3" class="card" style="display: none;">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-md me-2"></i>
+                    Bước 3: Chọn Bác Sĩ
+                </h5>
+                <small id="selected-datetime-display"></small>
+            </div>
+            <div class="card-body">
+                <div id="doctors-container" class="row"></div>
+                <button class="btn btn-secondary" onclick="goToStep(2)">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại chọn giờ
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Patient Information -->
+        <div id="step4" class="card" style="display: none;">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    Bước 4: Thông Tin Bệnh Nhân
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <h6>Thông tin lịch khám:</h6>
+                            <div id="appointment-summary"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="patient-form">
+                    <div class="row">
+                        @if (Context.Session.GetString("Username") != null)
+                        {
+                            <div class="col-12 mb-3">
+                                <div class="alert alert-success">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Thông tin sẽ được lưu vào hồ sơ của bạn: <strong>@Context.Session.GetString("FullName")</strong>
+                                </div>
+                            </div>
+                        }
+                        
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="anonymous-check">
+                                <label class="form-check-label" for="anonymous-check">
+                                    Đặt lịch ẩn danh (bảo vệ quyền riêng tư)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="name-field" class="col-md-6 mb-3">
+                            <label class="form-label">Họ và tên *</label>
+                            <input type="text" id="patient-name" class="form-control" 
+                                   value="@Context.Session.GetString("FullName")" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Số điện thoại *</label>
+                            <input type="tel" id="patient-phone" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email (tùy chọn)</label>
+                            <input type="email" id="patient-email" class="form-control">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Mục đích khám</label>
+                            <select id="appointment-purpose" class="form-control">
+                                <option value="">Chọn mục đích khám</option>
+                                <option value="Khám tổng quát">Khám tổng quát</option>
+                                <option value="Xét nghiệm HIV">Xét nghiệm HIV</option>
+                                <option value="Tư vấn điều trị">Tư vấn điều trị</option>
+                                <option value="Theo dõi định kỳ">Theo dõi định kỳ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Quay lại chọn bác sĩ
+                        </button>
+                        <button type="submit" class="btn btn-success" id="submit-btn">
+                            <i class="fas fa-check me-2"></i>
+                            Xác nhận đặt lịch
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Đặt Lịch Thành Công
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="success-content"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                @if (Context.Session.GetString("Username") != null)
+                {
+                    <a href="/Account/MyAppointments" class="btn btn-primary">
+                        <i class="fas fa-calendar-check me-2"></i>Xem Lịch Đã Đặt
+                    </a>
+                }
+                <button type="button" class="btn btn-success" onclick="location.reload()">
+                    <i class="fas fa-plus me-2"></i>Đặt Lịch Mới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Login/Register Modals from Homepage -->
+@await Html.PartialAsync("_LoginRegisterModals")
+
+<script>
+// Global variables
+let currentStep = 1;
+let selectedDate = '';
+let selectedTime = '';
+let selectedDoctor = null;
+let availableTimes = [];
+let availableDoctors = [];
+let isAnonymousBooking = @(Context.Session.GetString("Username") == null ? "true" : "false");
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('appointment-date').min = today;
+    
+    // Add event listeners
+    document.getElementById('appointment-date').addEventListener('change', handleDateSelect);
+    document.getElementById('anonymous-check').addEventListener('change', toggleNameField);
+    document.getElementById('patient-form').addEventListener('submit', handleSubmit);
+});
+
+// Enable anonymous booking
+function enableAnonymousBooking() {
+    isAnonymousBooking = true;
+    document.getElementById('booking-form').style.display = 'block';
+    document.querySelector('.alert-warning').style.display = 'none';
+}
+
+// Utility functions
+function showAlert(message, type = 'danger') {
+    const alertContainer = document.getElementById('alert-container');
+    const alertId = 'alert-' + Date.now();
+    
+    alertContainer.innerHTML = `
+        <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" onclick="document.getElementById('${alertId}').remove()"></button>
+        </div>
+    `;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        const alert = document.getElementById(alertId);
+        if (alert) alert.remove();
+    }, 5000);
+}
+
+function isWeekend(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDay();
+    return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+}
+
+function updateProgress() {
+    const progressBar = document.getElementById('progress-bar');
+    const percentage = (currentStep / 4) * 100;
+    progressBar.style.width = percentage + '%';
+    
+    // Update step labels
+    for (let i = 1; i <= 4; i++) {
+        const label = document.getElementById(`step${i}-label`);
+        if (i <= currentStep) {
+            label.className = 'text-primary fw-bold';
+        } else {
+            label.className = 'text-muted';
+        }
+    }
+}
+
+function goToStep(step) {
+    // Hide all steps
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById(`step${i}`).style.display = 'none';
+    }
+    
+    // Show target step
+    currentStep = step;
+    document.getElementById(`step${step}`).style.display = 'block';
+    updateProgress();
+}
+
+// Step 1: Date Selection
+async function handleDateSelect(event) {
+    const date = event.target.value;
+    
+    if (!date) return;
+    
+    if (isWeekend(date)) {
+        showAlert('Vui lòng chọn ngày trong tuần (Thứ 2 - Thứ 6)');
+        event.target.value = '';
+        return;
+    }
+    
+    selectedDate = date;
+    
+    try {
+        const response = await fetch(`/api/appointments/timeslots?date=${date}`);
+        if (response.ok) {
+            const data = await response.json();
+            // Handle the correct API response format
+            if (data.timeSlots) {
+                // Convert API format to expected format
+                availableTimes = [
+                    {
+                        period: "Buổi sáng (8:00 - 11:30)",
+                        times: data.timeSlots.morning.map(slot => slot.time)
+                    },
+                    {
+                        period: "Buổi chiều (14:00 - 17:30)",
+                        times: data.timeSlots.afternoon.map(slot => slot.time)
+                    }
+                ];
+                displayTimeSlots();
+                document.getElementById('selected-date-display').textContent = 
+                    `Ngày đã chọn: ${new Date(date).toLocaleDateString('vi-VN')}`;
+                goToStep(2);
+            } else {
+                showAlert(data.message || 'Không có lịch trống cho ngày này');
+            }
+        } else {
+            showAlert('Không thể tải danh sách giờ khám');
+        }
+    } catch (error) {
+        console.error('API Error:', error);
+        showAlert('Lỗi kết nối. Vui lòng thử lại.');
+    }
+}
+
+function displayTimeSlots() {
+    const container = document.getElementById('time-slots-container');
+    container.innerHTML = '';
+    
+    availableTimes.forEach((timeSlot, index) => {
+        const slotHtml = `
+            <div class="col-md-6 mb-3">
+                <div class="card time-slot-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">${timeSlot.period}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            ${timeSlot.times.map(time => `
+                                <div class="col-6 mb-2">
+                                    <button class="btn btn-outline-primary w-100" onclick="handleTimeSelect('${time}')">
+                                        ${time}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += slotHtml;
+    });
+}
+
+// Step 2: Time Selection
+async function handleTimeSelect(time) {
+    selectedTime = time;
+    
+    try {
+        showAlert('Đang kiểm tra bác sĩ khả dụng...', 'info');
+        const response = await fetch(`/api/appointments/doctors/available?date=${selectedDate}&time=${time}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Doctor availability response:', data);
+            
+            // Handle the updated API response format
+            if (data.doctors && data.doctors.length > 0) {
+                // Filter only truly available doctors
+                const trulyAvailableDoctors = data.doctors.filter(doctor => doctor.isAvailable);
+                
+                if (trulyAvailableDoctors.length > 0) {
+                    availableDoctors = trulyAvailableDoctors.map(doctor => ({
+                        id: doctor.doctorID || doctor.userID,
+                        fullName: doctor.fullName,
+                        specialization: doctor.specialty,
+                        consultationFee: doctor.consultationFee,
+                        rating: doctor.rating,
+                        reviewCount: doctor.reviewCount,
+                        biography: doctor.biography,
+                        yearsOfExperience: doctor.yearsOfExperience
+                    }));
+                    
+                    displayDoctors(data);
+                    document.getElementById('selected-datetime-display').textContent = 
+                        `Ngày: ${new Date(selectedDate).toLocaleDateString('vi-VN')} - Giờ: ${time}`;
+                    goToStep(3);
+                    
+                    // Clear previous alerts
+                    document.getElementById('alert-container').innerHTML = '';
+                } else {
+                    // Show information about why no doctors are available
+                    let message = data.message || 'Không có bác sĩ nào khả dụng cho thời gian này';
+                    
+                    if (data.totalDoctors > 0) {
+                        const busyDoctors = data.doctors.filter(d => !d.isAvailable);
+                        if (busyDoctors.length > 0) {
+                            const reasons = busyDoctors.map(d => d.availabilityReason).filter((v, i, a) => a.indexOf(v) === i);
+                            message += `<br><small>Lý do: ${reasons.join(', ')}</small>`;
+                        }
+                    }
+                    
+                    showAlert(message + '<br><small>Vui lòng chọn thời gian khác.</small>', 'warning');
+                    
+                    // Show busy doctors for reference
+                    displayBusyDoctors(data);
+                }
+            } else {
+                showAlert(data.message || 'Không có bác sĩ nào trong hệ thống', 'warning');
+            }
+        } else {
+            const errorData = await response.json();
+            showAlert(errorData.message || 'Không thể tải danh sách bác sĩ', 'danger');
+        }
+    } catch (error) {
+        console.error('API Error:', error);
+        showAlert('Lỗi kết nối. Vui lòng thử lại.', 'danger');
+    }
+}
+
+function displayBusyDoctors(apiData) {
+    const container = document.getElementById('doctors-container');
+    container.innerHTML = '';
+    
+    if (apiData.doctors && apiData.doctors.length > 0) {
+        const busyDoctors = apiData.doctors.filter(d => !d.isAvailable);
+        
+        if (busyDoctors.length > 0) {
+            // Show summary information
+            const summaryHtml = `
+                <div class="col-12 mb-3">
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Bác sĩ không khả dụng trong thời gian này</h6>
+                        <small>Dưới đây là danh sách bác sĩ và lý do họ không thể nhận lịch:</small>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += summaryHtml;
+            
+            busyDoctors.forEach(doctor => {
+                const doctorHtml = `
+                    <div class="col-md-6 mb-3">
+                        <div class="card doctor-card h-100 border-warning">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-user-md fa-3x text-muted mb-2"></i>
+                                    <h6 class="card-title mb-1 text-muted">${doctor.fullName}</h6>
+                                    <span class="badge bg-warning text-dark mb-2">Bận</span>
+                                </div>
+                                
+                                <div class="doctor-info">
+                                    <p class="mb-2">
+                                        <i class="fas fa-stethoscope me-2 text-muted"></i>
+                                        <small><strong>Chuyên khoa:</strong> ${doctor.specialty || 'HIV/AIDS'}</small>
+                                    </p>
+                                    <p class="mb-2">
+                                        <i class="fas fa-graduation-cap me-2 text-muted"></i>
+                                        <small><strong>Kinh nghiệm:</strong> ${doctor.yearsOfExperience} năm</small>
+                                    </p>
+                                    <p class="mb-3">
+                                        <i class="fas fa-clock me-2 text-warning"></i>
+                                        <small><strong>Lý do:</strong> ${doctor.availabilityReason}</small>
+                                    </p>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button class="btn btn-outline-secondary w-100" disabled>
+                                        <i class="fas fa-ban me-2"></i>Không khả dụng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += doctorHtml;
+            });
+            
+            // Add suggestion to go back
+            const suggestionHtml = `
+                <div class="col-12 mt-3">
+                    <div class="text-center">
+                        <button class="btn btn-primary me-2" onclick="goToStep(2)">
+                            <i class="fas fa-arrow-left me-2"></i>Chọn lại thời gian khác
+                        </button>
+                        <button class="btn btn-secondary" onclick="goToStep(1)">
+                            <i class="fas fa-calendar me-2"></i>Chọn lại ngày
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += suggestionHtml;
+        }
+    }
+}
+
+function displayDoctors(apiData) {
+    const container = document.getElementById('doctors-container');
+    container.innerHTML = '';
+    
+    // Show summary information
+    const summaryHtml = `
+        <div class="col-12 mb-3">
+            <div class="alert alert-success">
+                <h6><i class="fas fa-check-circle me-2"></i>Có ${availableDoctors.length} bác sĩ khả dụng</h6>
+                <small>${apiData.message}</small>
+            </div>
+        </div>
+    `;
+    container.innerHTML += summaryHtml;
+    
+    availableDoctors.forEach(doctor => {
+        const doctorHtml = `
+            <div class="col-md-6 mb-3">
+                <div class="card doctor-card h-100">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-user-md fa-3x text-success mb-2"></i>
+                            <h6 class="card-title mb-1">${doctor.fullName}</h6>
+                            <span class="badge bg-success mb-2">Khả dụng</span>
+                        </div>
+                        
+                        <div class="doctor-info">
+                            <p class="mb-2">
+                                <i class="fas fa-stethoscope me-2 text-primary"></i>
+                                <small><strong>Chuyên khoa:</strong> ${doctor.specialization || 'HIV/AIDS'}</small>
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-graduation-cap me-2 text-primary"></i>
+                                <small><strong>Kinh nghiệm:</strong> ${doctor.yearsOfExperience} năm</small>
+                            </p>
+                            <p class="mb-2">
+                                <i class="fas fa-star me-2 text-warning"></i>
+                                <small><strong>Đánh giá:</strong> ${doctor.rating}/5 (${doctor.reviewCount} đánh giá)</small>
+                            </p>
+                            <p class="mb-3">
+                                <i class="fas fa-money-bill me-2 text-success"></i>
+                                <small><strong>Phí khám:</strong> ${formatCurrency(doctor.consultationFee)}</small>
+                            </p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button class="btn btn-primary w-100" onclick="handleDoctorSelect(${doctor.id}, '${doctor.fullName}')">
+                                <i class="fas fa-calendar-check me-2"></i>Chọn bác sĩ này
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += doctorHtml;
+    });
+}
+
+// Step 3: Doctor Selection
+function handleDoctorSelect(doctorId, doctorName) {
+    selectedDoctor = { id: doctorId, name: doctorName };
+    
+    // Update appointment summary
+    document.getElementById('appointment-summary').innerHTML = `
+        <p class="mb-1"><strong>Ngày:</strong> ${new Date(selectedDate).toLocaleDateString('vi-VN')}</p>
+        <p class="mb-1"><strong>Giờ:</strong> ${selectedTime}</p>
+        <p class="mb-0"><strong>Bác sĩ:</strong> ${doctorName}</p>
+    `;
+    
+    goToStep(4);
+}
+
+function toggleNameField() {
+    const nameField = document.getElementById('name-field');
+    const nameInput = document.getElementById('patient-name');
+    const isAnonymous = document.getElementById('anonymous-check').checked;
+    
+    if (isAnonymous) {
+        nameField.style.display = 'none';
+        nameInput.required = false;
+    } else {
+        nameField.style.display = 'block';
+        nameInput.required = true;
+    }
+}
+
+// Step 4: Submit Appointment
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    const submitBtn = document.getElementById('submit-btn');
+    const originalText = submitBtn.innerHTML;
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang đặt lịch...';
+    
+    const isAnonymous = document.getElementById('anonymous-check').checked;
+    
+    const appointmentData = {
+        doctorId: selectedDoctor.id,
+        appointmentDate: selectedDate,
+        appointmentTime: selectedTime,
+        patientInfo: {
+            fullName: isAnonymous ? 'Ẩn danh' : document.getElementById('patient-name').value,
+            phoneNumber: document.getElementById('patient-phone').value,
+            email: document.getElementById('patient-email').value,
+            purpose: document.getElementById('appointment-purpose').value,
+            isAnonymous: isAnonymous
+        }
+    };
+    
+    try {
+        const response = await fetch('/api/appointments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(appointmentData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            // Show success with warnings if any
+            showSuccessModal(result);
+            
+        } else {
+            const errorData = await response.json();
+            
+            // Handle different types of errors
+            if (errorData.duplicateType) {
+                showDuplicateErrorModal(errorData);
+            } else {
+                showAlert(errorData.message || 'Không thể đặt lịch. Vui lòng thử lại.');
+            }
+        }
+    } catch (error) {
+        showAlert('Lỗi kết nối. Vui lòng kiểm tra kết nối internet và thử lại.');
+    } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+}
+
+function showSuccessModal(result) {
+    const successContent = document.getElementById('success-content');
+    
+    // Build warnings section if any
+    let warningsHtml = '';
+    if (result.warnings && result.warnings.length > 0) {
+        warningsHtml = `
+            <div class="alert alert-warning mt-3">
+                <h6><i class="fas fa-exclamation-triangle me-2"></i>Lưu ý:</h6>
+                <ul class="mb-0">
+                    ${result.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+    
+    successContent.innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+            <h4>Đặt lịch thành công!</h4>
+            <div class="alert alert-info">
+                <h6>Thông tin lịch khám:</h6>
+                <p class="mb-1"><strong>Mã lịch:</strong> #${result.appointmentId}</p>
+                <p class="mb-1"><strong>Bác sĩ:</strong> ${result.appointment.doctorName}</p>
+                <p class="mb-1"><strong>Ngày:</strong> ${new Date(selectedDate).toLocaleDateString('vi-VN')}</p>
+                <p class="mb-1"><strong>Giờ:</strong> ${selectedTime}</p>
+                <p class="mb-1"><strong>Phí khám:</strong> ${formatCurrency(result.appointment.consultationFee)}</p>
+                <p class="mb-0"><strong>Trạng thái:</strong> <span class="badge bg-success">${result.appointment.status}</span></p>
+            </div>
+            ${warningsHtml}
+            <p class="text-muted mt-3">${result.appointment.notes}</p>
+            <div class="mt-4">
+                <button class="btn btn-primary me-2" onclick="goToHomeWithRefresh()">
+                    <i class="fas fa-home me-1"></i>Về trang chủ
+                </button>
+                <button class="btn btn-outline-primary" onclick="location.href='/Home/AppointmentBooking'">
+                    <i class="fas fa-plus me-1"></i>Đặt lịch khác
+                </button>
+            </div>
+        </div>
+    `;
+    
+    const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    successModal.show();
+}
+
+function showDuplicateErrorModal(errorData) {
+    // Create and show duplicate error modal
+    const modalHtml = `
+        <div class="modal fade" id="duplicateErrorModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Trùng lịch khám
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-times-circle me-2"></i>Không thể đặt lịch</h6>
+                            <p class="mb-0">${errorData.message}</p>
+                        </div>
+                        
+                        ${errorData.suggestions && errorData.suggestions.length > 0 ? `
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-lightbulb me-2"></i>Gợi ý:</h6>
+                                <ul class="mb-0">
+                                    ${errorData.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary me-2" onclick="showMyAppointments()">
+                                <i class="fas fa-calendar-check me-1"></i>Xem lịch đã đặt
+                            </button>
+                            <button class="btn btn-secondary me-2" onclick="goToStep(1)">
+                                <i class="fas fa-arrow-left me-1"></i>Chọn lại thời gian
+                            </button>
+                            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-1"></i>Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('duplicateErrorModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add new modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateErrorModal'));
+    duplicateModal.show();
+    
+    // Clean up modal after hidden
+    document.getElementById('duplicateErrorModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+function showMyAppointments() {
+    // Close any open modals
+    const openModals = document.querySelectorAll('.modal.show');
+    openModals.forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) modalInstance.hide();
+    });
+    
+    // Navigate to appointments view
+    if (typeof showAppointments === 'function') {
+        showAppointments(); // If on integrated homepage
+    } else {
+        window.location.href = '/?view=appointments'; // Fallback
+    }
+}
+
+function formatCurrency(amount) {
+    if (!amount) return 'Miễn phí';
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount);
+}
+
+function goToHomeWithRefresh() {
+    // Close any open modals
+    const openModals = document.querySelectorAll('.modal.show');
+    openModals.forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) modalInstance.hide();
+    });
+    
+    // Navigate to homepage with refresh
+    window.location.href = '/';
+}
+</script>
+
+<style>
+.time-slot-card {
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.time-slot-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.doctor-card {
+    border: 1px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.doctor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.doctor-card.border-warning {
+    border-color: #ffc107 !important;
+    background-color: #fffbf0;
+}
+
+.doctor-card.border-warning:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+.doctor-info {
+    min-height: 120px;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+.alert {
+    border-radius: 10px;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+
+.doctor-card .fa-user-md.text-success {
+    color: #28a745 !important;
+}
+
+.doctor-card .fa-user-md.text-muted {
+    color: #6c757d !important;
+}
+
+/* Loading animation for checking availability */
+.checking-availability {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.checking-availability::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #007bff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style> 

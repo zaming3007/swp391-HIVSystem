@@ -13,25 +13,16 @@ public class HomeController : Controller
         _logger = logger;
     }
 
-    // All routes now go to React SPA
+    // Show the integrated homepage with all features
     public IActionResult Index()
     {
-        return View("React");
+        return View();
     }
 
-    public IActionResult About()
+    // Single appointment booking page using the original wizard
+    public IActionResult AppointmentBooking()
     {
-        return View("React");
-    }
-
-    public IActionResult Dashboard()
-    {
-        return View("React");
-    }
-
-    public IActionResult Privacy()
-    {
-        return View("React");
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
