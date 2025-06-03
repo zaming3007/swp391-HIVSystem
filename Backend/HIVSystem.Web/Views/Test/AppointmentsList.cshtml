@@ -1,0 +1,276 @@
+@{
+    ViewData["Title"] = "Test Appointments List";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-calendar-check"></i> Test Appointments Display</h2>
+            <p class="text-muted">Trang test để kiểm tra hiển thị danh sách lịch khám</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-check"></i> User Login Status</h5>
+                </div>
+                <div class="card-body">
+                    <div id="user-status">
+                        @if (Context.Session.GetString("Username") != null)
+                        {
+                            <div class="alert alert-success">
+                                <h6>Đã đăng nhập</h6>
+                                <p><strong>Username:</strong> @Context.Session.GetString("Username")</p>
+                                <p><strong>FullName:</strong> @Context.Session.GetString("FullName")</p>
+                                <p><strong>Email:</strong> @Context.Session.GetString("Email")</p>
+                                <p><strong>UserId:</strong> @Context.Session.GetString("UserId")</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                <p>Chưa đăng nhập. <a href="/">Đi tới trang chủ để đăng nhập</a></p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> API Tests</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-primary mb-2" onclick="testMyAppointmentsAPI()">
+                        <i class="fas fa-calendar"></i> Test My Appointments API
+                    </button>
+                    <br>
+                    <button class="btn btn-secondary mb-2" onclick="testDoctorsAPI()">
+                        <i class="fas fa-user-md"></i> Test Doctors API
+                    </button>
+                    <br>
+                    <button class="btn btn-info mb-2" onclick="clearResults()">
+                        <i class="fas fa-trash"></i> Clear Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> API Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="api-results">
+                        <p class="text-muted">Click on the test buttons above to see results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Appointments Display Test</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-success mb-3" onclick="loadAndDisplayAppointments()">
+                        <i class="fas fa-sync"></i> Load & Display Appointments
+                    </button>
+                    <div id="appointments-display">
+                        <p class="text-muted">Click "Load & Display Appointments" to see formatted display</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let userAppointments = [];
+
+async function testMyAppointmentsAPI() {
+    const resultsDiv = document.getElementById('api-results');
+    resultsDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    
+    try {
+        console.log('Testing /api/appointments/my-appointments');
+        const response = await fetch('/api/appointments/my-appointments');
+        console.log('Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('Received data:', data);
+        
+        let html = `
+            <div class="alert alert-info">
+                <h6>API Response:</h6>
+                <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                <p><strong>Response Type:</strong> ${typeof data}</p>
+            </div>
+            <pre class="bg-light p-3 border rounded" style="max-height: 400px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+        `;
+        
+        if (data.appointments) {
+            html += `
+                <div class="alert alert-success mt-3">
+                    <h6>Parsed Data:</h6>
+                    <p><strong>Total appointments:</strong> ${data.appointments.length}</p>
+                    <p><strong>Appointment IDs:</strong> ${data.appointments.map(a => a.appointmentID).join(', ')}</p>
+                </div>
+            `;
+            userAppointments = data.appointments;
+        }
+        
+        resultsDiv.innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        resultsDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Error:</h6>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+async function testDoctorsAPI() {
+    const resultsDiv = document.getElementById('api-results');
+    resultsDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    
+    try {
+        const response = await fetch('/api/appointments/doctors/available');
+        const data = await response.json();
+        
+        let html = `
+            <div class="alert alert-info">
+                <h6>Doctors API Response:</h6>
+                <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                <p><strong>Total doctors:</strong> ${data.doctors ? data.doctors.length : 0}</p>
+            </div>
+            <pre class="bg-light p-3 border rounded" style="max-height: 400px; overflow-y: auto;">${JSON.stringify(data, null, 2)}</pre>
+        `;
+        
+        resultsDiv.innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        resultsDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Error:</h6>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+async function loadAndDisplayAppointments() {
+    const displayDiv = document.getElementById('appointments-display');
+    displayDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    
+    try {
+        // Load appointments first
+        const response = await fetch('/api/appointments/my-appointments');
+        const data = await response.json();
+        userAppointments = data.appointments || [];
+        
+        // Display using the same logic as homepage
+        if (userAppointments.length === 0) {
+            const emptyHtml = 
+                '<div class="text-center py-5">' +
+                    '<i class="fas fa-calendar-times fa-5x text-muted mb-3"></i>' +
+                    '<h5>Chưa có lịch khám nào</h5>' +
+                    '<p class="text-muted">Bạn chưa đặt lịch khám nào. Hãy đặt lịch khám ngay để được chăm sóc sức khỏe tốt nhất.</p>' +
+                    '<a href="/Home/AppointmentBooking" class="btn btn-primary">' +
+                        '<i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay' +
+                    '</a>' +
+                '</div>';
+            displayDiv.innerHTML = emptyHtml;
+            return;
+        }
+        
+        let appointmentsHtml = 
+            '<div class="table-responsive">' +
+                '<table class="table table-hover">' +
+                    '<thead class="table-dark">' +
+                        '<tr>' +
+                            '<th>ID</th>' +
+                            '<th>Ngày khám</th>' +
+                            '<th>Giờ khám</th>' +
+                            '<th>Bác sĩ</th>' +
+                            '<th>Cơ sở y tế</th>' +
+                            '<th>Trạng thái</th>' +
+                            '<th>Ghi chú</th>' +
+                        '</tr>' +
+                    '</thead>' +
+                    '<tbody>';
+        
+        userAppointments.forEach(appointment => {
+            const statusBadge = getStatusBadge(appointment.status);
+            appointmentsHtml += 
+                '<tr>' +
+                    '<td>' + appointment.appointmentID + '</td>' +
+                    '<td>' + new Date(appointment.appointmentDate).toLocaleDateString('vi-VN') + '</td>' +
+                    '<td>' + appointment.appointmentTime + '</td>' +
+                    '<td>' + (appointment.doctorName || 'Chưa chỉ định') + '</td>' +
+                    '<td>' + (appointment.facilityName || 'Chưa xác định') + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' + (appointment.purpose || 'Không có') + '</td>' +
+                '</tr>';
+        });
+        
+        appointmentsHtml += 
+                    '</tbody>' +
+                '</table>' +
+            '</div>';
+        
+        displayDiv.innerHTML = appointmentsHtml;
+        
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        displayDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Error loading appointments:</h6>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+function getStatusBadge(status) {
+    switch (status?.toLowerCase()) {
+        case 'pending': return '<span class="badge bg-warning">Chờ xác nhận</span>';
+        case 'confirmed': return '<span class="badge bg-success">Đã xác nhận</span>';
+        case 'cancelled': return '<span class="badge bg-danger">Đã hủy</span>';
+        case 'completed': return '<span class="badge bg-info">Hoàn thành</span>';
+        case 'scheduled': return '<span class="badge bg-primary">Đã lên lịch</span>';
+        default: return '<span class="badge bg-secondary">' + (status || 'Chưa xác định') + '</span>';
+    }
+}
+
+function clearResults() {
+    document.getElementById('api-results').innerHTML = '<p class="text-muted">Results cleared</p>';
+    document.getElementById('appointments-display').innerHTML = '<p class="text-muted">Display cleared</p>';
+}
+
+// Auto-load on page load if user is logged in
+document.addEventListener('DOMContentLoaded', function() {
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <text>
+        console.log('User is logged in, auto-testing appointments API...');
+        setTimeout(() => {
+            testMyAppointmentsAPI();
+        }, 1000);
+        </text>
+    }
+});
+</script> 

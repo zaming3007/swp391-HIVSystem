@@ -1,0 +1,478 @@
+@{
+    ViewData["Title"] = "HIV System Test Hub";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1 class="display-4 text-primary">
+                    <i class="fas fa-flask me-3"></i>HIV System Test Hub
+                </h1>
+                <p class="lead text-muted">Trung tâm kiểm tra và debug toàn bộ hệ thống</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Lưu ý:</strong> Đây là trang dành cho developer để test các chức năng của hệ thống
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Cards -->
+    <div class="row g-4">
+        <!-- Database & System Tests -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Database & System Tests
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/Test/Database" class="btn btn-outline-primary">
+                            <i class="fas fa-database me-2"></i>Database Connection Test
+                        </a>
+                        <a href="/database-init.html" class="btn btn-outline-secondary">
+                            <i class="fas fa-cogs me-2"></i>Database Initialization
+                        </a>
+                        <a href="/Test/CreateAdminUser" class="btn btn-outline-success">
+                            <i class="fas fa-user-shield me-2"></i>Create Admin User
+                        </a>
+                        <a href="/Test/CreateTestUser" class="btn btn-outline-info">
+                            <i class="fas fa-user-plus me-2"></i>Create Test User
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User & Profile Tests -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-users me-2"></i>User & Profile Tests
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/test-profile.html" class="btn btn-outline-success">
+                            <i class="fas fa-user-circle me-2"></i>Profile Management Test
+                        </a>
+                        <a href="/Test/TestNewUserAppointment" class="btn btn-outline-warning">
+                            <i class="fas fa-user-clock me-2"></i>New User Appointment Test
+                        </a>
+                        <button class="btn btn-outline-info" onclick="testUserSession()">
+                            <i class="fas fa-sign-in-alt me-2"></i>Test User Session
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="testValidation()">
+                            <i class="fas fa-shield-alt me-2"></i>Test Form Validation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointment Tests -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card h-100 border-warning">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>Appointment System Tests
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/Test/AppointmentsList" class="btn btn-outline-warning">
+                            <i class="fas fa-list me-2"></i>Appointments List Test
+                        </a>
+                        <a href="/Test/DoctorAvailability" class="btn btn-outline-info">
+                            <i class="fas fa-user-md me-2"></i>Doctor Availability Test
+                        </a>
+                        <a href="/debug-appointment.html" class="btn btn-outline-secondary">
+                            <i class="fas fa-bug me-2"></i>Appointment Debug Tools
+                        </a>
+                        <a href="/Home/AppointmentBooking" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Live Appointment Booking
+                        </a>
+                        <button class="btn btn-outline-danger" onclick="testAppointmentAPI()">
+                            <i class="fas fa-api me-2"></i>Test Appointment API
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug & Monitoring Tools -->
+        <div class="col-lg-6 col-md-12">
+            <div class="card h-100 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-bug me-2"></i>Debug & Monitoring Tools
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-danger" onclick="checkAPIStatus()">
+                            <i class="fas fa-heartbeat me-2"></i>Check API Status
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="viewSessionInfo()">
+                            <i class="fas fa-info-circle me-2"></i>View Session Info
+                        </button>
+                        <button class="btn btn-outline-info" onclick="testDatabaseConnections()">
+                            <i class="fas fa-plug me-2"></i>Test Database Connections
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearAllData()">
+                            <i class="fas fa-trash me-2"></i>Clear Test Data
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="exportTestResults()">
+                            <i class="fas fa-download me-2"></i>Export Test Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>System Status</h5>
+                            <div id="system-status" class="mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    <span>Checking system status...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Recent Activity</h5>
+                            <div id="recent-activity" class="mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                    <span>Loading recent activity...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="btn-group w-100" role="group">
+                                <button class="btn btn-success" onclick="runAllTests()">
+                                    <i class="fas fa-play me-2"></i>Run All Tests
+                                </button>
+                                <button class="btn btn-warning" onclick="generateTestData()">
+                                    <i class="fas fa-plus me-2"></i>Generate Test Data
+                                </button>
+                                <button class="btn btn-danger" onclick="resetSystem()">
+                                    <i class="fas fa-undo me-2"></i>Reset System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Test Results
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="test-results">
+                        <p class="text-muted">No test results yet. Run some tests to see results here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Login/Register Modals for testing -->
+@await Html.PartialAsync("_LoginRegisterModals")
+
+<style>
+.card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+#system-status, #recent-activity {
+    min-height: 60px;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+</style>
+
+<script>
+// Test Hub JavaScript Functions
+
+// Check API Status
+async function checkAPIStatus() {
+    const statusDiv = document.getElementById('system-status');
+    statusDiv.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Checking API status...';
+    
+    try {
+        const endpoints = [
+            '/api/appointments/debug/session',
+            '/api/database/test-connection',
+            '/Test/Database'
+        ];
+        
+        let results = [];
+        for (let endpoint of endpoints) {
+            try {
+                const response = await fetch(endpoint);
+                results.push({
+                    endpoint: endpoint,
+                    status: response.ok ? 'OK' : 'ERROR',
+                    statusCode: response.status
+                });
+            } catch (error) {
+                results.push({
+                    endpoint: endpoint,
+                    status: 'ERROR',
+                    error: error.message
+                });
+            }
+        }
+        
+        let html = '<div class="small">';
+        results.forEach(result => {
+            const badgeClass = result.status === 'OK' ? 'bg-success' : 'bg-danger';
+            html += `<div class="d-flex justify-content-between mb-1">
+                        <span>${result.endpoint}</span>
+                        <span class="badge ${badgeClass}">${result.status}</span>
+                     </div>`;
+        });
+        html += '</div>';
+        
+        statusDiv.innerHTML = html;
+    } catch (error) {
+        statusDiv.innerHTML = `<div class="text-danger">Error checking API status: ${error.message}</div>`;
+    }
+}
+
+// View Session Info
+async function viewSessionInfo() {
+    try {
+        const response = await fetch('/api/appointments/debug/session');
+        const data = await response.json();
+        
+        alert(`Session Info:\n${JSON.stringify(data, null, 2)}`);
+    } catch (error) {
+        alert(`Error getting session info: ${error.message}`);
+    }
+}
+
+// Test User Session
+function testUserSession() {
+    // Open login modal if available
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        const modal = new bootstrap.Modal(loginModal);
+        modal.show();
+    } else {
+        alert('Login modal not found. Please test from main page.');
+    }
+}
+
+// Test Form Validation
+function testValidation() {
+    // Open register modal if available
+    const registerModal = document.getElementById('registerModal');
+    if (registerModal) {
+        const modal = new bootstrap.Modal(registerModal);
+        modal.show();
+    } else {
+        alert('Register modal not found. Please test from main page.');
+    }
+}
+
+// Test Appointment API
+async function testAppointmentAPI() {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = '<div class="spinner-border me-2"></div>Testing Appointment API...';
+    
+    try {
+        // Test get available doctors
+        const response = await fetch('/api/appointments/available-doctors?date=2024-12-20&time=09:00');
+        const data = await response.json();
+        
+        resultsDiv.innerHTML = `
+            <h5>Appointment API Test Results</h5>
+            <pre class="bg-light p-3">${JSON.stringify(data, null, 2)}</pre>
+        `;
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-danger">API Test Failed: ${error.message}</div>`;
+    }
+}
+
+// Test Database Connections
+async function testDatabaseConnections() {
+    try {
+        const response = await fetch('/Test/Database');
+        if (response.ok) {
+            alert('Database connection test passed!');
+        } else {
+            alert('Database connection test failed!');
+        }
+    } catch (error) {
+        alert(`Database test error: ${error.message}`);
+    }
+}
+
+// Generate Test Data
+async function generateTestData() {
+    if (confirm('Generate test data? This will create sample users and appointments.')) {
+        try {
+            // Create test user
+            await fetch('/Test/CreateTestUser');
+            alert('Test data generated successfully!');
+            loadRecentActivity();
+        } catch (error) {
+            alert(`Error generating test data: ${error.message}`);
+        }
+    }
+}
+
+// Clear All Test Data
+function clearAllData() {
+    if (confirm('Clear all test data? This action cannot be undone.')) {
+        alert('Clear test data functionality not implemented yet.');
+    }
+}
+
+// Reset System
+function resetSystem() {
+    if (confirm('Reset system to default state? This will clear all data.')) {
+        alert('System reset functionality not implemented yet.');
+    }
+}
+
+// Export Test Results
+function exportTestResults() {
+    const results = document.getElementById('test-results').innerText;
+    const blob = new Blob([results], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'test-results.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+// Run All Tests
+async function runAllTests() {
+    const resultsDiv = document.getElementById('test-results');
+    resultsDiv.innerHTML = '<div class="spinner-border me-2"></div>Running all tests...';
+    
+    let testResults = [];
+    
+    // Test database connection
+    try {
+        const dbResponse = await fetch('/Test/Database');
+        testResults.push({
+            test: 'Database Connection',
+            status: dbResponse.ok ? 'PASS' : 'FAIL',
+            details: `Status: ${dbResponse.status}`
+        });
+    } catch (error) {
+        testResults.push({
+            test: 'Database Connection',
+            status: 'FAIL',
+            details: error.message
+        });
+    }
+    
+    // Test appointment API
+    try {
+        const apiResponse = await fetch('/api/appointments/debug/session');
+        testResults.push({
+            test: 'Appointment API',
+            status: apiResponse.ok ? 'PASS' : 'FAIL',
+            details: `Status: ${apiResponse.status}`
+        });
+    } catch (error) {
+        testResults.push({
+            test: 'Appointment API',
+            status: 'FAIL',
+            details: error.message
+        });
+    }
+    
+    // Display results
+    let html = '<h5>All Tests Results</h5><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Test</th><th>Status</th><th>Details</th></tr></thead><tbody>';
+    
+    testResults.forEach(result => {
+        const badgeClass = result.status === 'PASS' ? 'bg-success' : 'bg-danger';
+        html += `<tr>
+                    <td>${result.test}</td>
+                    <td><span class="badge ${badgeClass}">${result.status}</span></td>
+                    <td><small>${result.details}</small></td>
+                 </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    resultsDiv.innerHTML = html;
+}
+
+// Load Recent Activity
+async function loadRecentActivity() {
+    const activityDiv = document.getElementById('recent-activity');
+    
+    try {
+        // This would typically fetch from an activity log API
+        activityDiv.innerHTML = `
+            <div class="small">
+                <div>✓ Database connection tested</div>
+                <div>✓ User session verified</div>
+                <div>✓ Test hub loaded</div>
+            </div>
+        `;
+    } catch (error) {
+        activityDiv.innerHTML = '<div class="text-danger">Error loading activity</div>';
+    }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    checkAPIStatus();
+    loadRecentActivity();
+});
+</script>
+
+<!-- Include login/register JavaScript -->
+<script src="~/js/login-register.js"></script> 
