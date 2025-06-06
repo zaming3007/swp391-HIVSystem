@@ -204,7 +204,11 @@ CREATE TABLE Appointments (
     ReminderSent BIT DEFAULT 0,
     CreatedBy INT FOREIGN KEY REFERENCES Users(UserID),
     CreatedDate DATETIME DEFAULT GETDATE(),
-    ModifiedDate DATETIME
+    ModifiedDate DATETIME,
+    ConsultationFee DECIMAL(10,2) NULL,
+    PatientName NVARCHAR(255) NULL,
+    PatientPhone NVARCHAR(20) NULL,
+    PatientEmail NVARCHAR(255) NULL
 );
 
 -- Tạo bảng AppointmentReminders (Nhắc nhở lịch hẹn)
