@@ -61,8 +61,9 @@ namespace HIVHealthcareSystem.Models
         [ForeignKey("PatientID")]
         public virtual User? Patient { get; set; }
 
-        [ForeignKey("DoctorID")]
-        public virtual User Doctor { get; set; } = null!;
+        // Temporarily disable Doctor navigation property to avoid EF conflicts
+        // [ForeignKey("DoctorID")]
+        // public virtual Doctor Doctor { get; set; } = null!;
 
         [ForeignKey("FacilityID")]
         public virtual Facility? Facility { get; set; }

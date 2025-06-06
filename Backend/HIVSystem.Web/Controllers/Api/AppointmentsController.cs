@@ -101,21 +101,23 @@ namespace HIVSystem.Web.Controllers.Api
                     appointmentTime = parsedTime;
                 }
 
-                // Get all users with RoleID = 2 (doctors) OR username starting with "dr."
-                var doctorsQuery = _context.Users
-                    .Where(u => u.IsActive && (u.RoleID == 2 || u.Username.StartsWith("dr.")));
+                // Get all doctors from Doctors table with their User information
+                var doctorsQuery = _context.Doctors
+                    .Include(d => d.User)
+                    .Where(d => d.IsAvailable && d.User.IsActive);
 
                 if (!string.IsNullOrEmpty(specialty))
                 {
-                    doctorsQuery = doctorsQuery.Where(u => u.FullName.ToLower().Contains(specialty.ToLower()));
+                    doctorsQuery = doctorsQuery.Where(d => d.Specialty.ToLower().Contains(specialty.ToLower()) || d.User.FullName.ToLower().Contains(specialty.ToLower()));
                 }
 
                 var allDoctors = await doctorsQuery.ToListAsync();
 
                 var availableDoctors = new List<object>();
 
-                foreach (var doctor in allDoctors)
+                foreach (var doctorInfo in allDoctors)
                 {
+                    var doctor = doctorInfo.User; // Get the associated User
                     bool isAvailable = true;
                     string availabilityReason = "";
 
@@ -124,7 +126,7 @@ namespace HIVSystem.Web.Controllers.Api
                     {
                         // Check if doctor already has an appointment at this exact time
                         var existingAppointment = await _context.Appointments
-                            .Where(a => a.DoctorID == doctor.UserID 
+                            .Where(a => a.DoctorID == doctorInfo.DoctorID 
                                     && a.AppointmentDate.Date == appointmentDate.Value.Date
                                     && a.AppointmentTime == appointmentTime.Value
                                     && a.Status != "Cancelled")
@@ -140,7 +142,7 @@ namespace HIVSystem.Web.Controllers.Api
                         if (isAvailable)
                         {
                             var conflictingAppointments = await _context.Appointments
-                                .Where(a => a.DoctorID == doctor.UserID 
+                                .Where(a => a.DoctorID == doctorInfo.DoctorID 
                                         && a.AppointmentDate.Date == appointmentDate.Value.Date
                                         && a.Status != "Cancelled")
                                 .ToListAsync();
@@ -186,19 +188,19 @@ namespace HIVSystem.Web.Controllers.Api
                     // Only include available doctors (unless no date/time specified, then show all)
                     if (isAvailable || (!appointmentDate.HasValue || !appointmentTime.HasValue))
                     {
-                        var doctorInfo = new
+                        var doctorResponse = new
                         {
-                            doctorID = doctor.UserID,
+                            doctorID = doctorInfo.DoctorID, // Use the actual DoctorID from Doctors table
                             userID = doctor.UserID,
                             fullName = doctor.FullName,
-                            specialty = ExtractSpecialty(doctor.FullName),
-                            qualification = "MD",
-                            biography = $"Bác sĩ chuyên khoa {ExtractSpecialty(doctor.FullName)} với nhiều năm kinh nghiệm trong điều trị HIV/AIDS",
-                            yearsOfExperience = GetRandomExperience(),
+                            specialty = doctorInfo.Specialty ?? ExtractSpecialty(doctor.FullName),
+                            qualification = doctorInfo.Qualification ?? "MD",
+                            biography = doctorInfo.Biography ?? $"Bác sĩ chuyên khoa {doctorInfo.Specialty ?? ExtractSpecialty(doctor.FullName)} với nhiều năm kinh nghiệm trong điều trị HIV/AIDS",
+                            yearsOfExperience = doctorInfo.YearsOfExperience ?? GetRandomExperience(),
                             isAvailable = isAvailable,
                             availabilityReason = availabilityReason,
-                            consultationFee = GetConsultationFee(doctor.FullName),
-                            verificationStatus = "Verified",
+                            consultationFee = doctorInfo.ConsultationFee ?? GetConsultationFee(doctor.FullName),
+                            verificationStatus = doctorInfo.VerificationStatus ?? "Verified",
                             profileImage = doctor.ProfileImage ?? "/images/default-doctor.png",
                             email = doctor.Email,
                             phoneNumber = doctor.PhoneNumber,
@@ -208,7 +210,7 @@ namespace HIVSystem.Web.Controllers.Api
                             availableToday = isAvailable
                         };
 
-                        availableDoctors.Add(doctorInfo);
+                        availableDoctors.Add(doctorResponse);
                     }
                 }
 
@@ -320,14 +322,17 @@ namespace HIVSystem.Web.Controllers.Api
                     return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
                 }
 
-                // Validate doctor exists
-                var doctor = await _context.Users
-                    .FirstOrDefaultAsync(u => u.UserID == request.DoctorId && u.IsActive && (u.RoleID == 2 || u.Username.StartsWith("dr.")));
+                // Validate doctor exists (check both Doctors table and Users table)
+                var doctorInfo = await _context.Doctors
+                    .Include(d => d.User)
+                    .FirstOrDefaultAsync(d => d.DoctorID == request.DoctorId && d.IsAvailable && d.User.IsActive);
 
-                if (doctor == null)
+                if (doctorInfo == null)
                 {
                     return BadRequest(new { success = false, message = "Bác sĩ không tồn tại hoặc không khả dụng" });
                 }
+
+                var doctor = doctorInfo.User; // Get the associated User for backward compatibility
 
                 // Validate appointment date and time
                 if (!DateTime.TryParse(request.AppointmentDate, out DateTime appointmentDate))
@@ -567,14 +572,14 @@ namespace HIVSystem.Web.Controllers.Api
                                    a.AppointmentTime >= startCheck &&
                                    a.AppointmentTime <= endCheck &&
                                    a.Status != "Cancelled")
-                        .Include(a => a.Doctor)
                         .ToListAsync();
 
                     if (overlappingAppointments.Any())
                     {
                         foreach (var overlap in overlappingAppointments)
                         {
-                            warnings.Add($"⚠️ Có lịch khám gần với bác sĩ {overlap.Doctor?.FullName} lúc {overlap.AppointmentTime:hh\\:mm} (cách {Math.Abs((appointmentTime - overlap.AppointmentTime).TotalMinutes):0} phút)");
+                            var doctorName = await GetDoctorNameByIdAsync(overlap.DoctorID);
+                            warnings.Add($"⚠️ Có lịch khám gần với bác sĩ {doctorName} lúc {overlap.AppointmentTime:hh\\:mm} (cách {Math.Abs((appointmentTime - overlap.AppointmentTime).TotalMinutes):0} phút)");
                         }
                         suggestions.Add("Đảm bảo bạn có đủ thời gian di chuyển giữa các cuộc hẹn");
                     }
@@ -623,13 +628,27 @@ namespace HIVSystem.Web.Controllers.Api
         }
 
         /// <summary>
-        /// Get doctor name by ID
+        /// Get doctor name by ID (from Doctors table)
         /// </summary>
         private async Task<string> GetDoctorNameAsync(int doctorId)
         {
-            var doctor = await _context.Users
-                .Where(u => u.UserID == doctorId)
-                .Select(u => u.FullName)
+            var doctor = await _context.Doctors
+                .Include(d => d.User)
+                .Where(d => d.DoctorID == doctorId)
+                .Select(d => d.User.FullName)
+                .FirstOrDefaultAsync();
+            return doctor ?? "Không xác định";
+        }
+
+        /// <summary>
+        /// Get doctor name by DoctorID (helper method)
+        /// </summary>
+        private async Task<string> GetDoctorNameByIdAsync(int doctorId)
+        {
+            var doctor = await _context.Doctors
+                .Include(d => d.User)
+                .Where(d => d.DoctorID == doctorId)
+                .Select(d => d.User.FullName)
                 .FirstOrDefaultAsync();
             return doctor ?? "Không xác định";
         }
@@ -708,16 +727,23 @@ namespace HIVSystem.Web.Controllers.Api
                 }
 
                 var userId = int.Parse(currentUserId);
-                var appointments = await _context.Appointments
+                var appointmentsQuery = await _context.Appointments
                     .Where(a => a.CreatedBy == userId || a.PatientID == userId)
-                    .Include(a => a.Doctor)
                     .Include(a => a.Facility)
-                    .Select(a => new
+                    .OrderByDescending(a => a.AppointmentDate)
+                    .ThenByDescending(a => a.AppointmentTime)
+                    .ToListAsync();
+
+                var appointments = new List<object>();
+                foreach (var a in appointmentsQuery)
+                {
+                    var doctorName = await GetDoctorNameByIdAsync(a.DoctorID);
+                    appointments.Add(new
                     {
                         appointmentID = a.AppointmentID,
-                        doctorName = a.Doctor.FullName,
-                        facilityName = a.Facility != null ? a.Facility.FacilityName : "Trung tâm Điều trị HIV/AIDS",
-                        facilityAddress = a.Facility != null ? a.Facility.Address : "123 Đường ABC, Quận 1",
+                        doctorName = doctorName,
+                        facilityName = a.Facility?.FacilityName ?? "Trung tâm Điều trị HIV/AIDS",
+                        facilityAddress = a.Facility?.Address ?? "123 Đường ABC, Quận 1",
                         appointmentDate = a.AppointmentDate,
                         appointmentTime = a.AppointmentTime,
                         appointmentType = a.AppointmentType,
@@ -730,10 +756,8 @@ namespace HIVSystem.Web.Controllers.Api
                         patientPhone = a.PatientPhone,
                         patientEmail = a.PatientEmail,
                         isAnonymous = a.IsAnonymous
-                    })
-                    .OrderByDescending(a => a.appointmentDate)
-                    .ThenByDescending(a => a.appointmentTime)
-                    .ToListAsync();
+                    });
+                }
 
                 return Ok(new { 
                     appointments = appointments,

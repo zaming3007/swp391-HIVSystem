@@ -10,15 +10,16 @@ namespace HIVHealthcareSystem.Data
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Appointment> Appointments { get; set; }
-        public DbSet<Facility> Facilities { get; set; }
+        public DbSet<HIVHealthcareSystem.Models.User> Users { get; set; }
+        public DbSet<HIVHealthcareSystem.Models.Doctor> Doctors { get; set; }
+        public DbSet<HIVHealthcareSystem.Models.Appointment> Appointments { get; set; }
+        public DbSet<HIVHealthcareSystem.Models.Facility> Facilities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<User>(entity =>
+            modelBuilder.Entity<HIVHealthcareSystem.Models.User>(entity =>
             {
                 entity.ToTable("Users");
                 
@@ -62,7 +63,43 @@ namespace HIVHealthcareSystem.Data
                     .HasDefaultValueSql("GETDATE()");
             });
 
-            modelBuilder.Entity<Facility>(entity =>
+            modelBuilder.Entity<HIVHealthcareSystem.Models.Doctor>(entity =>
+            {
+                entity.ToTable("Doctors");
+                
+                entity.Property(e => e.Specialty)
+                    .HasMaxLength(100);
+                
+                entity.Property(e => e.Qualification)
+                    .HasMaxLength(255);
+                
+                entity.Property(e => e.LicenseNumber)
+                    .HasMaxLength(50);
+                
+                entity.Property(e => e.VerificationStatus)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasDefaultValue("Pending");
+                
+                entity.Property(e => e.IsAvailable)
+                    .HasDefaultValue(true);
+                
+                entity.Property(e => e.ConsultationFee)
+                    .HasColumnType("decimal(10,2)");
+
+                // Configure relationships
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserID)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(e => e.VerifiedByUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.VerifiedBy)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<HIVHealthcareSystem.Models.Facility>(entity =>
             {
                 entity.ToTable("Facilities");
                 
@@ -98,7 +135,9 @@ namespace HIVHealthcareSystem.Data
                     .HasDefaultValue(true);
             });
 
-            modelBuilder.Entity<Appointment>(entity =>
+
+
+            modelBuilder.Entity<HIVHealthcareSystem.Models.Appointment>(entity =>
             {
                 entity.ToTable("Appointments");
                 
@@ -152,10 +191,11 @@ namespace HIVHealthcareSystem.Data
                     .HasForeignKey(e => e.PatientID)
                     .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasOne(e => e.Doctor)
-                    .WithMany()
-                    .HasForeignKey(e => e.DoctorID)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Temporarily disable Doctor navigation property relationship
+                // entity.HasOne(e => e.Doctor)
+                //     .WithMany(d => d.Appointments)
+                //     .HasForeignKey(e => e.DoctorID)
+                //     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Facility)
                     .WithMany()
