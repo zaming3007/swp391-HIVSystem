@@ -1,0 +1,280 @@
+@{
+    ViewData["Title"] = "Test Auto-Fill Functionality";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-vial me-2"></i>Test Auto-Fill Functionality
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- User Status -->
+                    <div class="mb-4">
+                        <h5>User Status:</h5>
+                        <div id="userStatus" class="alert alert-info">
+                            Loading user status...
+                        </div>
+                    </div>
+
+                    <!-- API Test -->
+                    <div class="mb-4">
+                        <h5>API Test:</h5>
+                        <button class="btn btn-outline-primary me-2" onclick="testCurrentUserAPI()">
+                            Test /api/Auth/current-user
+                        </button>
+                        <button class="btn btn-outline-secondary me-2" onclick="testAuthStatusAPI()">
+                            Test /api/database/auth-status
+                        </button>
+                        <div id="apiResult" class="mt-3"></div>
+                    </div>
+
+                    <!-- Auto-Fill Test Form -->
+                    <div class="mb-4">
+                        <h5>Auto-Fill Test Form:</h5>
+                        
+                        <!-- Account Info Section (Like in Online Consultation) -->
+                        <div id="accountInfoSection" class="alert alert-info" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-user-check me-2"></i>
+                                    <strong>Đã đăng nhập:</strong> <span id="currentUserName"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="useAccountInfo()">
+                                    <i class="fas fa-magic me-1"></i>Sử dụng thông tin tài khoản
+                                </button>
+                            </div>
+                        </div>
+
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Họ và tên *</label>
+                                    <input type="text" id="patientName" class="form-control" placeholder="Nhập họ và tên đầy đủ">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Số điện thoại *</label>
+                                    <input type="tel" id="patientPhone" class="form-control" placeholder="Nhập số điện thoại">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" id="patientEmail" class="form-control" placeholder="Nhập địa chỉ email">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input type="date" id="dateOfBirth" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Giới tính</label>
+                                    <select id="gender" class="form-control">
+                                        <option value="">Chọn giới tính</option>
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <textarea id="address" class="form-control" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="button" class="btn btn-warning me-2" onclick="clearForm()">
+                                    <i class="fas fa-eraser me-1"></i>Xóa form
+                                </button>
+                                <button type="button" class="btn btn-success" onclick="useAccountInfo()">
+                                    <i class="fas fa-magic me-1"></i>Auto-Fill từ tài khoản
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Debug Info -->
+                    <div class="mb-4">
+                        <h5>Debug Info:</h5>
+                        <div id="debugInfo" class="bg-light p-3 rounded">
+                            Debug information will appear here...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserStatus();
+    loadCurrentUser();
+});
+
+async function loadUserStatus() {
+    const statusDiv = document.getElementById('userStatus');
+    
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <text>
+        statusDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <div>
+                    <strong>Đã đăng nhập:</strong> @Context.Session.GetString("FullName") (@Context.Session.GetString("Username"))<br>
+                    <small class="text-muted">Session Active - UserID: @Context.Session.GetString("UserId")</small>
+                </div>
+            </div>
+        `;
+        statusDiv.className = 'alert alert-success';
+        </text>
+    }
+    else
+    {
+        <text>
+        statusDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-times-circle text-danger me-2"></i>
+                <strong>Chưa đăng nhập</strong>
+            </div>
+        `;
+        statusDiv.className = 'alert alert-warning';
+        </text>
+    }
+}
+
+async function loadCurrentUser() {
+    try {
+        const response = await fetch('/api/Auth/current-user');
+        const result = await response.json();
+        
+        updateDebugInfo('Load Current User', { 
+            url: '/api/Auth/current-user',
+            response: result 
+        });
+        
+        if (result.success && result.isAuthenticated) {
+            currentUser = result.user;
+            document.getElementById('currentUserName').textContent = currentUser.FullName || 'N/A';
+            document.getElementById('accountInfoSection').style.display = 'block';
+        } else {
+            document.getElementById('accountInfoSection').style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error loading current user:', error);
+        updateDebugInfo('Load Current User Error', { error: error.message });
+    }
+}
+
+async function testCurrentUserAPI() {
+    try {
+        const response = await fetch('/api/Auth/current-user');
+        const result = await response.json();
+        
+        document.getElementById('apiResult').innerHTML = `
+            <div class="alert alert-success">
+                <h6>✅ /api/Auth/current-user Response:</h6>
+                <pre>${JSON.stringify(result, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('apiResult').innerHTML = `
+            <div class="alert alert-danger">
+                <h6>❌ Error:</h6>
+                <pre>${error.message}</pre>
+            </div>
+        `;
+    }
+}
+
+async function testAuthStatusAPI() {
+    try {
+        const response = await fetch('/api/database/auth-status');
+        const result = await response.json();
+        
+        document.getElementById('apiResult').innerHTML = `
+            <div class="alert alert-info">
+                <h6>ℹ️ /api/database/auth-status Response:</h6>
+                <pre>${JSON.stringify(result, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        document.getElementById('apiResult').innerHTML = `
+            <div class="alert alert-danger">
+                <h6>❌ Error:</h6>
+                <pre>${error.message}</pre>
+            </div>
+        `;
+    }
+}
+
+function useAccountInfo() {
+    if (!currentUser) {
+        alert('Không có thông tin tài khoản để sử dụng');
+        updateDebugInfo('Auto-Fill Error', { message: 'currentUser is null' });
+        return;
+    }
+    
+    // Fill form with account info
+    document.getElementById('patientName').value = currentUser.FullName || '';
+    document.getElementById('patientPhone').value = currentUser.PhoneNumber || '';
+    document.getElementById('patientEmail').value = currentUser.Email || '';
+    document.getElementById('dateOfBirth').value = currentUser.DateOfBirth ? currentUser.DateOfBirth.split('T')[0] : '';
+    document.getElementById('gender').value = currentUser.Gender || '';
+    document.getElementById('address').value = currentUser.Address || '';
+    
+    updateDebugInfo('Auto-Fill Success', { 
+        user: currentUser,
+        filled_fields: {
+            name: currentUser.FullName || 'empty',
+            phone: currentUser.PhoneNumber || 'empty',
+            email: currentUser.Email || 'empty',
+            dob: currentUser.DateOfBirth || 'empty',
+            gender: currentUser.Gender || 'empty',
+            address: currentUser.Address || 'empty'
+        }
+    });
+    
+    // Show success message
+    const successAlert = document.createElement('div');
+    successAlert.className = 'alert alert-success alert-dismissible fade show mt-2';
+    successAlert.innerHTML = `
+        <i class="fas fa-check-circle me-2"></i>
+        Đã điền thông tin từ tài khoản! Bạn có thể chỉnh sửa nếu cần.
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+    
+    document.getElementById('accountInfoSection').parentNode.insertBefore(successAlert, document.getElementById('accountInfoSection').nextSibling);
+    
+    // Auto-hide success message after 3 seconds
+    setTimeout(() => {
+        if (successAlert.parentNode) {
+            successAlert.remove();
+        }
+    }, 3000);
+}
+
+function clearForm() {
+    document.getElementById('patientName').value = '';
+    document.getElementById('patientPhone').value = '';
+    document.getElementById('patientEmail').value = '';
+    document.getElementById('dateOfBirth').value = '';
+    document.getElementById('gender').value = '';
+    document.getElementById('address').value = '';
+    
+    updateDebugInfo('Form Cleared', { timestamp: new Date().toISOString() });
+}
+
+function updateDebugInfo(action, data) {
+    const debugDiv = document.getElementById('debugInfo');
+    const timestamp = new Date().toLocaleString('vi-VN');
+    
+    debugDiv.innerHTML = `
+        <strong>[${timestamp}] ${action}:</strong><br>
+        <pre style="white-space: pre-wrap; font-size: 12px;">${JSON.stringify(data, null, 2)}</pre>
+    `;
+}
+</script> 

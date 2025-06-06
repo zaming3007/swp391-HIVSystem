@@ -25,6 +25,18 @@ public class HomeController : Controller
         return View();
     }
 
+    // Online consultation booking page
+    public IActionResult OnlineConsultation()
+    {
+        return View();
+    }
+
+    // Test auto-fill functionality
+    public IActionResult TestAutoFill()
+    {
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

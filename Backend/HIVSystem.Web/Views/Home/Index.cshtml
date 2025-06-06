@@ -28,11 +28,15 @@
             </div>
             
             <div class="row justify-content-center">
-                <div class="col-md-8">
+                <div class="col-md-10">
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <a href="/Home/AppointmentBooking" class="btn btn-light btn-lg px-4 py-3">
                             <i class="fas fa-calendar-plus me-2"></i>
-                            Đặt Lịch Khám & Điều Trị HIV
+                            Đặt Lịch Khám Tại Phòng Khám
+                        </a>
+                        <a href="/Home/OnlineConsultation" class="btn btn-outline-light btn-lg px-4 py-3" style="border: 2px solid #fff;">
+                            <i class="fas fa-video me-2"></i>
+                            Tư Vấn Trực Tuyến
                         </a>
                         @if (Context.Session.GetString("Username") == null)
                         {
@@ -192,9 +196,25 @@
                         <i class="fas fa-calendar-check fa-3x text-primary"></i>
                     </div>
                     <h5 class="card-title">Đặt Lịch Khám</h5>
-                    <p class="card-text">Đặt lịch khám và điều trị HIV với bác sĩ chuyên khoa. Hỗ trợ đặt lịch ẩn danh để bảo vệ quyền riêng tư.</p>
+                    <p class="card-text">Đặt lịch khám và điều trị HIV tại phòng khám với bác sĩ chuyên khoa. Hỗ trợ đặt lịch ẩn danh để bảo vệ quyền riêng tư.</p>
                     <a href="/Home/AppointmentBooking" class="btn btn-primary">
                         <i class="fas fa-calendar-plus me-2"></i>Đặt Lịch Khám
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Consultation Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-video fa-3x text-purple"></i>
+                    </div>
+                    <h5 class="card-title">Tư Vấn Trực Tuyến</h5>
+                    <p class="card-text">Tư vấn với bác sĩ qua video call an toàn, tiện lợi và riêng tư. Hỗ trợ đặt lịch ẩn danh và bảo mật thông tin.</p>
+                    <a href="/Home/OnlineConsultation" class="btn btn-purple">
+                        <i class="fas fa-video me-2"></i>Tư Vấn Online
                     </a>
                 </div>
             </div>
@@ -312,6 +332,57 @@
         </div>
     </div>
 
+    <!-- Appointment Search Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-search me-2 text-info"></i>
+                Tra Cứu Lịch Hẹn
+            </h3>
+        </div>
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-calendar-search fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Tìm kiếm lịch hẹn của bạn</h5>
+                        <p class="text-muted">Nhập số điện thoại hoặc email để tra cứu lịch hẹn đã đặt (cả offline và online)</p>
+                    </div>
+                    
+                    <form id="appointmentSearchForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-info text-white">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="searchContact" class="form-control" 
+                                           placeholder="Nhập số điện thoại hoặc email..." required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="searchLoading" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Đang tìm...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang tìm kiếm lịch hẹn...</p>
+                    </div>
+
+                    <div id="searchResults" class="mt-4" style="display: none;">
+                        <!-- Results will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Access Section -->
     <div class="row mb-5">
         <div class="col-12">
@@ -326,6 +397,12 @@
                     <a href="/Home/AppointmentBooking" class="btn btn-primary btn-lg w-100">
                         <i class="fas fa-calendar-plus me-2"></i>
                         Đặt Lịch Khám
+                    </a>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="/Home/OnlineConsultation" class="btn btn-purple btn-lg w-100">
+                        <i class="fas fa-video me-2"></i>
+                        Tư Vấn Online
                     </a>
                 </div>
                 <div class="col-md-2 mb-2">
@@ -661,6 +738,18 @@ function hideAllSections() {
 async function loadProfileInfo() {
     if (!currentUser) return;
     
+    // Load full user profile from API
+    try {
+        const response = await fetch('/api/Auth/current-user');
+        const result = await response.json();
+        
+        if (result.success && result.isAuthenticated) {
+            currentUser = result.user; // Update with full user data
+        }
+    } catch (error) {
+        console.error('Error loading full user profile:', error);
+    }
+    
     const content = document.getElementById('profile-info-content');
     const profileHtml = 
         '<div class="row">' +
@@ -669,8 +758,8 @@ async function loadProfileInfo() {
                     '<div class="avatar-container" style="width: 100px; height: 100px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px;">' +
                         '<i class="fas fa-user"></i>' +
                     '</div>' +
-                    '<h5 class="mt-3">' + currentUser.fullName + '</h5>' +
-                    '<p class="text-muted">@@' + currentUser.username + '</p>' +
+                    '<h5 class="mt-3">' + (currentUser.FullName || currentUser.fullName || 'Chưa cập nhật') + '</h5>' +
+                    '<p class="text-muted">@@' + (currentUser.Username || currentUser.username || 'N/A') + '</p>' +
                 '</div>' +
             '</div>' +
             '<div class="col-md-9">' +
@@ -678,23 +767,36 @@ async function loadProfileInfo() {
                     '<div class="row">' +
                         '<div class="col-md-6 mb-3">' +
                             '<label class="form-label">Tên đăng nhập</label>' +
-                            '<input type="text" class="form-control" value="' + currentUser.username + '" readonly>' +
+                            '<input type="text" class="form-control" value="' + (currentUser.Username || currentUser.username || '') + '" readonly>' +
                         '</div>' +
                         '<div class="col-md-6 mb-3">' +
                             '<label class="form-label">Email</label>' +
-                            '<input type="email" class="form-control" value="' + currentUser.email + '" readonly>' +
+                            '<input type="email" class="form-control" id="email" value="' + (currentUser.Email || currentUser.email || '') + '" placeholder="Nhập email của bạn">' +
                         '</div>' +
                         '<div class="col-md-6 mb-3">' +
                             '<label class="form-label">Họ và tên</label>' +
-                            '<input type="text" class="form-control" id="fullName" value="' + currentUser.fullName + '">' +
+                            '<input type="text" class="form-control" id="fullName" value="' + (currentUser.FullName || currentUser.fullName || '') + '" placeholder="Nhập họ và tên">' +
                         '</div>' +
                         '<div class="col-md-6 mb-3">' +
                             '<label class="form-label">Số điện thoại</label>' +
-                            '<input type="tel" class="form-control" id="phoneNumber" placeholder="Nhập số điện thoại">' +
+                            '<input type="tel" class="form-control" id="phoneNumber" value="' + (currentUser.PhoneNumber || currentUser.phoneNumber || '') + '" placeholder="Nhập số điện thoại">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Ngày sinh</label>' +
+                            '<input type="date" class="form-control" id="dateOfBirth" value="' + (currentUser.DateOfBirth ? currentUser.DateOfBirth.split('T')[0] : currentUser.dateOfBirth ? currentUser.dateOfBirth.split('T')[0] : '') + '">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Giới tính</label>' +
+                            '<select class="form-control" id="gender">' +
+                                '<option value="">Chọn giới tính</option>' +
+                                '<option value="Nam"' + ((currentUser.Gender || currentUser.gender) === 'Nam' ? ' selected' : '') + '>Nam</option>' +
+                                '<option value="Nữ"' + ((currentUser.Gender || currentUser.gender) === 'Nữ' ? ' selected' : '') + '>Nữ</option>' +
+                                '<option value="Khác"' + ((currentUser.Gender || currentUser.gender) === 'Khác' ? ' selected' : '') + '>Khác</option>' +
+                            '</select>' +
                         '</div>' +
                         '<div class="col-md-12 mb-3">' +
                             '<label class="form-label">Địa chỉ</label>' +
-                            '<textarea class="form-control" id="address" rows="3" placeholder="Nhập địa chỉ"></textarea>' +
+                            '<textarea class="form-control" id="address" rows="3" placeholder="Nhập địa chỉ">' + (currentUser.Address || currentUser.address || '') + '</textarea>' +
                         '</div>' +
                     '</div>' +
                     '<div class="text-end">' +
@@ -791,7 +893,9 @@ async function updateProfile() {
     const formData = {
         fullName: document.getElementById('fullName').value,
         phoneNumber: document.getElementById('phoneNumber').value,
-        address: document.getElementById('address').value
+        address: document.getElementById('address').value,
+        dateOfBirth: document.getElementById('dateOfBirth').value || null,
+        gender: document.getElementById('gender').value || null
     };
     
     try {
@@ -803,15 +907,18 @@ async function updateProfile() {
             body: JSON.stringify(formData)
         });
         
-        if (response.ok) {
-            alert('Cập nhật thông tin thành công!');
-            window.location.reload();
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showSuccessToast('Cập nhật thông tin thành công!');
+            // Reload current user data
+            await loadProfileInfo();
         } else {
-            alert('Có lỗi xảy ra khi cập nhật thông tin.');
+            showErrorToast(result.message || 'Có lỗi xảy ra khi cập nhật thông tin.');
         }
     } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Có lỗi xảy ra khi cập nhật thông tin.');
+        showErrorToast('Có lỗi xảy ra khi cập nhật thông tin.');
     }
 }
 
@@ -912,8 +1019,172 @@ function closeToast(toastId) {
     }
 }
 
+// Appointment Search functionality
+document.getElementById('appointmentSearchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    searchAppointments();
+});
+
+async function searchAppointments() {
+    const contactInput = document.getElementById('searchContact');
+    const contact = contactInput.value.trim();
+    
+    if (!contact) {
+        alert('Vui lòng nhập số điện thoại hoặc email');
+        return;
+    }
+    
+    const loadingDiv = document.getElementById('searchLoading');
+    const resultsDiv = document.getElementById('searchResults');
+    
+    // Show loading
+    loadingDiv.style.display = 'block';
+    resultsDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/OnlineConsultation/search?contact=${encodeURIComponent(contact)}`);
+        const data = await response.json();
+        
+        loadingDiv.style.display = 'none';
+        
+        if (response.ok) {
+            displaySearchResults(data.appointments || [], data.message);
+        } else {
+            displaySearchResults([], data.message || 'Có lỗi xảy ra khi tìm kiếm');
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        loadingDiv.style.display = 'none';
+        displaySearchResults([], 'Có lỗi xảy ra khi tìm kiếm');
+    }
+}
+
+function displaySearchResults(appointments, message) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (appointments.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h5>Không tìm thấy lịch hẹn</h5>
+                <p class="mb-0">${message}</p>
+            </div>
+        `;
+    } else {
+        let html = `
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                ${message}
+            </div>
+            <div class="row">
+        `;
+        
+        appointments.forEach(appointment => {
+            const isOnline = appointment.isOnline;
+            const cardColor = isOnline ? 'border-purple' : 'border-primary';
+            const iconColor = isOnline ? 'text-purple' : 'text-primary';
+            const statusBadge = getSearchStatusBadge(appointment.status);
+            
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 ${cardColor}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold ${iconColor}">
+                                <i class="fas fa-${isOnline ? 'video' : 'clinic-medical'} me-2"></i>
+                                ${appointment.type}
+                            </span>
+                            ${statusBadge}
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-sm">
+                                <div class="col-6">
+                                    <p class="mb-2"><strong>Bác sĩ:</strong><br>${appointment.doctorName}</p>
+                                    <p class="mb-2"><strong>Ngày:</strong> ${appointment.appointmentDate}</p>
+                                    <p class="mb-2"><strong>Giờ:</strong> ${appointment.appointmentTime}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-2"><strong>Bệnh nhân:</strong><br>${appointment.patientName}</p>
+                                    <p class="mb-2"><strong>Phí:</strong> <span class="text-success fw-bold">${formatCurrency(appointment.consultationFee)}</span></p>
+                                    <p class="mb-2"><strong>ID:</strong> #${appointment.appointmentID}</p>
+                                </div>
+                            </div>
+                            ${appointment.purpose ? `<p class="text-muted small mt-2"><strong>Lý do:</strong> ${appointment.purpose}</p>` : ''}
+                            ${isOnline && appointment.canJoinCall && appointment.videoCallLink ? `
+                                <div class="mt-3 pt-3 border-top">
+                                    <a href="${appointment.videoCallLink}" target="_blank" class="btn btn-purple btn-sm">
+                                        <i class="fas fa-video me-1"></i> Tham gia cuộc họp
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    }
+    
+    resultsDiv.style.display = 'block';
+}
+
+function getSearchStatusBadge(status) {
+    switch (status) {
+        case 'Đã hẹn': return '<span class="badge bg-primary">Đã hẹn</span>';
+        case 'Hoàn thành': return '<span class="badge bg-success">Hoàn thành</span>';
+        case 'Đã hủy': return '<span class="badge bg-danger">Đã hủy</span>';
+        case 'Không đến': return '<span class="badge bg-warning">Không đến</span>';
+        default: return '<span class="badge bg-secondary">Không xác định</span>';
+    }
+}
+
+function formatCurrency(amount) {
+    if (!amount) return 'Miễn phí';
+    return amount.toLocaleString('vi-VN') + ' đ';
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     checkUserStatus();
 });
-</script> 
+</script>
+
+<style>
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #5a2d8a;
+    border-color: #5a2d8a;
+    color: white;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.border-purple {
+    border-color: #6f42c1 !important;
+}
+
+.service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.service-icon {
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-icon {
+    transform: scale(1.1);
+}
+</style> 

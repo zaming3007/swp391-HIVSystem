@@ -155,8 +155,15 @@
                         {
                             <div class="col-12 mb-3">
                                 <div class="alert alert-success">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Thông tin sẽ được lưu vào hồ sơ của bạn: <strong>@Context.Session.GetString("FullName")</strong>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Thông tin sẽ được lưu vào hồ sơ của bạn: <strong>@Context.Session.GetString("FullName")</strong>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-success" onclick="useAccountInfoOffline()">
+                                            <i class="fas fa-magic me-1"></i>Sử dụng thông tin tài khoản
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -256,6 +263,7 @@ let selectedDoctor = null;
 let availableTimes = [];
 let availableDoctors = [];
 let isAnonymousBooking = @(Context.Session.GetString("Username") == null ? "true" : "false");
+let currentUserOffline = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -267,6 +275,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('appointment-date').addEventListener('change', handleDateSelect);
     document.getElementById('anonymous-check').addEventListener('change', toggleNameField);
     document.getElementById('patient-form').addEventListener('submit', handleSubmit);
+    
+    // Load current user info for offline booking
+    if (!isAnonymousBooking) {
+        loadCurrentUserOffline();
+    }
 });
 
 // Enable anonymous booking
@@ -836,6 +849,62 @@ function goToHomeWithRefresh() {
     
     // Navigate to homepage with refresh
     window.location.href = '/';
+}
+
+// Auto-fill functions for offline booking
+async function loadCurrentUserOffline() {
+    try {
+        const response = await fetch('/api/Auth/current-user');
+        const result = await response.json();
+        
+        if (result.success && result.isAuthenticated) {
+            currentUserOffline = result.user;
+        }
+    } catch (error) {
+        console.error('Error loading current user for offline booking:', error);
+    }
+}
+
+function useAccountInfoOffline() {
+    if (!currentUserOffline) {
+        showAlert('Không có thông tin tài khoản để sử dụng', 'warning');
+        return;
+    }
+    
+    console.log('Current user data (offline):', currentUserOffline); // Debug log
+    
+    // Fill form with account info - handle both possible field name formats
+    const nameField = document.getElementById('patient-name');
+    const phoneField = document.getElementById('patient-phone');
+    const emailField = document.getElementById('patient-email');
+    
+    if (nameField) {
+        nameField.value = currentUserOffline.FullName || currentUserOffline.fullName || '';
+        console.log('Filled name (offline):', nameField.value);
+    }
+    
+    if (phoneField) {
+        phoneField.value = currentUserOffline.PhoneNumber || currentUserOffline.phoneNumber || '';
+        console.log('Filled phone (offline):', phoneField.value);
+    }
+    
+    if (emailField) {
+        emailField.value = currentUserOffline.Email || currentUserOffline.email || '';
+        console.log('Filled email (offline):', emailField.value);
+    }
+    
+    // Show success message
+    showAlert('Đã điền thông tin từ tài khoản! Bạn có thể chỉnh sửa nếu cần.', 'success');
+    
+    // Visual feedback - highlight filled fields
+    [nameField, phoneField, emailField].forEach(field => {
+        if (field && field.value) {
+            field.style.backgroundColor = '#d4edda';
+            setTimeout(() => {
+                field.style.backgroundColor = '';
+            }, 2000);
+        }
+    });
 }
 </script>
 
