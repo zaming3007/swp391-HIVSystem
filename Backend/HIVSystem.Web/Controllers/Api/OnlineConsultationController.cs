@@ -193,9 +193,9 @@ namespace HIVSystem.Web.Controllers.Api
                     CreatedDate = DateTime.Now,
                     CreatedBy = !string.IsNullOrEmpty(currentUserId) ? int.Parse(currentUserId) : null,
                     IsAnonymous = request.IsAnonymous,
-                    PatientName = request.IsAnonymous ? request.AnonymousInfo.FullName : (currentUserFullName ?? request.AnonymousInfo.FullName),
-                    PatientPhone = request.IsAnonymous ? request.AnonymousInfo.PhoneNumber : "",
-                    PatientEmail = request.IsAnonymous ? request.AnonymousInfo.Email : "",
+                    PatientName = request.AnonymousInfo.FullName,
+                    PatientPhone = request.AnonymousInfo.PhoneNumber,
+                    PatientEmail = request.AnonymousInfo.Email,
                     ConsultationFee = doctorInfo.ConsultationFee ?? 300000
                 };
 
@@ -234,7 +234,7 @@ namespace HIVSystem.Web.Controllers.Api
         }
 
         /// <summary>
-        /// Search appointments by contact info (phone or email)
+        /// Search appointments by contact info (phone or email) - includes both online and offline appointments
         /// </summary>
         [HttpGet("search")]
         public async Task<ActionResult> SearchAppointments([FromQuery] string contact)
@@ -246,13 +246,57 @@ namespace HIVSystem.Web.Controllers.Api
                     return BadRequest(new { success = false, message = "Vui lòng nhập email hoặc số điện thoại" });
                 }
 
+                // Debug: Log all appointments in database first
+                if (contact == "debug-all")
+                {
+                    var allAppointments = await _context.Appointments
+                        .Include(a => a.Patient)
+                        .Select(a => new
+                        {
+                            appointmentID = a.AppointmentID,
+                            patientID = a.PatientID,
+                            patientName = a.PatientName,
+                            patientPhone = a.PatientPhone,
+                            patientEmail = a.PatientEmail,
+                            linkedPatientPhone = a.Patient != null ? a.Patient.PhoneNumber : null,
+                            linkedPatientEmail = a.Patient != null ? a.Patient.Email : null,
+                            appointmentType = a.AppointmentType,
+                            purpose = a.Purpose,
+                            notes = a.Notes,
+                            appointmentDate = a.AppointmentDate.ToString("dd/MM/yyyy"),
+                            appointmentTime = a.AppointmentTime.ToString(@"hh\:mm"),
+                            isOnline = a.AppointmentType == "Online_Consultation" || 
+                                      (a.Purpose != null && (
+                                          a.Purpose.ToLower().Contains("online") ||
+                                          a.Purpose.ToLower().Contains("trực tuyến") ||
+                                          a.Purpose.ToLower().Contains("video call")
+                                      ))
+                        })
+                        .OrderByDescending(a => a.appointmentDate)
+                        .ToListAsync();
+
+                    return Ok(new
+                    {
+                        success = true,
+                        totalAppointments = allAppointments.Count,
+                        appointments = allAppointments,
+                        message = $"DEBUG: Tất cả {allAppointments.Count} lịch hẹn trong database"
+                    });
+                }
+
+                // Search in both regular appointments and online consultations
                 var appointments = await _context.Appointments
-                    .Where(a => a.PatientPhone == contact || a.PatientEmail == contact)
+                    .Include(a => a.Patient)
+                    .Where(a => a.PatientPhone == contact || 
+                               a.PatientEmail == contact ||
+                               (a.Patient != null && (a.Patient.PhoneNumber == contact || a.Patient.Email == contact)))
                     .OrderByDescending(a => a.AppointmentDate)
                     .ThenByDescending(a => a.AppointmentTime)
                     .ToListAsync();
 
                 var result = new List<object>();
+
+                _logger.LogInformation($"Search found {appointments.Count} appointments for contact: {contact}");
 
                 foreach (var apt in appointments)
                 {
@@ -268,33 +312,51 @@ namespace HIVSystem.Web.Controllers.Api
                         facilityName = facility ?? "Không xác định";
                     }
 
+                    // Detect if appointment is online or offline
+                    bool isOnlineByType = apt.AppointmentType == "Online_Consultation";
+                    bool isOnlineByPurpose = IsOnlineAppointment(apt.Purpose);
+                    bool isOnline = isOnlineByType || isOnlineByPurpose;
+                    
+                    _logger.LogInformation($"Appointment {apt.AppointmentID}: Type={apt.AppointmentType}, Purpose={apt.Purpose}, OnlineByType={isOnlineByType}, OnlineByPurpose={isOnlineByPurpose}, FinalOnline={isOnline}");
+                    
                     string videoCallLink = null;
-                    if (apt.AppointmentType == "Online_Consultation" && !string.IsNullOrEmpty(apt.Notes))
+                    if (isOnline && !string.IsNullOrEmpty(apt.Notes))
                     {
-                        var linkStart = apt.Notes.IndexOf("Link video call: ");
-                        if (linkStart >= 0)
+                        // Try to extract from Notes field (where we store Google Meet links)
+                        var meetRegex = new System.Text.RegularExpressions.Regex(@"https://meet\.google\.com/[a-zA-Z0-9\-_]+");
+                        var match = meetRegex.Match(apt.Notes);
+                        if (match.Success)
                         {
-                            videoCallLink = apt.Notes.Substring(linkStart + 17).Split(' ')[0];
+                            videoCallLink = match.Value;
+                        }
+                        else
+                        {
+                            // Try legacy format from OnlineConsultation
+                            var linkStart = apt.Notes.IndexOf("Link video call: ");
+                            if (linkStart >= 0)
+                            {
+                                videoCallLink = apt.Notes.Substring(linkStart + 17).Split(' ')[0];
+                            }
                         }
                     }
 
                     result.Add(new
                     {
                         appointmentID = apt.AppointmentID,
-                        type = apt.AppointmentType == "Online_Consultation" ? "Tư vấn trực tuyến" : "Khám tại phòng khám",
+                        type = isOnline ? "Tư vấn trực tuyến" : "Khám tại phòng khám",
                         doctorName = doctorName,
                         facilityName = facilityName,
                         appointmentDate = apt.AppointmentDate.ToString("dd/MM/yyyy"),
                         appointmentTime = apt.AppointmentTime.ToString(@"hh\:mm"),
                         status = GetStatusText(apt.Status),
-                        patientName = apt.PatientName,
+                        patientName = apt.PatientName ?? (apt.Patient?.FullName) ?? "Ẩn danh",
                         purpose = apt.Purpose,
                         consultationFee = apt.ConsultationFee,
                         videoCallLink = videoCallLink,
-                        canJoinCall = apt.AppointmentType == "Online_Consultation" && 
-                                     apt.Status == "Scheduled" && 
+                        canJoinCall = isOnline && 
+                                     (apt.Status == "Scheduled" || apt.Status == "Confirmed") && 
                                      apt.AppointmentDate.Date >= DateTime.Today,
-                        isOnline = apt.AppointmentType == "Online_Consultation"
+                        isOnline = isOnline
                     });
                 }
 
@@ -312,6 +374,8 @@ namespace HIVSystem.Web.Controllers.Api
                 return StatusCode(500, new { success = false, message = "Lỗi khi tìm kiếm: " + ex.Message });
             }
         }
+
+
 
         // Helper methods
         private bool IsWithinWorkingHours(TimeSpan time)
@@ -345,11 +409,23 @@ namespace HIVSystem.Web.Controllers.Api
             return status switch
             {
                 "Scheduled" => "Đã hẹn",
+                "Confirmed" => "Đã xác nhận", 
                 "Completed" => "Hoàn thành",
                 "Cancelled" => "Đã hủy",
                 "No-show" => "Không đến",
                 _ => "Không xác định"
             };
+        }
+
+        private bool IsOnlineAppointment(string purpose)
+        {
+            if (string.IsNullOrEmpty(purpose))
+                return false;
+
+            var purposeLower = purpose.ToLower();
+            var onlineKeywords = new[] { "online", "trực tuyến", "tư vấn online", "video call", "zoom", "google meet" };
+            
+            return onlineKeywords.Any(keyword => purposeLower.Contains(keyword));
         }
     }
 

@@ -205,25 +205,37 @@ async function loadAndDisplayAppointments() {
                             '<th>ID</th>' +
                             '<th>Ngày khám</th>' +
                             '<th>Giờ khám</th>' +
+                            '<th>Loại khám</th>' +
                             '<th>Bác sĩ</th>' +
                             '<th>Cơ sở y tế</th>' +
                             '<th>Trạng thái</th>' +
-                            '<th>Ghi chú</th>' +
+                            '<th>Link tham gia</th>' +
+                            '<th>Thao tác</th>' +
                         '</tr>' +
                     '</thead>' +
                     '<tbody>';
         
         userAppointments.forEach(appointment => {
             const statusBadge = getStatusBadge(appointment.status);
+            const meetingType = getMeetingType(appointment.purpose, appointment.notes);
+            const meetingTypeHtml = getMeetingTypeHtml(meetingType);
+            const meetingLinkHtml = getMeetingLinkHtml(meetingType, appointment.notes);
+            
             appointmentsHtml += 
                 '<tr>' +
                     '<td>' + appointment.appointmentID + '</td>' +
                     '<td>' + new Date(appointment.appointmentDate).toLocaleDateString('vi-VN') + '</td>' +
                     '<td>' + appointment.appointmentTime + '</td>' +
+                    '<td>' + meetingTypeHtml + '</td>' +
                     '<td>' + (appointment.doctorName || 'Chưa chỉ định') + '</td>' +
                     '<td>' + (appointment.facilityName || 'Chưa xác định') + '</td>' +
                     '<td>' + statusBadge + '</td>' +
-                    '<td>' + (appointment.purpose || 'Không có') + '</td>' +
+                    '<td>' + meetingLinkHtml + '</td>' +
+                    '<td>' +
+                        '<button class="btn btn-sm btn-outline-primary" onclick="viewAppointmentDetails(' + appointment.appointmentID + ')" title="Xem chi tiết">' +
+                            '<i class="fas fa-eye"></i>' +
+                        '</button>' +
+                    '</td>' +
                 '</tr>';
         });
         
@@ -254,6 +266,170 @@ function getStatusBadge(status) {
         case 'scheduled': return '<span class="badge bg-primary">Đã lên lịch</span>';
         default: return '<span class="badge bg-secondary">' + (status || 'Chưa xác định') + '</span>';
     }
+}
+
+function getMeetingType(purpose, notes) {
+    const combinedText = ((purpose || '') + ' ' + (notes || '')).toLowerCase();
+    
+    if (combinedText.includes('online') || 
+        combinedText.includes('trực tuyến') || 
+        combinedText.includes('meet.google.com')) {
+        return 'online';
+    }
+    return 'offline';
+}
+
+function getMeetingTypeHtml(meetingType) {
+    if (meetingType === 'online') {
+        return '<span class="badge bg-primary"><i class="fas fa-video me-1"></i>Trực tuyến</span>';
+    } else {
+        return '<span class="badge bg-info"><i class="fas fa-map-marker-alt me-1"></i>Tại phòng khám</span>';
+    }
+}
+
+function getMeetingLinkHtml(meetingType, notes) {
+    if (meetingType === 'online') {
+        const meetLink = extractGoogleMeetLink(notes);
+        if (meetLink) {
+            return '<a href="' + meetLink + '" target="_blank" class="btn btn-sm btn-outline-primary">' +
+                   '<i class="fas fa-video me-1"></i>Tham gia' +
+                   '<i class="fas fa-external-link-alt ms-1"></i></a>';
+        } else {
+            return '<span class="text-muted">Đang cập nhật</span>';
+        }
+    } else {
+        return '<span class="text-muted">-</span>';
+    }
+}
+
+function extractGoogleMeetLink(notes) {
+    if (!notes) return null;
+    
+    const lines = notes.split('\n');
+    for (const line of lines) {
+        if (line.includes('meet.google.com')) {
+            const parts = line.split(' ');
+            for (const part of parts) {
+                if (part.includes('meet.google.com')) {
+                    return part.trim();
+                }
+            }
+        }
+    }
+    return null;
+}
+
+function viewAppointmentDetails(appointmentId) {
+    const appointment = userAppointments.find(a => a.appointmentID === appointmentId);
+    if (!appointment) {
+        alert('Không tìm thấy thông tin lịch hẹn');
+        return;
+    }
+    
+    const meetingType = getMeetingType(appointment.purpose, appointment.notes);
+    const meetLink = extractGoogleMeetLink(appointment.notes);
+    
+    let modalHtml = `
+        <div class="modal fade" id="appointmentModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Chi tiết lịch hẹn #${appointment.appointmentID}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-calendar me-1"></i>Ngày khám</label>
+                                    <p class="form-control-plaintext">${new Date(appointment.appointmentDate).toLocaleDateString('vi-VN')}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-clock me-1"></i>Giờ khám</label>
+                                    <p class="form-control-plaintext">${appointment.appointmentTime}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Loại khám</label>
+                            <p class="form-control-plaintext">${getMeetingTypeHtml(meetingType)}</p>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-user-md me-1"></i>Bác sĩ</label>
+                                    <p class="form-control-plaintext">${appointment.doctorName || 'Chưa chỉ định'}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><i class="fas fa-hospital me-1"></i>Cơ sở y tế</label>
+                                    <p class="form-control-plaintext">${appointment.facilityName || 'Chưa xác định'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <p class="form-control-plaintext">${getStatusBadge(appointment.status)}</p>
+                        </div>`;
+    
+    if (appointment.purpose) {
+        modalHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">Mục đích khám</label>
+                            <p class="form-control-plaintext">${appointment.purpose}</p>
+                        </div>`;
+    }
+    
+    if (meetingType === 'online' && meetLink) {
+        modalHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">Link tham gia</label>
+                            <div>
+                                <a href="${meetLink}" target="_blank" class="btn btn-primary">
+                                    <i class="fas fa-video me-1"></i>Tham gia cuộc họp
+                                    <i class="fas fa-external-link-alt ms-1"></i>
+                                </a>
+                            </div>
+                        </div>`;
+    }
+    
+    if (appointment.notes) {
+        modalHtml += `
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <div class="bg-light p-3 rounded">
+                                <pre class="mb-0">${appointment.notes}</pre>
+                            </div>
+                        </div>`;
+    }
+    
+    modalHtml += `
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('appointmentModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+    modal.show();
 }
 
 function clearResults() {

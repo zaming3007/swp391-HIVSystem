@@ -35,6 +35,27 @@ namespace HIVSystem.Infrastructure.Services
                 throw new InvalidOperationException("Doctor is not verified to accept appointments.");
             }
 
+            // Handle online/offline meeting type
+            string finalPurpose = createAppointmentDto.Purpose ?? "";
+            string finalNotes = createAppointmentDto.Notes ?? "";
+            
+            // Check if this is an online appointment based on Purpose
+            if (finalPurpose.ToLower().Contains("online") || finalPurpose.ToLower().Contains("trực tuyến"))
+            {
+                // Add demo Google Meet link to notes
+                string demoMeetLink = "https://meet.google.com/demo-hiv-system";
+                finalNotes = string.IsNullOrEmpty(finalNotes) 
+                    ? $"Lịch khám trực tuyến - Link tham gia: {demoMeetLink}"
+                    : $"{finalNotes}\n\nLịch khám trực tuyến - Link tham gia: {demoMeetLink}";
+            }
+            else if (finalPurpose.ToLower().Contains("offline") || finalPurpose.ToLower().Contains("tại phòng khám"))
+            {
+                // Add offline notice to notes
+                finalNotes = string.IsNullOrEmpty(finalNotes)
+                    ? "Lịch khám tại phòng khám - Vui lòng đến đúng giờ"
+                    : $"{finalNotes}\n\nLịch khám tại phòng khám - Vui lòng đến đúng giờ";
+            }
+
             // Calculate end time (default 30 minutes)
             var endTime = createAppointmentDto.AppointmentTime.Add(TimeSpan.FromMinutes(30));
 
@@ -47,8 +68,8 @@ namespace HIVSystem.Infrastructure.Services
                 AppointmentTime = createAppointmentDto.AppointmentTime,
                 EndTime = endTime,
                 AppointmentType = createAppointmentDto.AppointmentType ?? "Regular",
-                Purpose = createAppointmentDto.Purpose,
-                Notes = createAppointmentDto.Notes,
+                Purpose = finalPurpose,
+                Notes = finalNotes,
                 IsAnonymous = createAppointmentDto.IsAnonymous,
                 Status = "Scheduled",
                 CreatedBy = createdBy,
@@ -120,7 +141,46 @@ namespace HIVSystem.Infrastructure.Services
                 appointment.AppointmentType = updateAppointmentDto.AppointmentType;
 
             if (!string.IsNullOrEmpty(updateAppointmentDto.Purpose))
+            {
                 appointment.Purpose = updateAppointmentDto.Purpose;
+                
+                // Handle online/offline meeting type changes
+                string currentNotes = appointment.Notes ?? "";
+                
+                if (updateAppointmentDto.Purpose.ToLower().Contains("online") || updateAppointmentDto.Purpose.ToLower().Contains("trực tuyến"))
+                {
+                    // Remove old offline notes if exists
+                    currentNotes = currentNotes.Replace("Lịch khám tại phòng khám - Vui lòng đến đúng giờ", "").Trim();
+                    
+                    // Add online meeting link if not already present
+                    string demoMeetLink = "https://meet.google.com/demo-hiv-system";
+                    if (!currentNotes.Contains(demoMeetLink))
+                    {
+                        currentNotes = string.IsNullOrEmpty(currentNotes)
+                            ? $"Lịch khám trực tuyến - Link tham gia: {demoMeetLink}"
+                            : $"{currentNotes}\n\nLịch khám trực tuyến - Link tham gia: {demoMeetLink}";
+                    }
+                }
+                else if (updateAppointmentDto.Purpose.ToLower().Contains("offline") || updateAppointmentDto.Purpose.ToLower().Contains("tại phòng khám"))
+                {
+                    // Remove online meeting link if exists
+                    var lines = currentNotes.Split('\n').Where(line => 
+                        !line.Contains("meet.google.com") && 
+                        !line.Contains("Lịch khám trực tuyến") &&
+                        !line.Trim().Equals("")).ToArray();
+                    currentNotes = string.Join("\n", lines).Trim();
+                    
+                    // Add offline notice if not already present
+                    if (!currentNotes.Contains("Lịch khám tại phòng khám"))
+                    {
+                        currentNotes = string.IsNullOrEmpty(currentNotes)
+                            ? "Lịch khám tại phòng khám - Vui lòng đến đúng giờ"
+                            : $"{currentNotes}\n\nLịch khám tại phòng khám - Vui lòng đến đúng giờ";
+                    }
+                }
+                
+                appointment.Notes = currentNotes;
+            }
 
             if (!string.IsNullOrEmpty(updateAppointmentDto.Status))
                 appointment.Status = updateAppointmentDto.Status;
@@ -312,7 +372,7 @@ namespace HIVSystem.Infrastructure.Services
                 ReminderSent = appointment.ReminderSent,
                 CreatedDate = appointment.CreatedDate,
                 PatientName = appointment.Patient?.User?.FullName,
-                DoctorName = appointment.Doctor?.User?.FullName,
+                DoctorName = null, // TODO: Get doctor name via separate query
                 FacilityName = appointment.Facility?.FacilityName
             };
         }
@@ -325,6 +385,44 @@ namespace HIVSystem.Infrastructure.Services
                 result.Add(await MapToAppointmentDto(appointment));
             }
             return result;
+        }
+
+        // Helper method to determine meeting type
+        private string GetMeetingType(string? purpose, string? notes)
+        {
+            if (string.IsNullOrEmpty(purpose) && string.IsNullOrEmpty(notes))
+                return "Offline"; // Default
+                
+            var combinedText = $"{purpose} {notes}".ToLower();
+            
+            if (combinedText.Contains("online") || combinedText.Contains("trực tuyến") || combinedText.Contains("meet.google.com"))
+                return "Online";
+            else if (combinedText.Contains("offline") || combinedText.Contains("tại phòng khám"))
+                return "Offline";
+            else
+                return "Offline"; // Default
+        }
+
+        // Helper method to extract Google Meet link from notes
+        private string? GetGoogleMeetLink(string? notes)
+        {
+            if (string.IsNullOrEmpty(notes))
+                return null;
+                
+            var lines = notes.Split('\n');
+            foreach (var line in lines)
+            {
+                if (line.Contains("meet.google.com"))
+                {
+                    var parts = line.Split(' ');
+                    foreach (var part in parts)
+                    {
+                        if (part.Contains("meet.google.com"))
+                            return part.Trim();
+                    }
+                }
+            }
+            return null;
         }
     }
 } 

@@ -645,6 +645,27 @@
 #dashboard-stats .card:hover {
     transform: translateY(-5px);
 }
+
+/* Custom purple background for online appointments */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #5a359a;
+    border-color: #5a359a;
+    color: white;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
 </style>
 
 <script>
@@ -843,9 +864,11 @@ async function loadAppointmentsList() {
                         '<th>ID</th>' +
                         '<th>Ngày khám</th>' +
                         '<th>Giờ khám</th>' +
+                        '<th>Loại khám</th>' +
                         '<th>Bác sĩ</th>' +
                         '<th>Cơ sở y tế</th>' +
                         '<th>Trạng thái</th>' +
+                        '<th>Link tham gia</th>' +
                         '<th>Thao tác</th>' +
                     '</tr>' +
                 '</thead>' +
@@ -853,14 +876,19 @@ async function loadAppointmentsList() {
     
     userAppointments.forEach(appointment => {
         const statusBadge = getStatusBadge(appointment.status);
+        const meetingTypeHtml = getMeetingTypeHtml(appointment.purpose);
+        const meetingLinkHtml = getMeetingLinkHtml(appointment.notes);
+        
         appointmentsHtml += 
             '<tr>' +
                 '<td>' + appointment.appointmentID + '</td>' +
                 '<td>' + new Date(appointment.appointmentDate).toLocaleDateString('vi-VN') + '</td>' +
                 '<td>' + appointment.appointmentTime + '</td>' +
+                '<td>' + meetingTypeHtml + '</td>' +
                 '<td>' + (appointment.doctorName || 'Chưa chỉ định') + '</td>' +
                 '<td>' + (appointment.facilityName || 'Chưa xác định') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
+                '<td>' + meetingLinkHtml + '</td>' +
                 '<td>' +
                     '<button class="btn btn-sm btn-info" onclick="viewAppointmentDetails(' + appointment.appointmentID + ')">' +
                         '<i class="fas fa-eye"></i>' +
@@ -885,6 +913,67 @@ function getStatusBadge(status) {
         case 'cancelled': return '<span class="badge bg-danger">Đã hủy</span>';
         case 'completed': return '<span class="badge bg-info">Hoàn thành</span>';
         default: return '<span class="badge bg-secondary">Chưa xác định</span>';
+    }
+}
+
+// Get meeting type from purpose
+function getMeetingType(purpose) {
+    if (!purpose) return 'offline';
+    
+    const purposeLower = purpose.toLowerCase();
+    const onlineKeywords = ['online', 'trực tuyến', 'tư vấn online', 'video call', 'zoom', 'google meet'];
+    const offlineKeywords = ['offline', 'tại phòng khám', 'trực tiếp', 'gặp mặt'];
+    
+    // Check for online keywords first
+    for (let keyword of onlineKeywords) {
+        if (purposeLower.includes(keyword)) {
+            return 'online';
+        }
+    }
+    
+    // Check for offline keywords
+    for (let keyword of offlineKeywords) {
+        if (purposeLower.includes(keyword)) {
+            return 'offline';
+        }
+    }
+    
+    // Default to offline if no keywords found
+    return 'offline';
+}
+
+// Get meeting type HTML
+function getMeetingTypeHtml(purpose) {
+    const meetingType = getMeetingType(purpose);
+    
+    if (meetingType === 'online') {
+        return '<span class="badge bg-purple text-white"><i class="fas fa-video me-1"></i>Trực tuyến</span>';
+    } else {
+        return '<span class="badge bg-primary"><i class="fas fa-map-marker-alt me-1"></i>Tại phòng khám</span>';
+    }
+}
+
+// Extract Google Meet link from notes
+function extractGoogleMeetLink(notes) {
+    if (!notes) return null;
+    
+    // Look for Google Meet links in notes
+    const meetRegex = /https:\/\/meet\.google\.com\/[a-zA-Z0-9\-_]+/g;
+    const matches = notes.match(meetRegex);
+    
+    return matches ? matches[0] : null;
+}
+
+// Get meeting link HTML
+function getMeetingLinkHtml(notes) {
+    const meetingLink = extractGoogleMeetLink(notes);
+    
+    if (meetingLink) {
+        return '<a href="' + meetingLink + '" target="_blank" class="btn btn-sm btn-success">' +
+                   '<i class="fas fa-video me-1"></i>Tham gia' +
+               '</a>';
+    } else {
+        return '<span class="text-muted">-</span>';
     }
 }
 
