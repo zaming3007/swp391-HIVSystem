@@ -1,5 +1,5 @@
 ﻿CREATE DATABASE HIVHealthcareSystem;
-
+GO
 USE HIVHealthcareSystem;
 GO
 
