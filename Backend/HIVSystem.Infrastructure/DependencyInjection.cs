@@ -1,4 +1,7 @@
 using HIVSystem.Infrastructure.Data;
+using HIVSystem.Infrastructure.Repositories;
+using HIVSystem.Infrastructure.Services;
+using HIVSystem.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +19,12 @@ namespace HIVSystem.Infrastructure
                     b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
 
             // Register repositories
-            // services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+            services.AddScoped<IDoctorRepository, DoctorRepository>();
+            
+            // Register services
+            services.AddScoped<IAppointmentService, AppointmentService>();
             
             // Register other infrastructure services
             // services.AddTransient<IEmailService, EmailService>();

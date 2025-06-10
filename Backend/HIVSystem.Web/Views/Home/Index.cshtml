@@ -1,0 +1,1279 @@
+@{
+    ViewData["Title"] = "Hệ Thống Quản Lý HIV - Trang Chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;">
+        <div class="container">
+            <h1 class="display-3 fw-bold mb-4">
+                <i class="fas fa-heartbeat me-3"></i>
+                Hệ Thống Quản Lý HIV
+            </h1>
+            <p class="lead mb-4">Dịch vụ chăm sóc sức khỏe HIV/AIDS chuyên nghiệp, an toàn và bảo mật</p>
+            
+            <!-- User Status Display -->
+            <div id="user-status" class="mb-4">
+                @if (Context.Session.GetString("Username") != null)
+                {
+                    <div class="alert alert-success d-inline-block">
+                        <i class="fas fa-user-check me-2"></i>
+                        Xin chào, <strong>@Context.Session.GetString("FullName")</strong>!
+                        <button class="btn btn-sm btn-outline-light ms-2" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i>Đăng xuất
+                        </button>
+                    </div>
+                }
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/Home/AppointmentBooking" class="btn btn-light btn-lg px-4 py-3">
+                            <i class="fas fa-calendar-plus me-2"></i>
+                            Đặt Lịch Khám Tại Phòng Khám
+                        </a>
+                        <a href="/Home/OnlineConsultation" class="btn btn-outline-light btn-lg px-4 py-3" style="border: 2px solid #fff;">
+                            <i class="fas fa-video me-2"></i>
+                            Tư Vấn Trực Tuyến
+                        </a>
+                        @if (Context.Session.GetString("Username") == null)
+                        {
+                            <button class="btn btn-outline-light btn-lg px-4 py-3" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Đăng Nhập
+                            </button>
+                            <button class="btn btn-outline-light btn-lg px-4 py-3" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Đăng Ký
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-light btn-lg px-4 py-3" onclick="showProfile()">
+                                <i class="fas fa-user me-2"></i>
+                                Hồ Sơ Cá Nhân
+                            </button>
+                            <button class="btn btn-outline-light btn-lg px-4 py-3" onclick="showAppointments()">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                Lịch Đã Đặt
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Statistics (For Logged-in Users) -->
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <div class="row mb-5" id="dashboard-stats">
+            <div class="col-12">
+                <h3 class="text-center mb-4">
+                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                    Bảng Điều Khiển Cá Nhân
+                </h3>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-primary h-100">
+                    <div class="card-header">
+                        <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">@Context.Session.GetString("FullName")</h5>
+                        <p class="card-text">Role: Customer</p>
+                        <button class="btn btn-light" onclick="showProfile()">
+                            <i class="fas fa-edit me-1"></i>Cập nhật hồ sơ
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-success h-100">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-check me-2"></i>Lịch hẹn
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title" id="appointment-count">...</h5>
+                        <p class="card-text">Lịch hẹn sắp tới</p>
+                        <button class="btn btn-light" onclick="showAppointments()">
+                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-info h-100">
+                    <div class="card-header">
+                        <i class="fas fa-flask me-2"></i>Kết quả xét nghiệm
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">0</h5>
+                        <p class="card-text">Kết quả mới</p>
+                        <button class="btn btn-light" disabled>
+                            <i class="fas fa-eye me-1"></i>Xem kết quả
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="card text-white bg-warning h-100">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line me-2"></i>Hoạt động
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Gần đây</h5>
+                        <p class="card-text">Đăng nhập thành công</p>
+                        <button class="btn btn-light" onclick="showActivityLog()">
+                            <i class="fas fa-history me-1"></i>Xem lịch sử
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Profile Management Section (Hidden by default) -->
+    <div id="profile-section" class="row mb-5" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Quản Lý Hồ Sơ Cá Nhân
+                        <button class="btn btn-sm btn-outline-light float-end" onclick="hideProfile()">
+                            <i class="fas fa-times"></i> Đóng
+                        </button>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="profile-tabs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="info-tab" data-bs-toggle="tab" href="#info-content" role="tab">
+                                    <i class="fas fa-user me-1"></i>Thông tin cá nhân
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="appointments-tab" data-bs-toggle="tab" href="#appointments-content" role="tab">
+                                    <i class="fas fa-calendar me-1"></i>Lịch đã đặt
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-4">
+                            <div class="tab-pane fade show active" id="info-content" role="tabpanel">
+                                <div id="profile-info-content">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="appointments-content" role="tabpanel">
+                                <div id="appointments-list-content">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Services -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">
+                <i class="fas fa-medical-kit me-2 text-primary"></i>
+                Dịch Vụ Chính
+            </h2>
+        </div>
+        
+        <!-- Appointment Booking Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-calendar-check fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Đặt Lịch Khám</h5>
+                    <p class="card-text">Đặt lịch khám và điều trị HIV tại phòng khám với bác sĩ chuyên khoa. Hỗ trợ đặt lịch ẩn danh để bảo vệ quyền riêng tư.</p>
+                    <a href="/Home/AppointmentBooking" class="btn btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>Đặt Lịch Khám
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Online Consultation Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-video fa-3x text-purple"></i>
+                    </div>
+                    <h5 class="card-title">Tư Vấn Trực Tuyến</h5>
+                    <p class="card-text">Tư vấn với bác sĩ qua video call an toàn, tiện lợi và riêng tư. Hỗ trợ đặt lịch ẩn danh và bảo mật thông tin.</p>
+                    <a href="/Home/OnlineConsultation" class="btn btn-purple">
+                        <i class="fas fa-video me-2"></i>Tư Vấn Online
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile/Login Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-user fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">
+                        @if (Context.Session.GetString("Username") == null)
+                        {
+                            <span>Đăng Nhập</span>
+                        }
+                        else
+                        {
+                            <span>Hồ Sơ</span>
+                        }
+                    </h5>
+                    <p class="card-text">
+                        @if (Context.Session.GetString("Username") == null)
+                        {
+                            <span>Đăng nhập vào hệ thống để quản lý hồ sơ bệnh án, xem lịch sử khám và theo dõi điều trị.</span>
+                        }
+                        else
+                        {
+                            <span>Quản lý thông tin cá nhân, xem lịch sử khám bệnh và cập nhật hồ sơ sức khỏe.</span>
+                        }
+                    </p>
+                    @if (Context.Session.GetString("Username") == null)
+                    {
+                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-success" onclick="showProfile()">
+                            <i class="fas fa-user me-2"></i>Hồ Sơ
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Register/Appointments Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-user-plus fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">
+                        @if (Context.Session.GetString("Username") == null)
+                        {
+                            <span>Đăng Ký</span>
+                        }
+                        else
+                        {
+                            <span>Lịch Đã Đặt</span>
+                        }
+                    </h5>
+                    <p class="card-text">
+                        @if (Context.Session.GetString("Username") == null)
+                        {
+                            <span>Tạo tài khoản mới để sử dụng đầy đủ các dịch vụ của hệ thống quản lý HIV.</span>
+                        }
+                        else
+                        {
+                            <span>Xem và quản lý các lịch khám đã đặt, theo dõi trạng thái và lịch sử điều trị.</span>
+                        }
+                    </p>
+                    @if (Context.Session.GetString("Username") == null)
+                    {
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            <i class="fas fa-user-plus me-2"></i>Đăng Ký
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-info" onclick="showAppointments()">
+                            <i class="fas fa-calendar-check me-2"></i>Lịch Đã Đặt
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- System Management Card -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 service-card">
+                <div class="card-body text-center">
+                    <div class="service-icon mb-3">
+                        <i class="fas fa-cogs fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Quản Lý Hệ Thống</h5>
+                    <p class="card-text">Quản lý thông tin bác sĩ, cơ sở y tế, thuốc ARV và kết quả xét nghiệm HIV.</p>
+                    @if (Context.Session.GetString("Username") != null)
+                    {
+                        <button class="btn btn-warning" onclick="showSystemManagement()">
+                            <i class="fas fa-tools me-2"></i>Quản Lý
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-warning" disabled>
+                            <i class="fas fa-lock me-2"></i>Cần Đăng Nhập
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Search Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-search me-2 text-info"></i>
+                Tra Cứu Lịch Hẹn
+            </h3>
+        </div>
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-calendar-search fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Tìm kiếm lịch hẹn của bạn</h5>
+                        <p class="text-muted">Nhập số điện thoại hoặc email để tra cứu lịch hẹn đã đặt (cả offline và online)</p>
+                    </div>
+                    
+                    <form id="appointmentSearchForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-info text-white">
+                                        <i class="fas fa-search"></i>
+                                    </span>
+                                    <input type="text" id="searchContact" class="form-control" 
+                                           placeholder="Nhập số điện thoại hoặc email..." required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-search me-2"></i>Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="searchLoading" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Đang tìm...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang tìm kiếm lịch hẹn...</p>
+                    </div>
+
+                    <div id="searchResults" class="mt-4" style="display: none;">
+                        <!-- Results will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-bolt me-2 text-warning"></i>
+                Truy Cập Nhanh
+            </h3>
+        </div>
+        <div class="col-md-12 text-center">
+            <div class="row justify-content-center">
+                <div class="col-md-2 mb-2">
+                    <a href="/Home/AppointmentBooking" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Đặt Lịch Khám
+                    </a>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="/Home/OnlineConsultation" class="btn btn-purple btn-lg w-100">
+                        <i class="fas fa-video me-2"></i>
+                        Tư Vấn Online
+                    </a>
+                </div>
+                <div class="col-md-2 mb-2">
+                    @if (Context.Session.GetString("Username") == null)
+                    {
+                        <button class="btn btn-success btn-lg w-100" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Đăng Nhập
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-success btn-lg w-100" onclick="showProfile()">
+                            <i class="fas fa-user me-2"></i>
+                            Hồ Sơ
+                        </button>
+                    }
+                </div>
+                <div class="col-md-2 mb-2">
+                    @if (Context.Session.GetString("Username") == null)
+                    {
+                        <button class="btn btn-info btn-lg w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Đăng Ký
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-info btn-lg w-100" onclick="showAppointments()">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Lịch Đã Đặt
+                        </button>
+                    }
+                </div>
+                <div class="col-md-2 mb-2">
+                    @if (Context.Session.GetString("Username") != null)
+                    {
+                        <button class="btn btn-warning btn-lg w-100" onclick="showSystemManagement()">
+                            <i class="fas fa-cogs me-2"></i>
+                            Quản Lý
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-secondary btn-lg w-100" disabled>
+                            <i class="fas fa-lock me-2"></i>
+                            Cần Đăng Nhập
+                        </button>
+                    }
+                </div>
+                <div class="col-md-2 mb-2">
+                    <a href="/Test/TestHub" class="btn btn-secondary btn-lg w-100">
+                        <i class="fas fa-flask me-2"></i>
+                        Test Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập Hệ Thống
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-circle fa-5x text-primary mb-3"></i>
+                            <h5>Chào mừng bạn quay trở lại!</h5>
+                            <p class="text-muted">Đăng nhập để truy cập đầy đủ tính năng</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <form id="loginForm" action="/Account/Login" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-1"></i>Tên đăng nhập
+                                </label>
+                                <input type="text" class="form-control form-control-lg" name="Username" required placeholder="Nhập tên đăng nhập">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Mật khẩu
+                                </label>
+                                <input type="password" class="form-control form-control-lg" name="Password" required placeholder="Nhập mật khẩu">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                                </button>
+                            </div>
+                        </form>
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <small class="text-muted">Chưa có tài khoản?</small><br>
+                            <button class="btn btn-outline-success mt-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal">
+                                <i class="fas fa-user-plus me-1"></i>Đăng ký ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Register Modal -->
+<div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>Đăng Ký Tài Khoản Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-plus fa-5x text-success mb-3"></i>
+                            <h5>Tạo tài khoản mới</h5>
+                            <p class="text-muted">Tham gia hệ thống chăm sóc sức khỏe HIV</p>
+                            <div class="alert alert-info text-start">
+                                <small>
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>Lưu ý:</strong> Thông tin của bạn được bảo mật tuyệt đối. 
+                                    Hệ thống hỗ trợ đặt lịch ẩn danh để bảo vệ quyền riêng tư.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <form id="registerForm" action="/Account/Register" method="post">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-1"></i>Tên đăng nhập <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" name="Username" required placeholder="Nhập tên đăng nhập">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" class="form-control" name="Email" required placeholder="Nhập địa chỉ email">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Mật khẩu <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="Password" required placeholder="Nhập mật khẩu">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Xác nhận mật khẩu <span class="text-danger">*</span>
+                                </label>
+                                <input type="password" class="form-control" name="ConfirmPassword" required placeholder="Nhập lại mật khẩu">
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-user-plus me-2"></i>Đăng Ký Tài Khoản
+                                </button>
+                            </div>
+                        </form>
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <small class="text-muted">Đã có tài khoản?</small><br>
+                            <button class="btn btn-outline-primary mt-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.service-icon i {
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-icon i {
+    transform: scale(1.1);
+}
+
+.hero-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a"><stop offset="0" stop-color="%23ffffff" stop-opacity=".1"/><stop offset="1" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="500" cy="500" r="500" fill="url(%23a)"/></svg>') center/cover;
+    opacity: 0.1;
+}
+
+.hero-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+#profile-section {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.tab-content {
+    min-height: 400px;
+}
+
+#dashboard-stats .card {
+    transition: transform 0.3s ease;
+}
+
+#dashboard-stats .card:hover {
+    transform: translateY(-5px);
+}
+
+/* Custom purple background for online appointments */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #5a359a;
+    border-color: #5a359a;
+    color: white;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+</style>
+
+<script>
+// Global variables for user state
+let currentUser = null;
+let userAppointments = [];
+
+// Check if user is logged in
+async function checkUserStatus() {
+    @if (Context.Session.GetString("Username") != null)
+    {
+        <text>
+        currentUser = {
+            username: '@Context.Session.GetString("Username")',
+            fullName: '@Context.Session.GetString("FullName")',
+            email: '@Context.Session.GetString("Email")'
+        };
+        await loadUserAppointments();
+        </text>
+    }
+}
+
+// Load user appointments
+async function loadUserAppointments() {
+    try {
+        console.log('Loading user appointments...');
+        const response = await fetch('/api/appointments/my-appointments');
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Received data:', data);
+            userAppointments = data.appointments || [];
+            console.log('User appointments:', userAppointments);
+            updateAppointmentCount();
+        } else {
+            console.error('Failed to load appointments:', response.status);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            userAppointments = [];
+        }
+    } catch (error) {
+        console.error('Error loading appointments:', error);
+        userAppointments = [];
+    }
+}
+
+// Update appointment count in dashboard
+function updateAppointmentCount() {
+    const countElement = document.getElementById('appointment-count');
+    if (countElement) {
+        countElement.textContent = userAppointments.length || 0;
+    }
+}
+
+// Show profile section
+function showProfile() {
+    hideAllSections();
+    document.getElementById('profile-section').style.display = 'block';
+    loadProfileInfo();
+    
+    // Scroll to profile section
+    document.getElementById('profile-section').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+// Show appointments tab
+function showAppointments() {
+    showProfile();
+    // Switch to appointments tab
+    document.getElementById('appointments-tab').click();
+}
+
+// Hide profile section
+function hideProfile() {
+    document.getElementById('profile-section').style.display = 'none';
+}
+
+// Hide all sections
+function hideAllSections() {
+    const sections = ['profile-section'];
+    sections.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
+    });
+}
+
+// Load profile information
+async function loadProfileInfo() {
+    if (!currentUser) return;
+    
+    // Load full user profile from API
+    try {
+        const response = await fetch('/api/Auth/current-user');
+        const result = await response.json();
+        
+        if (result.success && result.isAuthenticated) {
+            currentUser = result.user; // Update with full user data
+        }
+    } catch (error) {
+        console.error('Error loading full user profile:', error);
+    }
+    
+    const content = document.getElementById('profile-info-content');
+    const profileHtml = 
+        '<div class="row">' +
+            '<div class="col-md-3 text-center">' +
+                '<div class="mb-4">' +
+                    '<div class="avatar-container" style="width: 100px; height: 100px; margin: 0 auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 40px;">' +
+                        '<i class="fas fa-user"></i>' +
+                    '</div>' +
+                    '<h5 class="mt-3">' + (currentUser.FullName || currentUser.fullName || 'Chưa cập nhật') + '</h5>' +
+                    '<p class="text-muted">@@' + (currentUser.Username || currentUser.username || 'N/A') + '</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-md-9">' +
+                '<form id="profileForm">' +
+                    '<div class="row">' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Tên đăng nhập</label>' +
+                            '<input type="text" class="form-control" value="' + (currentUser.Username || currentUser.username || '') + '" readonly>' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Email</label>' +
+                            '<input type="email" class="form-control" id="email" value="' + (currentUser.Email || currentUser.email || '') + '" placeholder="Nhập email của bạn">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Họ và tên</label>' +
+                            '<input type="text" class="form-control" id="fullName" value="' + (currentUser.FullName || currentUser.fullName || '') + '" placeholder="Nhập họ và tên">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Số điện thoại</label>' +
+                            '<input type="tel" class="form-control" id="phoneNumber" value="' + (currentUser.PhoneNumber || currentUser.phoneNumber || '') + '" placeholder="Nhập số điện thoại">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Ngày sinh</label>' +
+                            '<input type="date" class="form-control" id="dateOfBirth" value="' + (currentUser.DateOfBirth ? currentUser.DateOfBirth.split('T')[0] : currentUser.dateOfBirth ? currentUser.dateOfBirth.split('T')[0] : '') + '">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label">Giới tính</label>' +
+                            '<select class="form-control" id="gender">' +
+                                '<option value="">Chọn giới tính</option>' +
+                                '<option value="Nam"' + ((currentUser.Gender || currentUser.gender) === 'Nam' ? ' selected' : '') + '>Nam</option>' +
+                                '<option value="Nữ"' + ((currentUser.Gender || currentUser.gender) === 'Nữ' ? ' selected' : '') + '>Nữ</option>' +
+                                '<option value="Khác"' + ((currentUser.Gender || currentUser.gender) === 'Khác' ? ' selected' : '') + '>Khác</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div class="col-md-12 mb-3">' +
+                            '<label class="form-label">Địa chỉ</label>' +
+                            '<textarea class="form-control" id="address" rows="3" placeholder="Nhập địa chỉ">' + (currentUser.Address || currentUser.address || '') + '</textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="text-end">' +
+                        '<button type="button" class="btn btn-primary" onclick="updateProfile()">' +
+                            '<i class="fas fa-save me-2"></i>Cập nhật thông tin' +
+                        '</button>' +
+                    '</div>' +
+                '</form>' +
+            '</div>' +
+        '</div>';
+    
+    content.innerHTML = profileHtml;
+    
+    // Load appointments in appointments tab
+    loadAppointmentsList();
+}
+
+// Load appointments list
+async function loadAppointmentsList() {
+    // Refresh appointments data first
+    await loadUserAppointments();
+    
+    const content = document.getElementById('appointments-list-content');
+    
+    if (userAppointments.length === 0) {
+        const emptyHtml = 
+            '<div class="text-center py-5">' +
+                '<i class="fas fa-calendar-times fa-5x text-muted mb-3"></i>' +
+                '<h5>Chưa có lịch khám nào</h5>' +
+                '<p class="text-muted">Bạn chưa đặt lịch khám nào. Hãy đặt lịch khám ngay để được chăm sóc sức khỏe tốt nhất.</p>' +
+                '<a href="/Home/AppointmentBooking" class="btn btn-primary">' +
+                    '<i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay' +
+                '</a>' +
+            '</div>';
+        content.innerHTML = emptyHtml;
+        return;
+    }
+    
+    let appointmentsHtml = 
+        '<div class="table-responsive">' +
+            '<table class="table table-hover">' +
+                '<thead class="table-dark">' +
+                    '<tr>' +
+                        '<th>ID</th>' +
+                        '<th>Ngày khám</th>' +
+                        '<th>Giờ khám</th>' +
+                        '<th>Loại khám</th>' +
+                        '<th>Bác sĩ</th>' +
+                        '<th>Cơ sở y tế</th>' +
+                        '<th>Trạng thái</th>' +
+                        '<th>Link tham gia</th>' +
+                        '<th>Thao tác</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>';
+    
+    userAppointments.forEach(appointment => {
+        const statusBadge = getStatusBadge(appointment.status);
+        const meetingTypeHtml = getMeetingTypeHtml(appointment.purpose);
+        const meetingLinkHtml = getMeetingLinkHtml(appointment.notes);
+        
+        appointmentsHtml += 
+            '<tr>' +
+                '<td>' + appointment.appointmentID + '</td>' +
+                '<td>' + new Date(appointment.appointmentDate).toLocaleDateString('vi-VN') + '</td>' +
+                '<td>' + appointment.appointmentTime + '</td>' +
+                '<td>' + meetingTypeHtml + '</td>' +
+                '<td>' + (appointment.doctorName || 'Chưa chỉ định') + '</td>' +
+                '<td>' + (appointment.facilityName || 'Chưa xác định') + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + meetingLinkHtml + '</td>' +
+                '<td>' +
+                    '<button class="btn btn-sm btn-info" onclick="viewAppointmentDetails(' + appointment.appointmentID + ')">' +
+                        '<i class="fas fa-eye"></i>' +
+                    '</button>' +
+                '</td>' +
+            '</tr>';
+    });
+    
+    appointmentsHtml += 
+                '</tbody>' +
+            '</table>' +
+        '</div>';
+    
+    content.innerHTML = appointmentsHtml;
+}
+
+// Get status badge
+function getStatusBadge(status) {
+    switch (status?.toLowerCase()) {
+        case 'pending': return '<span class="badge bg-warning">Chờ xác nhận</span>';
+        case 'confirmed': return '<span class="badge bg-success">Đã xác nhận</span>';
+        case 'cancelled': return '<span class="badge bg-danger">Đã hủy</span>';
+        case 'completed': return '<span class="badge bg-info">Hoàn thành</span>';
+        default: return '<span class="badge bg-secondary">Chưa xác định</span>';
+    }
+}
+
+// Get meeting type from purpose
+function getMeetingType(purpose) {
+    if (!purpose) return 'offline';
+    
+    const purposeLower = purpose.toLowerCase();
+    const onlineKeywords = ['online', 'trực tuyến', 'tư vấn online', 'video call', 'zoom', 'google meet'];
+    const offlineKeywords = ['offline', 'tại phòng khám', 'trực tiếp', 'gặp mặt'];
+    
+    // Check for online keywords first
+    for (let keyword of onlineKeywords) {
+        if (purposeLower.includes(keyword)) {
+            return 'online';
+        }
+    }
+    
+    // Check for offline keywords
+    for (let keyword of offlineKeywords) {
+        if (purposeLower.includes(keyword)) {
+            return 'offline';
+        }
+    }
+    
+    // Default to offline if no keywords found
+    return 'offline';
+}
+
+// Get meeting type HTML
+function getMeetingTypeHtml(purpose) {
+    const meetingType = getMeetingType(purpose);
+    
+    if (meetingType === 'online') {
+        return '<span class="badge bg-purple text-white"><i class="fas fa-video me-1"></i>Trực tuyến</span>';
+    } else {
+        return '<span class="badge bg-primary"><i class="fas fa-map-marker-alt me-1"></i>Tại phòng khám</span>';
+    }
+}
+
+// Extract Google Meet link from notes
+function extractGoogleMeetLink(notes) {
+    if (!notes) return null;
+    
+    // Look for Google Meet links in notes
+    const meetRegex = /https:\/\/meet\.google\.com\/[a-zA-Z0-9\-_]+/g;
+    const matches = notes.match(meetRegex);
+    
+    return matches ? matches[0] : null;
+}
+
+// Get meeting link HTML
+function getMeetingLinkHtml(notes) {
+    const meetingLink = extractGoogleMeetLink(notes);
+    
+    if (meetingLink) {
+        return '<a href="' + meetingLink + '" target="_blank" class="btn btn-sm btn-success">' +
+                   '<i class="fas fa-video me-1"></i>Tham gia' +
+               '</a>';
+    } else {
+        return '<span class="text-muted">-</span>';
+    }
+}
+
+// Update profile
+async function updateProfile() {
+    const formData = {
+        fullName: document.getElementById('fullName').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        address: document.getElementById('address').value,
+        dateOfBirth: document.getElementById('dateOfBirth').value || null,
+        gender: document.getElementById('gender').value || null
+    };
+    
+    try {
+        const response = await fetch('/api/database/update-profile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showSuccessToast('Cập nhật thông tin thành công!');
+            // Reload current user data
+            await loadProfileInfo();
+        } else {
+            showErrorToast(result.message || 'Có lỗi xảy ra khi cập nhật thông tin.');
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showErrorToast('Có lỗi xảy ra khi cập nhật thông tin.');
+    }
+}
+
+// Show system management
+function showSystemManagement() {
+    alert('Tính năng quản lý hệ thống đang được phát triển!');
+}
+
+// Show activity log
+function showActivityLog() {
+    alert('Tính năng xem lịch sử hoạt động đang được phát triển!');
+}
+
+// View appointment details
+function viewAppointmentDetails(appointmentId) {
+    alert('Xem chi tiết lịch khám #' + appointmentId + ' - Tính năng đang được phát triển!');
+}
+
+// Logout function
+function logout() {
+    fetch('/Account/Logout', { method: 'POST' })
+        .then(() => {
+            window.location.reload();
+        });
+}
+
+// Handle TempData messages
+@if (TempData["SuccessMessage"] != null)
+{
+    <text>
+        document.addEventListener('DOMContentLoaded', function() {
+            showSuccessToast(@Html.Raw(Json.Serialize(TempData["SuccessMessage"].ToString())));
+        });
+    </text>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <text>
+        document.addEventListener('DOMContentLoaded', function() {
+            showErrorToast(@Html.Raw(Json.Serialize(TempData["ErrorMessage"].ToString())));
+        });
+    </text>
+}
+
+// Toast notification functions
+function showSuccessToast(message) {
+    showToast(message, 'success');
+}
+
+function showErrorToast(message) {
+    showToast(message, 'error');
+}
+
+function showToast(message, type) {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    const toastId = 'toast-' + Date.now();
+    toast.id = toastId;
+    
+    const bgColor = type === 'success' ? 'bg-success' : 'bg-danger';
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+    
+    toast.innerHTML = `
+        <div class="toast show ${bgColor} text-white" role="alert">
+            <div class="toast-header ${bgColor} text-white border-0">
+                <i class="${icon} me-2"></i>
+                <strong class="me-auto">${type === 'success' ? 'Thành công' : 'Lỗi'}</strong>
+                <button type="button" class="btn-close btn-close-white" onclick="closeToast('${toastId}')"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto close after 5 seconds
+    setTimeout(() => {
+        closeToast(toastId);
+    }, 5000);
+}
+
+function closeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.remove();
+    }
+}
+
+// Appointment Search functionality
+document.getElementById('appointmentSearchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    searchAppointments();
+});
+
+async function searchAppointments() {
+    const contactInput = document.getElementById('searchContact');
+    const contact = contactInput.value.trim();
+    
+    if (!contact) {
+        alert('Vui lòng nhập số điện thoại hoặc email');
+        return;
+    }
+    
+    const loadingDiv = document.getElementById('searchLoading');
+    const resultsDiv = document.getElementById('searchResults');
+    
+    // Show loading
+    loadingDiv.style.display = 'block';
+    resultsDiv.style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/OnlineConsultation/search?contact=${encodeURIComponent(contact)}`);
+        const data = await response.json();
+        
+        loadingDiv.style.display = 'none';
+        
+        if (response.ok) {
+            displaySearchResults(data.appointments || [], data.message);
+        } else {
+            displaySearchResults([], data.message || 'Có lỗi xảy ra khi tìm kiếm');
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        loadingDiv.style.display = 'none';
+        displaySearchResults([], 'Có lỗi xảy ra khi tìm kiếm');
+    }
+}
+
+function displaySearchResults(appointments, message) {
+    const resultsDiv = document.getElementById('searchResults');
+    
+    if (appointments.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h5>Không tìm thấy lịch hẹn</h5>
+                <p class="mb-0">${message}</p>
+            </div>
+        `;
+    } else {
+        let html = `
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                ${message}
+            </div>
+            <div class="row">
+        `;
+        
+        appointments.forEach(appointment => {
+            const isOnline = appointment.isOnline;
+            const cardColor = isOnline ? 'border-purple' : 'border-primary';
+            const iconColor = isOnline ? 'text-purple' : 'text-primary';
+            const statusBadge = getSearchStatusBadge(appointment.status);
+            
+            html += `
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 ${cardColor}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold ${iconColor}">
+                                <i class="fas fa-${isOnline ? 'video' : 'clinic-medical'} me-2"></i>
+                                ${appointment.type}
+                            </span>
+                            ${statusBadge}
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-sm">
+                                <div class="col-6">
+                                    <p class="mb-2"><strong>Bác sĩ:</strong><br>${appointment.doctorName}</p>
+                                    <p class="mb-2"><strong>Ngày:</strong> ${appointment.appointmentDate}</p>
+                                    <p class="mb-2"><strong>Giờ:</strong> ${appointment.appointmentTime}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-2"><strong>Bệnh nhân:</strong><br>${appointment.patientName}</p>
+                                    <p class="mb-2"><strong>Phí:</strong> <span class="text-success fw-bold">${formatCurrency(appointment.consultationFee)}</span></p>
+                                    <p class="mb-2"><strong>ID:</strong> #${appointment.appointmentID}</p>
+                                </div>
+                            </div>
+                            ${appointment.purpose ? `<p class="text-muted small mt-2"><strong>Lý do:</strong> ${appointment.purpose}</p>` : ''}
+                            ${isOnline && appointment.canJoinCall && appointment.videoCallLink ? `
+                                <div class="mt-3 pt-3 border-top">
+                                    <a href="${appointment.videoCallLink}" target="_blank" class="btn btn-purple btn-sm">
+                                        <i class="fas fa-video me-1"></i> Tham gia cuộc họp
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    }
+    
+    resultsDiv.style.display = 'block';
+}
+
+function getSearchStatusBadge(status) {
+    switch (status) {
+        case 'Đã hẹn': return '<span class="badge bg-primary">Đã hẹn</span>';
+        case 'Hoàn thành': return '<span class="badge bg-success">Hoàn thành</span>';
+        case 'Đã hủy': return '<span class="badge bg-danger">Đã hủy</span>';
+        case 'Không đến': return '<span class="badge bg-warning">Không đến</span>';
+        default: return '<span class="badge bg-secondary">Không xác định</span>';
+    }
+}
+
+function formatCurrency(amount) {
+    if (!amount) return 'Miễn phí';
+    return amount.toLocaleString('vi-VN') + ' đ';
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    checkUserStatus();
+});
+</script>
+
+<style>
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #5a2d8a;
+    border-color: #5a2d8a;
+    color: white;
+}
+
+.text-purple {
+    color: #6f42c1 !important;
+}
+
+.border-purple {
+    border-color: #6f42c1 !important;
+}
+
+.service-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.service-icon {
+    transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-icon {
+    transform: scale(1.1);
+}
+</style> 

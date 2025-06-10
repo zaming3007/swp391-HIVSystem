@@ -93,13 +93,16 @@ namespace HIVHealthcareSystem.Controllers
                 }
             }
 
-            return View(model);
+            // If we got this far, something failed, redirect to home with error
+            var finalErrors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            TempData["ErrorMessage"] = string.Join(". ", finalErrors);
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
         public IActionResult Register()
         {
-            return View("~/Views/Home/React.cshtml");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -116,7 +119,6 @@ namespace HIVHealthcareSystem.Controllers
                     if (existingUser != null)
                     {
                         ModelState.AddModelError("Username", "Tên đăng nhập đã tồn tại");
-                        return View(model);
                     }
 
                     // Kiểm tra email đã tồn tại chưa
@@ -126,7 +128,14 @@ namespace HIVHealthcareSystem.Controllers
                     if (existingEmail != null)
                     {
                         ModelState.AddModelError("Email", "Email đã được sử dụng");
-                        return View(model);
+                    }
+
+                    // If validation errors exist, redirect with error
+                    if (!ModelState.IsValid)
+                    {
+                        var registerErrors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                        TempData["ErrorMessage"] = string.Join(". ", registerErrors);
+                        return RedirectToAction("Index", "Home");
                     }
 
                     // Tạo user mới với thông tin mặc định
@@ -150,7 +159,7 @@ namespace HIVHealthcareSystem.Controllers
                     await _context.SaveChangesAsync();
 
                     TempData["SuccessMessage"] = $"Đăng ký thành công! Bạn có thể đăng nhập với tài khoản: {model.Username}";
-                    return RedirectToAction("Login");
+                    return RedirectToAction("Index", "Home");
                 }
                 catch (Exception ex)
                 {
@@ -158,7 +167,10 @@ namespace HIVHealthcareSystem.Controllers
                 }
             }
 
-            return View(model);
+            // If we got this far, something failed, redirect to home with error
+            var finalErrors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            TempData["ErrorMessage"] = string.Join(". ", finalErrors);
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -172,7 +184,35 @@ namespace HIVHealthcareSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
-            return View("~/Views/Home/React.cshtml");
+            // Kiểm tra xem user đã đăng nhập chưa
+            var username = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(username))
+            {
+                // Nếu chưa đăng nhập, redirect về trang chủ
+                TempData["RedirectTo"] = "login";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Nếu đã đăng nhập, redirect về trang chủ với thông tin để navigate đến profile
+            TempData["RedirectTo"] = "profile";
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MyAppointments()
+        {
+            var username = HttpContext.Session.GetString("Username");
+            if (string.IsNullOrEmpty(username))
+            {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để xem lịch khám";
+                TempData["RedirectTo"] = "login";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Redirect về React SPA với profile route và tab appointments
+            TempData["RedirectTo"] = "profile";
+            TempData["ProfileTab"] = "appointments";
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]

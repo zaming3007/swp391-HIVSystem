@@ -13,25 +13,28 @@ public class HomeController : Controller
         _logger = logger;
     }
 
-    // All routes now go to React SPA
+    // Show the integrated homepage with all features
     public IActionResult Index()
     {
-        return View("React");
+        return View();
     }
 
-    public IActionResult About()
+    // Single appointment booking page using the original wizard
+    public IActionResult AppointmentBooking()
     {
-        return View("React");
+        return View();
     }
 
-    public IActionResult Dashboard()
+    // Online consultation booking page
+    public IActionResult OnlineConsultation()
     {
-        return View("React");
+        return View();
     }
 
-    public IActionResult Privacy()
+    // Test auto-fill functionality
+    public IActionResult TestAutoFill()
     {
-        return View("React");
+        return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

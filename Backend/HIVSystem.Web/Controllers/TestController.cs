@@ -155,7 +155,7 @@ namespace HIVHealthcareSystem.Controllers
         }
 
         // Tạo user test nếu chưa có
-        public async Task<IActionResult> CreateTestUser()
+        public async Task<IActionResult> CreateAdminUser()
         {
             try
             {
@@ -629,6 +629,100 @@ namespace HIVHealthcareSystem.Controllers
                 TempData["Error"] = $"Lỗi khi lấy thống kê: {ex.Message}";
                 return RedirectToAction("Database");
             }
+        }
+
+        // Test Appointment Booking functionality
+        public IActionResult AppointmentTest()
+        {
+            ViewBag.Title = "Appointment Booking Test & Setup";
+            return View();
+        }
+
+        public IActionResult AppointmentsList()
+        {
+            return View();
+        }
+
+        public IActionResult DoctorAvailability()
+        {
+            return View();
+        }
+
+        // Test appointment creation with new user
+        [HttpGet]
+        public async Task<IActionResult> TestNewUserAppointment()
+        {
+            try
+            {
+                ViewBag.Title = "Test New User Appointment Creation";
+                
+                // Check if we have any test users
+                var testUsers = await _context.Users
+                    .Where(u => u.Username.StartsWith("test") || u.Username == "newuser")
+                    .ToListAsync();
+                
+                ViewBag.TestUsers = testUsers;
+                
+                // Check for doctors
+                var doctors = await _context.Users
+                    .Where(u => u.RoleID == 2)
+                    .ToListAsync();
+                
+                ViewBag.Doctors = doctors;
+                
+                return View();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+                return RedirectToAction("Database");
+            }
+        }
+
+        // Create a test user for appointment testing
+        [HttpPost]
+        public async Task<IActionResult> CreateTestUser()
+        {
+            try
+            {
+                var testUsername = "testuser" + DateTime.Now.Ticks.ToString().Substring(10);
+                
+                var testUser = new User
+                {
+                    Username = testUsername,
+                    PasswordHash = "test123",
+                    Email = $"{testUsername}@test.com",
+                    FullName = $"Test User {testUsername}",
+                    RoleID = 3,
+                    IsActive = true,
+                    CreatedDate = DateTime.Now
+                };
+                
+                _context.Users.Add(testUser);
+                await _context.SaveChangesAsync();
+                
+                TempData["Message"] = $"Created test user: {testUsername} / test123";
+                return RedirectToAction("TestNewUserAppointment");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Failed to create test user: {ex.Message}";
+                return RedirectToAction("TestNewUserAppointment");
+            }
+        }
+
+        // Simple test page for basic functionality
+        public IActionResult SimpleTest()
+        {
+            return View();
+        }
+
+        // Test Hub - Central testing page
+        [HttpGet]
+        public IActionResult TestHub()
+        {
+            ViewBag.Title = "HIV System Test Hub";
+            return View();
         }
     }
 } 

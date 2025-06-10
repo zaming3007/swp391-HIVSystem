@@ -1,0 +1,135 @@
+@{
+    ViewData["Title"] = "Simple Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Simple Test Page
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <h5>✅ Basic Page Loading Test</h5>
+                    <p>If you can see this page, the basic ASP.NET Core routing is working.</p>
+                    
+                    <hr>
+                    
+                    <h5>🔧 Quick Tests</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary mb-2" onclick="testAPI()">Test API Connection</button>
+                            <div id="apiResult"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-info mb-2" onclick="testReact()">Test React Loading</button>
+                            <div id="reactResult"></div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>🔗 Navigation Links</h5>
+                    <div class="btn-group" role="group">
+                        <a href="/" class="btn btn-outline-primary">Home</a>
+                        <a href="/Home/SimpleBooking" class="btn btn-outline-success">Simple Booking</a>
+                        <a href="/appointment-booking" class="btn btn-outline-warning">Advanced Booking</a>
+                        <a href="/test/appointmenttest" class="btn btn-outline-info">Full Test Page</a>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5>📊 System Information</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Current Time:</strong> <span id="currentTime"></span></li>
+                        <li><strong>User Agent:</strong> <span id="userAgent"></span></li>
+                        <li><strong>Page URL:</strong> <span id="pageUrl"></span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update system info
+    document.getElementById('currentTime').textContent = new Date().toLocaleString();
+    document.getElementById('userAgent').textContent = navigator.userAgent;
+    document.getElementById('pageUrl').textContent = window.location.href;
+
+    async function testAPI() {
+        const resultDiv = document.getElementById('apiResult');
+        resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Testing...';
+        
+        try {
+            const response = await fetch('/api/seeddata/status');
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <strong>✅ API Working!</strong><br>
+                        Users: ${data.users}, Doctors: ${data.doctors}
+                    </div>
+                `;
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>❌ API Error:</strong> ${error.message}
+                </div>
+            `;
+        }
+    }
+
+    function testReact() {
+        const resultDiv = document.getElementById('reactResult');
+        resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Testing...';
+        
+        // Test if React is available
+        if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>✅ React Available!</strong><br>
+                    React version: ${React.version}
+                </div>
+            `;
+        } else {
+            // Try to load React
+            const script1 = document.createElement('script');
+            script1.src = 'https://unpkg.com/react@18/umd/react.development.js';
+            script1.onload = function() {
+                const script2 = document.createElement('script');
+                script2.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
+                script2.onload = function() {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✅ React Loaded!</strong><br>
+                            React version: ${React.version}
+                        </div>
+                    `;
+                };
+                script2.onerror = function() {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>❌ ReactDOM failed to load</strong>
+                        </div>
+                    `;
+                };
+                document.head.appendChild(script2);
+            };
+            script1.onerror = function() {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ React failed to load</strong>
+                    </div>
+                `;
+            };
+            document.head.appendChild(script1);
+        }
+    }
+</script> 

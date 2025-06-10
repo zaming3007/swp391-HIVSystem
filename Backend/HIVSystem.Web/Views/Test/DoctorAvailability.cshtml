@@ -1,0 +1,328 @@
+@{
+    ViewData["Title"] = "Test Doctor Availability";
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-user-md"></i> Test Doctor Availability</h2>
+            <p class="text-muted">Trang test để kiểm tra tính năng kiểm tra tình trạng bác sĩ</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-check"></i> Test Parameters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="testForm">
+                        <div class="mb-3">
+                            <label class="form-label">Date:</label>
+                            <input type="date" id="testDate" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Time:</label>
+                            <select id="testTime" class="form-control" required>
+                                <option value="">Select time...</option>
+                                <option value="08:00">08:00</option>
+                                <option value="08:30">08:30</option>
+                                <option value="09:00">09:00</option>
+                                <option value="09:30">09:30</option>
+                                <option value="10:00">10:00</option>
+                                <option value="10:30">10:30</option>
+                                <option value="11:00">11:00</option>
+                                <option value="11:30">11:30</option>
+                                <option value="14:00">14:00</option>
+                                <option value="14:30">14:30</option>
+                                <option value="15:00">15:00</option>
+                                <option value="15:30">15:30</option>
+                                <option value="16:00">16:00</option>
+                                <option value="16:30">16:30</option>
+                                <option value="17:00">17:00</option>
+                                <option value="17:30">17:30</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="testDoctorAvailability()">
+                            <i class="fas fa-search"></i> Check Availability
+                        </button>
+                        <button type="button" class="btn btn-secondary ms-2" onclick="clearResults()">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-plus"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-success btn-sm mb-2 w-100" onclick="testTomorrowMorning()">
+                        Test Tomorrow 9:00 AM
+                    </button>
+                    <button class="btn btn-info btn-sm mb-2 w-100" onclick="testTomorrowAfternoon()">
+                        Test Tomorrow 2:00 PM
+                    </button>
+                    <button class="btn btn-warning btn-sm mb-2 w-100" onclick="testWeekend()">
+                        Test Weekend (Should be empty)
+                    </button>
+                    <button class="btn btn-danger btn-sm mb-2 w-100" onclick="testConflict()">
+                        Test Conflict Scenario
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Test Results</h5>
+                </div>
+                <div class="card-body" style="min-height: 400px;">
+                    <div id="testResults">
+                        <p class="text-muted">Select date and time, then click "Check Availability" to see results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-database"></i> Current Appointments in Database</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-info mb-3" onclick="loadCurrentAppointments()">
+                        <i class="fas fa-sync"></i> Load Current Appointments
+                    </button>
+                    <div id="currentAppointments">
+                        <p class="text-muted">Click "Load Current Appointments" to see existing appointments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('testDate').value = tomorrow.toISOString().split('T')[0];
+});
+
+async function testDoctorAvailability() {
+    const date = document.getElementById('testDate').value;
+    const time = document.getElementById('testTime').value;
+    
+    if (!date || !time) {
+        alert('Please select both date and time');
+        return;
+    }
+    
+    const resultsDiv = document.getElementById('testResults');
+    resultsDiv.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    
+    try {
+        console.log(`Testing doctor availability for ${date} at ${time}`);
+        const response = await fetch(`/api/appointments/doctors/available?date=${date}&time=${time}`);
+        const data = await response.json();
+        
+        console.log('API Response:', data);
+        
+        let html = `
+            <div class="alert alert-info">
+                <h6>API Response Summary:</h6>
+                <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Time:</strong> ${time}</p>
+                <p><strong>Total Doctors:</strong> ${data.totalDoctors || 0}</p>
+                <p><strong>Available Doctors:</strong> ${data.totalCount || 0}</p>
+                <p><strong>Message:</strong> ${data.message || 'N/A'}</p>
+            </div>
+        `;
+        
+        if (data.doctors && data.doctors.length > 0) {
+            const availableDoctors = data.doctors.filter(d => d.isAvailable);
+            const busyDoctors = data.doctors.filter(d => !d.isAvailable);
+            
+            if (availableDoctors.length > 0) {
+                html += `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle"></i> Available Doctors (${availableDoctors.length})</h6>
+                    </div>
+                    <div class="row">
+                `;
+                
+                availableDoctors.forEach(doctor => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-success">
+                                <div class="card-body">
+                                    <h6 class="card-title text-success">${doctor.fullName}</h6>
+                                    <p class="card-text">
+                                        <small><strong>Specialty:</strong> ${doctor.specialty}</small><br>
+                                        <small><strong>Experience:</strong> ${doctor.yearsOfExperience} years</small><br>
+                                        <small><strong>Fee:</strong> ${doctor.consultationFee.toLocaleString('vi-VN')} VND</small>
+                                    </p>
+                                    <span class="badge bg-success">Available</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            if (busyDoctors.length > 0) {
+                html += `
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Busy Doctors (${busyDoctors.length})</h6>
+                    </div>
+                    <div class="row">
+                `;
+                
+                busyDoctors.forEach(doctor => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6 class="card-title text-muted">${doctor.fullName}</h6>
+                                    <p class="card-text">
+                                        <small><strong>Specialty:</strong> ${doctor.specialty}</small><br>
+                                        <small><strong>Reason:</strong> ${doctor.availabilityReason}</small>
+                                    </p>
+                                    <span class="badge bg-warning">Busy</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+        } else {
+            html += `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-times-circle"></i> No Doctors Found</h6>
+                    <p>No doctors found for the specified criteria.</p>
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="mt-3">
+                <h6>Raw API Response:</h6>
+                <pre class="bg-light p-3 border rounded" style="max-height: 300px; overflow-y: auto; font-size: 12px;">${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+        
+        resultsDiv.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        resultsDiv.innerHTML = `
+            <div class="alert alert-danger">
+                <h6>Error:</h6>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+async function loadCurrentAppointments() {
+    const div = document.getElementById('currentAppointments');
+    div.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>';
+    
+    try {
+        const response = await fetch('/api/appointments/my-appointments');
+        const data = await response.json();
+        
+        let html = '';
+        if (data.appointments && data.appointments.length > 0) {
+            html = `
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            data.appointments.forEach(apt => {
+                html += `
+                    <tr>
+                        <td>${apt.appointmentID}</td>
+                        <td>${apt.doctorName || 'N/A'}</td>
+                        <td>${new Date(apt.appointmentDate).toLocaleDateString('vi-VN')}</td>
+                        <td>${apt.appointmentTime}</td>
+                        <td><span class="badge bg-primary">${apt.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            html = '<div class="alert alert-info">No appointments found in database</div>';
+        }
+        
+        div.innerHTML = html;
+        
+    } catch (error) {
+        div.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+}
+
+function testTomorrowMorning() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('testDate').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('testTime').value = '09:00';
+    testDoctorAvailability();
+}
+
+function testTomorrowAfternoon() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('testDate').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('testTime').value = '14:00';
+    testDoctorAvailability();
+}
+
+function testWeekend() {
+    const nextSaturday = new Date();
+    nextSaturday.setDate(nextSaturday.getDate() + (6 - nextSaturday.getDay()));
+    document.getElementById('testDate').value = nextSaturday.toISOString().split('T')[0];
+    document.getElementById('testTime').value = '09:00';
+    testDoctorAvailability();
+}
+
+function testConflict() {
+    // This would test a time when there's already an appointment
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('testDate').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('testTime').value = '08:00';
+    testDoctorAvailability();
+}
+
+function clearResults() {
+    document.getElementById('testResults').innerHTML = '<p class="text-muted">Select date and time, then click "Check Availability" to see results</p>';
+    document.getElementById('currentAppointments').innerHTML = '<p class="text-muted">Click "Load Current Appointments" to see existing appointments</p>';
+}
+</script> 

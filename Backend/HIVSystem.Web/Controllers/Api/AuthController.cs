@@ -208,6 +208,63 @@ namespace HIVHealthcareSystem.Controllers.Api
             }
         }
 
+        [HttpGet("current-user")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var userId = HttpContext.Session.GetString("UserId");
+                var username = HttpContext.Session.GetString("Username");
+
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(username))
+                {
+                    return Ok(new { 
+                        success = false, 
+                        isAuthenticated = false,
+                        message = "Người dùng chưa đăng nhập" 
+                    });
+                }
+
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.UserID == int.Parse(userId) && u.IsActive);
+
+                if (user == null)
+                {
+                    // Clear invalid session
+                    HttpContext.Session.Clear();
+                    return Ok(new { 
+                        success = false, 
+                        isAuthenticated = false,
+                        message = "Phiên đăng nhập không hợp lệ" 
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    isAuthenticated = true,
+                    user = new
+                    {
+                        user.UserID,
+                        user.Username,
+                        user.FullName,
+                        user.Email,
+                        user.PhoneNumber,
+                        user.DateOfBirth,
+                        user.Gender,
+                        user.Address
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = "Lỗi server: " + ex.Message 
+                });
+            }
+        }
+
         private string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())

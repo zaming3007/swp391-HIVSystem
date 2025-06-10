@@ -1,0 +1,634 @@
+@{
+    ViewData["Title"] = "Appointment Booking Test";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-flask"></i> Appointment Booking Test & Setup
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div id="messages"></div>
+                    
+                    <!-- Database Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Database Status</h5>
+                            <button class="btn btn-info" onclick="checkDatabaseStatus()">
+                                <i class="fas fa-database"></i> Check Database Status
+                            </button>
+                            <div id="dbStatus" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Seed Data -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Seed Sample Data</h5>
+                            <button class="btn btn-success" onclick="seedDoctors()">
+                                <i class="fas fa-user-md"></i> Create Sample Doctors
+                            </button>
+                            <div id="seedResult" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Test New API Endpoints -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Test New Step-by-Step Booking API</h5>
+                            <div class="btn-group mb-2" role="group">
+                                <button class="btn btn-outline-primary" onclick="testTimeSlots()">
+                                    <i class="fas fa-clock"></i> Test Time Slots API
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="testDoctorsWithDateTime()">
+                                    <i class="fas fa-user-md"></i> Test Doctors by Date/Time
+                                </button>
+                                <button class="btn btn-outline-success" onclick="testCreateAppointment()">
+                                    <i class="fas fa-plus"></i> Test Create Appointment
+                                </button>
+                            </div>
+                            <br>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-warning" onclick="testValidateTime()">
+                                    <i class="fas fa-check"></i> Test Validate Time
+                                </button>
+                                <button class="btn btn-outline-info" onclick="testWeekendValidation()">
+                                    <i class="fas fa-calendar-times"></i> Test Weekend Validation
+                                </button>
+                            </div>
+                            <div id="newApiTestResult" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Test Legacy API Endpoints -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5>Test Legacy API Endpoints</h5>
+                            <div class="btn-group mb-2" role="group">
+                                <button class="btn btn-outline-secondary" onclick="testGetDoctors()">
+                                    <i class="fas fa-users"></i> Test Get Doctors (Legacy)
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="testDoctorAvailability()">
+                                    <i class="fas fa-calendar"></i> Test Doctor Availability (Legacy)
+                                </button>
+                            </div>
+                            <br>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-info" onclick="debugAllUsers()">
+                                    <i class="fas fa-bug"></i> Debug All Users
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="testSpecificDate()">
+                                    <i class="fas fa-calendar-day"></i> Test Today's Availability
+                                </button>
+                            </div>
+                            <div id="legacyApiTestResult" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>Quick Access</h5>
+                            <a href="/appointment-booking" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-plus"></i> Go to New Appointment Booking
+                            </a>
+                            <a href="/test/appointmenttest" class="btn btn-secondary btn-lg ms-2">
+                                <i class="fas fa-refresh"></i> Refresh This Page
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showMessage(message, type = 'info') {
+        const alertClass = type === 'error' ? 'alert-danger' : type === 'success' ? 'alert-success' : 'alert-info';
+        const html = `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>`;
+        document.getElementById('messages').innerHTML = html;
+    }
+
+    async function checkDatabaseStatus() {
+        try {
+            const response = await fetch('/api/seeddata/status');
+            const data = await response.json();
+            
+            const html = `
+                <div class="card">
+                    <div class="card-body">
+                        <h6>Database Statistics:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Users:</strong> ${data.users}</li>
+                            <li><strong>Doctors:</strong> ${data.doctors}</li>
+                            <li><strong>Schedules:</strong> ${data.schedules}</li>
+                            <li><strong>Appointments:</strong> ${data.appointments}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.getElementById('dbStatus').innerHTML = html;
+            showMessage('Database status retrieved successfully!', 'success');
+        } catch (error) {
+            showMessage('Error checking database status: ' + error.message, 'error');
+        }
+    }
+
+    async function seedDoctors() {
+        try {
+            const response = await fetch('/api/seeddata/doctors', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            const html = `
+                <div class="alert alert-success">
+                    <h6>Seed Result:</h6>
+                    <p>${data.message}</p>
+                    ${data.doctorsCreated ? `<p>Doctors created: ${data.doctorsCreated}</p>` : ''}
+                    ${data.note ? `<p><em>${data.note}</em></p>` : ''}
+                </div>
+            `;
+            document.getElementById('seedResult').innerHTML = html;
+            showMessage('Sample doctors operation completed!', 'success');
+        } catch (error) {
+            showMessage('Error seeding doctors: ' + error.message, 'error');
+        }
+    }
+
+    // New API Tests
+    async function testTimeSlots() {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            const todayResponse = await fetch(`/api/appointments/timeslots?date=${today}`);
+            const todayData = await todayResponse.json();
+
+            const tomorrowResponse = await fetch(`/api/appointments/timeslots?date=${tomorrowStr}`);
+            const tomorrowData = await tomorrowResponse.json();
+
+            let html = `<div class="card"><div class="card-body">
+                <h6>Time Slots API Test:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Today (${today}):</h6>
+                        <p>Morning slots: ${todayData.timeSlots?.morning?.length || 0}</p>
+                        <p>Afternoon slots: ${todayData.timeSlots?.afternoon?.length || 0}</p>
+                        ${todayData.message ? `<p class="text-warning">${todayData.message}</p>` : ''}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">Tomorrow (${tomorrowStr}):</h6>
+                        <p>Morning slots: ${tomorrowData.timeSlots?.morning?.length || 0}</p>
+                        <p>Afternoon slots: ${tomorrowData.timeSlots?.afternoon?.length || 0}</p>
+                        ${tomorrowData.message ? `<p class="text-warning">${tomorrowData.message}</p>` : ''}
+                    </div>
+                </div>`;
+
+            if (tomorrowData.timeSlots?.morning?.length > 0) {
+                html += '<h6>Sample Morning Slots:</h6><div class="d-flex flex-wrap">';
+                tomorrowData.timeSlots.morning.slice(0, 4).forEach(slot => {
+                    html += `<span class="badge bg-primary me-1 mb-1">${slot.time}</span>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div></div>';
+            document.getElementById('newApiTestResult').innerHTML = html;
+            showMessage('Time slots API test completed!', 'success');
+        } catch (error) {
+            showMessage('Error testing time slots API: ' + error.message, 'error');
+        }
+    }
+
+    async function testDoctorsWithDateTime() {
+        try {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            const time = '09:00';
+
+            const response = await fetch(`/api/appointments/doctors/available?date=${tomorrowStr}&time=${time}`);
+            const data = await response.json();
+
+            let html = `<div class="card"><div class="card-body">
+                <h6>Doctors by Date/Time API Test:</h6>
+                <p><strong>Query:</strong> ${tomorrowStr} at ${time}</p>
+                <p><strong>Total doctors found:</strong> ${data.totalCount || 0}</p>`;
+
+            if (data.doctors && data.doctors.length > 0) {
+                html += '<div class="row">';
+                data.doctors.slice(0, 2).forEach(doctor => {
+                    html += `
+                        <div class="col-md-6 mb-2">
+                            <div class="card border-success">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title">${doctor.fullName}</h6>
+                                    <p class="card-text">
+                                        <small>
+                                            <strong>Specialty:</strong> ${doctor.specialty}<br>
+                                            <strong>Experience:</strong> ${doctor.yearsOfExperience} years<br>
+                                            <strong>Fee:</strong> ${doctor.consultationFee?.toLocaleString()} VND<br>
+                                            <strong>Rating:</strong> ${doctor.rating || 'N/A'} ⭐
+                                        </small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-warning">No doctors found for the specified date and time.</p>';
+            }
+
+            html += '</div></div>';
+            document.getElementById('newApiTestResult').innerHTML = html;
+            showMessage('Doctors by date/time API test completed!', 'success');
+        } catch (error) {
+            showMessage('Error testing doctors by date/time API: ' + error.message, 'error');
+        }
+    }
+
+    async function testCreateAppointment() {
+        try {
+            // First get a doctor
+            const doctorsResponse = await fetch('/api/appointments/doctors/available');
+            const doctorsData = await doctorsResponse.json();
+            
+            if (!doctorsData.doctors || doctorsData.doctors.length === 0) {
+                showMessage('No doctors available for appointment test. Please seed doctors first.', 'error');
+                return;
+            }
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            const appointmentData = {
+                doctorId: doctorsData.doctors[0].doctorID,
+                appointmentDate: tomorrowStr,
+                appointmentTime: '09:00',
+                patientInfo: {
+                    fullName: 'Test Patient',
+                    phoneNumber: '0123456789',
+                    email: 'test@example.com',
+                    purpose: 'Test appointment booking',
+                    isAnonymous: false
+                }
+            };
+
+            const response = await fetch('/api/appointments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(appointmentData)
+            });
+
+            const result = await response.json();
+
+            let html = `<div class="card"><div class="card-body">
+                <h6>Create Appointment API Test:</h6>
+                <p><strong>Success:</strong> ${result.success}</p>
+                <p><strong>Message:</strong> ${result.message}</p>`;
+
+            if (result.success && result.appointment) {
+                html += `
+                    <div class="alert alert-success">
+                        <h6>Appointment Created:</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>ID:</strong> ${result.appointment.appointmentID}</li>
+                            <li><strong>Doctor:</strong> ${result.appointment.doctorName}</li>
+                            <li><strong>Date:</strong> ${result.appointment.appointmentDate}</li>
+                            <li><strong>Time:</strong> ${result.appointment.appointmentTime}</li>
+                            <li><strong>Patient:</strong> ${result.appointment.patientName}</li>
+                            <li><strong>Status:</strong> ${result.appointment.status}</li>
+                            <li><strong>Fee:</strong> ${result.appointment.consultationFee?.toLocaleString()} VND</li>
+                        </ul>
+                    </div>
+                `;
+            }
+
+            html += '</div></div>';
+            document.getElementById('newApiTestResult').innerHTML = html;
+            showMessage('Create appointment API test completed!', 'success');
+        } catch (error) {
+            showMessage('Error testing create appointment API: ' + error.message, 'error');
+        }
+    }
+
+    async function testValidateTime() {
+        try {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            const validRequest = {
+                date: tomorrowStr,
+                time: '09:00'
+            };
+
+            const invalidRequest = {
+                date: tomorrowStr,
+                time: '13:00' // Lunch break
+            };
+
+            const validResponse = await fetch('/api/appointments/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(validRequest)
+            });
+            const validData = await validResponse.json();
+
+            const invalidResponse = await fetch('/api/appointments/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invalidRequest)
+            });
+            const invalidData = await invalidResponse.json();
+
+            const html = `<div class="card"><div class="card-body">
+                <h6>Validate Time API Test:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-success">Valid Time (09:00):</h6>
+                        <p><strong>Valid:</strong> ${validData.isValid}</p>
+                        <p><strong>Message:</strong> ${validData.message}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-warning">Invalid Time (13:00):</h6>
+                        <p><strong>Valid:</strong> ${invalidData.isValid}</p>
+                        <p><strong>Message:</strong> ${invalidData.message}</p>
+                    </div>
+                </div>
+            </div></div>`;
+
+            document.getElementById('newApiTestResult').innerHTML = html;
+            showMessage('Validate time API test completed!', 'success');
+        } catch (error) {
+            showMessage('Error testing validate time API: ' + error.message, 'error');
+        }
+    }
+
+    async function testWeekendValidation() {
+        try {
+            // Find next Saturday
+            const today = new Date();
+            const daysUntilSaturday = (6 - today.getDay() + 7) % 7;
+            const saturday = new Date(today);
+            saturday.setDate(today.getDate() + daysUntilSaturday);
+            const saturdayStr = saturday.toISOString().split('T')[0];
+
+            const response = await fetch(`/api/appointments/timeslots?date=${saturdayStr}`);
+            const data = await response.json();
+
+            const html = `<div class="card"><div class="card-body">
+                <h6>Weekend Validation Test:</h6>
+                <p><strong>Testing date:</strong> ${saturdayStr} (Saturday)</p>
+                <p><strong>Morning slots:</strong> ${data.timeSlots?.morning?.length || 0}</p>
+                <p><strong>Afternoon slots:</strong> ${data.timeSlots?.afternoon?.length || 0}</p>
+                <p><strong>Message:</strong> ${data.message || 'No message'}</p>
+                ${data.message ? '<div class="alert alert-warning">Weekend validation working correctly!</div>' : '<div class="alert alert-danger">Weekend validation may not be working!</div>'}
+            </div></div>`;
+
+            document.getElementById('newApiTestResult').innerHTML = html;
+            showMessage('Weekend validation test completed!', 'success');
+        } catch (error) {
+            showMessage('Error testing weekend validation: ' + error.message, 'error');
+        }
+    }
+
+    // Legacy API Tests (existing functions)
+    async function testGetDoctors() {
+        try {
+            const response = await fetch('/api/appointments/doctors/available');
+            const data = await response.json();
+            const doctors = data.doctors || data; // Handle both new and old response formats
+            
+            let html = '<div class="card"><div class="card-body"><h6>Available Doctors (Legacy API):</h6>';
+            if (doctors.length === 0) {
+                html += '<p class="text-warning">No doctors found. Please seed sample data first.</p>';
+            } else {
+                html += '<div class="row">';
+                doctors.slice(0, 2).forEach(doctor => {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <h6 class="card-title">${doctor.fullName || 'Unknown'}</h6>
+                                    <p class="card-text">
+                                        <strong>Specialty:</strong> ${doctor.specialty || 'N/A'}<br>
+                                        <strong>Experience:</strong> ${doctor.yearsOfExperience || 0} years<br>
+                                        <strong>Fee:</strong> ${doctor.consultationFee ? doctor.consultationFee.toLocaleString() + ' VND' : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            html += '</div></div>';
+            
+            document.getElementById('legacyApiTestResult').innerHTML = html;
+            showMessage(`Found ${doctors.length} doctors (Legacy API)`, 'success');
+        } catch (error) {
+            showMessage('Error testing get doctors (Legacy): ' + error.message, 'error');
+        }
+    }
+
+    async function testDoctorAvailability() {
+        try {
+            // First get a doctor
+            const doctorsResponse = await fetch('/api/appointments/doctors/available');
+            const doctorsData = await doctorsResponse.json();
+            const doctors = doctorsData.doctors || doctorsData;
+            
+            if (doctors.length === 0) {
+                showMessage('No doctors available. Please seed sample data first.', 'error');
+                return;
+            }
+
+            const doctorId = doctors[0].doctorID;
+            const today = new Date().toISOString().split('T')[0];
+            
+            const response = await fetch(`/api/appointments/doctors/${doctorId}/availability?date=${today}`);
+            const availability = await response.json();
+            
+            let html = `<div class="card"><div class="card-body">
+                <h6>Availability for Dr. ${doctors[0].fullName} on ${today} (Legacy API):</h6>`;
+            
+            if (availability.timeSlots && availability.timeSlots.length > 0) {
+                html += '<div class="row">';
+                availability.timeSlots.slice(0, 8).forEach(slot => {
+                    const badgeClass = slot.isAvailable ? 'bg-success' : 'bg-secondary';
+                    html += `<div class="col-auto mb-2">
+                        <span class="badge ${badgeClass}">${slot.time}</span>
+                    </div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-warning">No time slots available.</p>';
+                if (availability.message) {
+                    html += `<p class="text-info">${availability.message}</p>`;
+                }
+            }
+            
+            html += '</div></div>';
+            document.getElementById('legacyApiTestResult').innerHTML = html;
+            showMessage('Doctor availability retrieved successfully (Legacy API)!', 'success');
+        } catch (error) {
+            showMessage('Error testing doctor availability (Legacy): ' + error.message, 'error');
+        }
+    }
+
+    async function debugAllUsers() {
+        try {
+            const response = await fetch('/api/seeddata/debug/users');
+            const data = await response.json();
+            
+            let html = `<div class="card"><div class="card-body">
+                <h6>All Users in Database (${data.totalUsers} total):</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Doctor Users (${data.doctorUsers.length}):</h6>`;
+            
+            if (data.doctorUsers.length === 0) {
+                html += '<p class="text-warning">No doctor users found!</p>';
+            } else {
+                data.doctorUsers.forEach(user => {
+                    html += `
+                        <div class="card border-success mb-2">
+                            <div class="card-body p-2">
+                                <small>
+                                    <strong>ID:</strong> ${user.userID}<br>
+                                    <strong>Username:</strong> ${user.username}<br>
+                                    <strong>Name:</strong> ${user.fullName}<br>
+                                    <strong>RoleID:</strong> ${user.roleID}<br>
+                                    <strong>Active:</strong> ${user.isActive ? 'Yes' : 'No'}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div><div class="col-md-6">
+                        <h6 class="text-info">Recent Users:</h6>
+                        <div style="max-height: 300px; overflow-y: auto;">`;
+            
+            data.users.slice(0, 10).forEach(user => {
+                const isDoctor = user.username.startsWith('dr.') || user.roleID === 2;
+                const cardClass = isDoctor ? 'border-success' : 'border-secondary';
+                html += `
+                    <div class="card ${cardClass} mb-1">
+                        <div class="card-body p-1">
+                            <small>
+                                ${user.userID}: ${user.username} - ${user.fullName} (Role: ${user.roleID})
+                            </small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div></div></div></div></div>';
+            
+            document.getElementById('legacyApiTestResult').innerHTML = html;
+            showMessage(`Found ${data.totalUsers} total users, ${data.doctorUsers.length} doctors`, 'success');
+        } catch (error) {
+            showMessage('Error debugging users: ' + error.message, 'error');
+        }
+    }
+
+    async function testSpecificDate() {
+        try {
+            // First get a doctor
+            const doctorsResponse = await fetch('/api/appointments/doctors/available');
+            const doctorsData = await doctorsResponse.json();
+            const doctors = doctorsData.doctors || doctorsData;
+            
+            if (doctors.length === 0) {
+                showMessage('No doctors available. Please seed sample data first.', 'error');
+                return;
+            }
+
+            const doctorId = doctors[0].doctorID;
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            
+            // Test today
+            const todayResponse = await fetch(`/api/appointments/doctors/${doctorId}/availability?date=${today}`);
+            const todayAvailability = await todayResponse.json();
+            
+            // Test tomorrow
+            const tomorrowResponse = await fetch(`/api/appointments/doctors/${doctorId}/availability?date=${tomorrowStr}`);
+            const tomorrowAvailability = await tomorrowResponse.json();
+            
+            let html = `<div class="card"><div class="card-body">
+                <h6>Availability Test for Dr. ${doctors[0].fullName} (Legacy API):</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Today (${today}):</h6>
+                        <p>Slots: ${todayAvailability.timeSlots ? todayAvailability.timeSlots.length : 0}</p>`;
+            
+            if (todayAvailability.timeSlots && todayAvailability.timeSlots.length > 0) {
+                html += '<div class="d-flex flex-wrap">';
+                todayAvailability.timeSlots.slice(0, 8).forEach(slot => {
+                    html += `<span class="badge bg-success me-1 mb-1">${slot.time}</span>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-warning">No slots available</p>';
+                if (todayAvailability.message) {
+                    html += `<p class="text-info">${todayAvailability.message}</p>`;
+                }
+            }
+            
+            html += `</div><div class="col-md-6">
+                        <h6 class="text-success">Tomorrow (${tomorrowStr}):</h6>
+                        <p>Slots: ${tomorrowAvailability.timeSlots ? tomorrowAvailability.timeSlots.length : 0}</p>`;
+            
+            if (tomorrowAvailability.timeSlots && tomorrowAvailability.timeSlots.length > 0) {
+                html += '<div class="d-flex flex-wrap">';
+                tomorrowAvailability.timeSlots.slice(0, 8).forEach(slot => {
+                    html += `<span class="badge bg-success me-1 mb-1">${slot.time}</span>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="text-warning">No slots available</p>';
+                if (tomorrowAvailability.message) {
+                    html += `<p class="text-info">${tomorrowAvailability.message}</p>`;
+                }
+            }
+            
+            html += '</div></div></div></div>';
+            
+            document.getElementById('legacyApiTestResult').innerHTML = html;
+            showMessage('Date availability test completed (Legacy API)!', 'success');
+        } catch (error) {
+            showMessage('Error testing specific dates (Legacy): ' + error.message, 'error');
+        }
+    }
+
+    // Auto-check database status on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        checkDatabaseStatus();
+    });
+</script> 

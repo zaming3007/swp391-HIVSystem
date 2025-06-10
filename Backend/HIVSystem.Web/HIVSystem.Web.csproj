@@ -14,4 +14,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HIVSystem.Core\HIVSystem.Core.csproj" />
+    <ProjectReference Include="..\HIVSystem.Infrastructure\HIVSystem.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
