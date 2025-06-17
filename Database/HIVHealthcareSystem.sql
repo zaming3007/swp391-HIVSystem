@@ -189,26 +189,40 @@ CREATE TABLE FacilityDoctors (
 
 -- Tạo bảng Appointments (Lịch hẹn)
 CREATE TABLE Appointments (
-    AppointmentID INT PRIMARY KEY IDENTITY(1,1),
-    PatientID INT FOREIGN KEY REFERENCES Patients(PatientID),
-    DoctorID INT FOREIGN KEY REFERENCES Doctors(DoctorID),
-    FacilityID INT FOREIGN KEY REFERENCES Facilities(FacilityID),
+    AppointmentID INT IDENTITY(1,1) PRIMARY KEY,
+    PatientID INT NOT NULL,
+    DoctorID INT NOT NULL,
     AppointmentDate DATE NOT NULL,
     AppointmentTime TIME NOT NULL,
-    EndTime TIME,
-    AppointmentType NVARCHAR(50), -- Regular, Follow-up, Emergency
-    Purpose NVARCHAR(255),
-    Status NVARCHAR(20) DEFAULT 'Scheduled', -- Scheduled, Confirmed, Completed, Cancelled, No-show
-    Notes NTEXT,
-    IsAnonymous BIT DEFAULT 0,
-    ReminderSent BIT DEFAULT 0,
+    Purpose NVARCHAR(500) NOT NULL,
+    Status NVARCHAR(50) NOT NULL DEFAULT 'Scheduled', -- Scheduled, Completed, Cancelled
+    Notes NVARCHAR(1000),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (PatientID) REFERENCES Patients(PatientID),
+    FOREIGN KEY (DoctorID) REFERENCES Doctors(DoctorID)
+);
+
+-- Tạo bảng MedicalExaminations (Kết quả khám)
+CREATE TABLE MedicalExaminations (
+    ExaminationID INT PRIMARY KEY IDENTITY(1,1),
+    AppointmentID INT FOREIGN KEY REFERENCES Appointments(AppointmentID),
+    PatientID INT FOREIGN KEY REFERENCES Patients(PatientID),
+    DoctorID INT FOREIGN KEY REFERENCES Doctors(DoctorID),
+    ExaminationDate DATETIME DEFAULT GETDATE(),
+    ChiefComplaint NVARCHAR(500), -- Triệu chứng chính
+    VitalSigns NVARCHAR(500), -- Dấu hiệu sinh tồn (huyết áp, nhịp tim, nhiệt độ, etc.)
+    PhysicalExamination NTEXT, -- Khám thực thể
+    Diagnosis NVARCHAR(500), -- Chẩn đoán
+    TreatmentPlan NTEXT, -- Kế hoạch điều trị
+    Prescription NVARCHAR(500), -- Đơn thuốc
+    FollowUpInstructions NTEXT, -- Hướng dẫn theo dõi
+    AdditionalNotes NTEXT, -- Ghi chú thêm
+    Status NVARCHAR(20) DEFAULT 'Completed', -- Completed, Pending, Cancelled
     CreatedBy INT FOREIGN KEY REFERENCES Users(UserID),
     CreatedDate DATETIME DEFAULT GETDATE(),
     ModifiedDate DATETIME,
-    ConsultationFee DECIMAL(10,2) NULL,
-    PatientName NVARCHAR(255) NULL,
-    PatientPhone NVARCHAR(20) NULL,
-    PatientEmail NVARCHAR(255) NULL
+    ModifiedBy INT FOREIGN KEY REFERENCES Users(UserID)
 );
 
 -- Tạo bảng AppointmentReminders (Nhắc nhở lịch hẹn)
@@ -639,4 +653,20 @@ CREATE TABLE SurveyAnswers (
     AnswerValue INT, -- For rating questions
     SubmitDate DATETIME DEFAULT GETDATE()
 );
+
+-- Add indexes for better performance
+CREATE INDEX IX_Appointments_PatientID ON Appointments(PatientID);
+CREATE INDEX IX_Appointments_DoctorID ON Appointments(DoctorID);
+CREATE INDEX IX_Appointments_Date ON Appointments(AppointmentDate);
+CREATE INDEX IX_Appointments_Status ON Appointments(Status);
+
+-- Add sample appointments data
+INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, AppointmentTime, Purpose, Status, Notes)
+VALUES 
+(1, 1, '2024-03-20', '09:00:00', 'Regular check-up and medication review', 'Scheduled', 'Patient requested morning appointment'),
+(2, 1, '2024-03-20', '10:30:00', 'Follow-up after treatment adjustment', 'Scheduled', 'Bring latest test results'),
+(3, 2, '2024-03-20', '14:00:00', 'Initial consultation', 'Scheduled', 'New patient'),
+(1, 1, '2024-03-15', '09:00:00', 'Regular check-up', 'Completed', 'Patient showed good progress'),
+(2, 1, '2024-03-15', '10:30:00', 'Medication review', 'Completed', 'Adjusted dosage'),
+(3, 2, '2024-03-15', '14:00:00', 'Follow-up consultation', 'Completed', 'Patient reported side effects');
 
