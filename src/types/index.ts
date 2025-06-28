@@ -7,15 +7,15 @@ export interface User {
     phone?: string;
     gender?: string;
     dateOfBirth?: string;
-    role: 'admin' | 'doctor' | 'patient';
+    role: 'admin' | 'doctor' | 'customer' | 'staff';
     profileImage?: string;
 }
 
 // Authentication Types
 export interface AuthState {
-    user: User | null;
-    token: string | null;
     isAuthenticated: boolean;
+    user: UserInfo | null;
+    token: string | null;
     isLoading: boolean;
     error: string | null;
 }
@@ -25,12 +25,11 @@ export interface LoginCredentials {
     password: string;
 }
 
-export interface RegisterData extends LoginCredentials {
+export interface RegisterData {
+    email: string;
+    password: string;
     firstName: string;
     lastName: string;
-    gender?: string;
-    dateOfBirth?: string;
-    phone?: string;
 }
 
 // Service Types
@@ -38,13 +37,16 @@ export interface Service {
     id: string;
     name: string;
     description: string;
-    category: string;
-    price: number;
     duration: number;
-    image?: string;
+    price: number;
+    category?: string;
+    imageUrl?: string;
 }
 
 // Appointment Types
+export type AppointmentStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
+export type AppointmentType = 'online' | 'offline';
+
 export interface Appointment {
     id: string;
     patientId: string;
@@ -53,7 +55,9 @@ export interface Appointment {
     date: string;
     startTime: string;
     endTime: string;
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+    status: AppointmentStatus;
+    appointmentType: AppointmentType;
+    meetingLink?: string;
     patientName?: string;
     doctorName?: string;
     serviceName?: string;
@@ -74,30 +78,32 @@ export interface Doctor {
     firstName: string;
     lastName: string;
     specialization: string;
-    experience: number;
-    gender: string;
-    bio?: string;
-    profileImage?: string;
-    available: boolean;
+    imageUrl?: string;
+    biography?: string;
+    education?: string;
+    experience?: string;
 }
 
 // Consultation Types
 export interface Consultation {
     id: string;
     patientId: string;
-    topic: string;
+    patientName?: string;
+    title: string;
     question: string;
+    category: string;
     response?: string;
+    responderId?: string;
+    responderName?: string;
     status: 'pending' | 'answered';
     createdAt: string;
-    respondedAt?: string;
-    responderName?: string;
-    patientName?: string;
+    answeredAt?: string;
 }
 
 export interface ConsultationFormData {
-    topic: string;
+    title: string;
     question: string;
+    category: string;
 }
 
 // Admin Dashboard Types
@@ -119,4 +125,45 @@ export interface MedicalRecord {
     treatment: string;
     notes: string;
     followUp?: string;
+}
+
+// Re-export các types từ app
+export * from './appointment.d';
+
+// Các loại khác sẽ được export thêm sau này
+export interface UserInfo {
+    id: string;
+    username: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+}
+
+// Redux store state
+export interface AppState {
+    auth: AuthState;
+}
+
+export interface AppointmentCreateDto {
+    patientId: string;
+    doctorId: string;
+    serviceId: string;
+    date: string;
+    startTime: string;
+    appointmentType: AppointmentType;
+    notes?: string;
+}
+
+export interface AppointmentUpdateDto {
+    status?: AppointmentStatus;
+    date?: string;
+    startTime?: string;
+    notes?: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
 } 

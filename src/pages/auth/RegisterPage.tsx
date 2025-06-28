@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { registerStart, registerSuccess, registerFailure } from '../../store/slices/authSlice';
+import { authService } from '../../services/authService';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -138,31 +139,20 @@ const RegisterPage: React.FC = () => {
         try {
             dispatch(registerStart());
 
-            // Simulating API call - in a real app, you would make an actual API call here
-            // const response = await registerApi(formData);
+            // Call API through our service, omitting confirmPassword and acceptTerms
+            const { confirmPassword, acceptTerms, ...registerData } = formData;
+            const response = await authService.register(registerData);
 
-            // For demo purposes, simulating a successful registration
-            setTimeout(() => {
-                const fakeUser = {
-                    id: Math.random().toString(36).substr(2, 9),
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    gender: formData.gender,
-                    dateOfBirth: formData.dateOfBirth,
-                    phone: formData.phone,
-                    role: 'patient' as const,
-                };
+            // On success, update Redux state
+            dispatch(registerSuccess({
+                user: response.user,
+                token: response.token
+            }));
 
-                dispatch(registerSuccess({
-                    user: fakeUser,
-                    token: 'fake-jwt-token'
-                }));
-
-                navigate('/app/profile');
-            }, 1500);
-        } catch (error) {
-            dispatch(registerFailure('Đăng ký thất bại. Vui lòng thử lại.'));
+            // Navigate to profile page
+            navigate('/app/profile');
+        } catch (error: any) {
+            dispatch(registerFailure(error.message || 'Đăng ký thất bại. Vui lòng thử lại.'));
         }
     };
 
@@ -291,11 +281,8 @@ const RegisterPage: React.FC = () => {
                                 onChange={handleSelectChange}
                                 disabled={isLoading}
                             >
-                                <MenuItem value=""><em>Không muốn nói</em></MenuItem>
                                 <MenuItem value="male">Nam</MenuItem>
                                 <MenuItem value="female">Nữ</MenuItem>
-                                <MenuItem value="non-binary">Phi nhị nguyên</MenuItem>
-                                <MenuItem value="transgender">Chuyển giới</MenuItem>
                                 <MenuItem value="other">Khác</MenuItem>
                             </Select>
                         </FormControl>

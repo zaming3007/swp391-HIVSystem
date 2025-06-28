@@ -28,27 +28,13 @@ import {
     Edit as EditIcon,
     Save as SaveIcon,
     Lock as LockIcon,
-    History as HistoryIcon,
-    Assignment as AssignmentIcon,
+    MedicalServices as MedicalServicesIcon,
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { RootState } from '../../store';
 import { updateUser } from '../../store/slices/authSlice';
-
-interface Appointment {
-    id: string;
-    patientId: string;
-    doctorId: string;
-    serviceId: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    status: string;
-    patientName: string;
-    doctorName: string;
-    serviceName: string;
-}
+import { authService } from '../../services/authService';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -79,86 +65,6 @@ function a11yProps(index: number) {
     };
 }
 
-interface AppointmentHistoryProps {
-    // userId parameter removed as it's not being used
-}
-
-const AppointmentHistory: React.FC<AppointmentHistoryProps> = () => {
-    // In a real app, we would fetch this data from an API based on userId
-    const appointments: Appointment[] = [
-        {
-            id: 'apt12340',
-            patientId: '1',
-            doctorId: '1',
-            serviceId: '1',
-            date: '2023-05-05',
-            startTime: '09:30 AM',
-            endTime: '10:30 AM',
-            status: 'completed',
-            patientName: 'Demo User',
-            doctorName: 'Sarah Johnson',
-            serviceName: 'Hormone Therapy Consultation',
-        },
-        {
-            id: 'apt12339',
-            patientId: '1',
-            doctorId: '3',
-            serviceId: '3',
-            date: '2023-05-20',
-            startTime: '01:00 PM',
-            endTime: '01:45 PM',
-            status: 'cancelled',
-            patientName: 'Demo User',
-            doctorName: 'Aisha Khan',
-            serviceName: 'Voice and Communication Therapy',
-        },
-    ];
-
-    return (
-        <Box>
-            <Typography variant="h6" gutterBottom>
-                Your Appointment History
-            </Typography>
-            {appointments.map((appointment) => (
-                <Paper key={appointment.id} sx={{ p: 3, mb: 2 }}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                                {appointment.serviceName}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                Dr. {appointment.doctorName}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6} sx={{ textAlign: { sm: 'right' } }}>
-                            <Typography variant="body1">
-                                {appointment.date} at {appointment.startTime}
-                            </Typography>
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    textTransform: 'capitalize',
-                                    color:
-                                        appointment.status === 'completed' ? 'success.main' :
-                                            appointment.status === 'cancelled' ? 'error.main' :
-                                                'info.main'
-                                }}
-                            >
-                                {appointment.status}
-                            </Typography>
-                        </Grid>
-                    </Grid>
-                </Paper>
-            ))}
-            {appointments.length === 0 && (
-                <Typography variant="body1" color="text.secondary" align="center">
-                    No appointment history found
-                </Typography>
-            )}
-        </Box>
-    );
-};
-
 interface MedicalRecordsProps {
     // userId parameter removed as it's not being used
 }
@@ -167,11 +73,11 @@ const MedicalRecords: React.FC<MedicalRecordsProps> = () => {
     return (
         <Box>
             <Typography variant="h6" gutterBottom>
-                Your Medical Records
+                Hồ sơ y tế
             </Typography>
             <Paper sx={{ p: 4, textAlign: 'center' }}>
                 <Typography variant="body1" color="text.secondary">
-                    No medical records found. Medical records will be available after your appointments.
+                    Chưa có hồ sơ y tế. Hồ sơ y tế sẽ được cập nhật sau khi bạn hoàn thành các buổi khám.
                 </Typography>
             </Paper>
         </Box>
@@ -235,10 +141,10 @@ const ProfilePage: React.FC = () => {
         setError('');
     };
 
-    const handleSaveProfile = () => {
+    const handleSaveProfile = async () => {
         // Validate form
         if (!formData.firstName || !formData.lastName || !formData.email) {
-            setError('Please fill all required fields');
+            setError('Vui lòng điền đầy đủ thông tin bắt buộc');
             return;
         }
 
@@ -246,35 +152,31 @@ const ProfilePage: React.FC = () => {
         setSuccess('');
         setError('');
 
-        // Simulate API call
-        setTimeout(() => {
-            try {
-                if (user) {
-                    const updatedUser = {
-                        ...user,
-                        ...formData,
-                    };
-                    dispatch(updateUser(updatedUser));
-                    setSaving(false);
-                    setEditMode(false);
-                    setSuccess('Profile updated successfully');
-                }
-            } catch (_error) {
-                setError('Failed to update profile');
-                setSaving(false);
-            }
-        }, 1500);
+        try {
+            // Call the API to update the profile
+            const updatedUser = await authService.updateProfile(user?.id || '', formData);
+
+            // Update Redux store
+            dispatch(updateUser(updatedUser));
+
+            setSuccess('Thông tin cá nhân đã được cập nhật thành công');
+            setEditMode(false);
+        } catch (err: any) {
+            setError(err.message || 'Có lỗi xảy ra khi cập nhật thông tin');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleOpenPasswordDialog = () => {
         setOpenPasswordDialog(true);
+        setPasswordError('');
+        setPasswordSuccess('');
         setPassword({
             current: '',
             new: '',
             confirm: '',
         });
-        setPasswordError('');
-        setPasswordSuccess('');
     };
 
     const handleClosePasswordDialog = () => {
@@ -289,282 +191,294 @@ const ProfilePage: React.FC = () => {
     const handleChangePassword = () => {
         // Validate passwords
         if (!password.current || !password.new || !password.confirm) {
-            setPasswordError('Please fill all password fields');
+            setPasswordError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
         if (password.new !== password.confirm) {
-            setPasswordError('New passwords do not match');
+            setPasswordError('Mật khẩu mới không khớp');
             return;
         }
 
-        if (password.new.length < 8) {
-            setPasswordError('Password must be at least 8 characters long');
+        if (password.new.length < 6) {
+            setPasswordError('Mật khẩu phải có ít nhất 6 ký tự');
             return;
         }
+
+        setPasswordError('');
+        setPasswordSuccess('');
 
         // Simulate API call
         setTimeout(() => {
-            // This is just a demo, in a real app we would call an API
-            setPasswordSuccess('Password changed successfully');
-            setPasswordError('');
-
-            // Close the dialog after a delay
-            setTimeout(() => {
-                handleClosePasswordDialog();
-            }, 2000);
-        }, 1500);
+            try {
+                // In a real app, we would send this data to an API
+                setPasswordSuccess('Mật khẩu đã được thay đổi thành công');
+                setTimeout(() => {
+                    handleClosePasswordDialog();
+                }, 1500);
+            } catch (err) {
+                setPasswordError('Có lỗi xảy ra khi thay đổi mật khẩu');
+            }
+        }, 1000);
     };
 
-    if (!user) {
-        return (
-            <Container maxWidth="md" sx={{ py: 8 }}>
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography variant="h5" color="text.secondary">
-                        Please login to view your profile
-                    </Typography>
-                </Paper>
-            </Container>
-        );
-    }
-
     return (
-        <Container maxWidth="lg" sx={{ py: 6 }}>
-            <Paper sx={{ p: 4, mb: 4 }}>
-                <Grid container spacing={4}>
-                    <Grid item xs={12} md={4} sx={{ textAlign: 'center' }}>
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Box mb={4}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Hồ sơ cá nhân
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                    Quản lý thông tin cá nhân và hồ sơ y tế của bạn
+                </Typography>
+            </Box>
+
+            <Grid container spacing={4}>
+                {/* Sidebar with user info */}
+                <Grid item xs={12} md={4}>
+                    <Paper sx={{ p: 4, textAlign: 'center', position: 'relative' }}>
                         <Avatar
                             sx={{
-                                width: 150,
-                                height: 150,
-                                margin: '0 auto',
-                                bgcolor: 'primary.main',
-                                fontSize: 64,
+                                width: 120,
+                                height: 120,
+                                mx: 'auto',
+                                mb: 2,
+                                fontSize: '3rem',
+                                bgcolor: 'primary.main'
                             }}
-                            src={user.profileImage}
                         >
-                            {!user.profileImage && <PersonIcon style={{ fontSize: 80 }} />}
+                            {user?.firstName?.charAt(0) || 'U'}
                         </Avatar>
-                        <Typography variant="h5" sx={{ mt: 2 }}>
-                            {`${user.firstName} ${user.lastName}`}
+                        <Typography variant="h5">{user?.firstName} {user?.lastName}</Typography>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            {user?.email}
                         </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {user.role === 'patient' ? 'Patient' : user.role === 'doctor' ? 'Doctor' : 'Administrator'}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={8}>
-                        {success && (
-                            <Alert severity="success" sx={{ mb: 2 }}>
-                                {success}
-                            </Alert>
-                        )}
-                        {error && (
-                            <Alert severity="error" sx={{ mb: 2 }}>
-                                {error}
-                            </Alert>
-                        )}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                            <Button
-                                variant={editMode ? 'outlined' : 'contained'}
-                                color={editMode ? 'error' : 'primary'}
-                                startIcon={editMode ? <PersonIcon /> : <EditIcon />}
-                                onClick={handleEditToggle}
-                                sx={{ mr: 1 }}
-                                disabled={saving}
-                            >
-                                {editMode ? 'Cancel' : 'Edit Profile'}
-                            </Button>
-                            {editMode && (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                                    onClick={handleSaveProfile}
-                                    disabled={saving}
-                                >
-                                    {saving ? 'Saving...' : 'Save Changes'}
-                                </Button>
-                            )}
-                        </Box>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="First Name"
-                                    name="firstName"
-                                    value={formData.firstName}
-                                    onChange={handleInputChange}
-                                    disabled={!editMode || saving}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Last Name"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleInputChange}
-                                    disabled={!editMode || saving}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Email"
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    disabled={!editMode || saving}
-                                    required
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                    disabled={!editMode || saving}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth disabled={!editMode || saving}>
-                                    <InputLabel id="gender-select-label">Gender</InputLabel>
-                                    <Select
-                                        labelId="gender-select-label"
-                                        id="gender"
-                                        name="gender"
-                                        value={formData.gender}
-                                        label="Gender"
-                                        onChange={handleSelectChange}
-                                    >
-                                        <MenuItem value=""><em>Prefer not to say</em></MenuItem>
-                                        <MenuItem value="male">Male</MenuItem>
-                                        <MenuItem value="female">Female</MenuItem>
-                                        <MenuItem value="non-binary">Non-binary</MenuItem>
-                                        <MenuItem value="transgender">Transgender</MenuItem>
-                                        <MenuItem value="other">Other</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <DatePicker
-                                    label="Date of Birth"
-                                    value={formData.dateOfBirth ? new Date(formData.dateOfBirth) : null}
-                                    onChange={(date) => setFormData({ ...formData, dateOfBirth: date ? date.toISOString().split('T')[0] : '' })}
-                                    disabled={!editMode || saving}
-                                    sx={{ width: '100%' }}
-                                />
-                            </Grid>
-                        </Grid>
-                        <Box sx={{ mt: 2 }}>
+
+                        <Box mt={3}>
                             <Button
                                 variant="outlined"
-                                color="primary"
+                                fullWidth
                                 startIcon={<LockIcon />}
                                 onClick={handleOpenPasswordDialog}
-                                disabled={saving}
-                                sx={{ mt: 2 }}
+                                sx={{ mb: 2 }}
                             >
-                                Change Password
+                                Đổi mật khẩu
+                            </Button>
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                startIcon={editMode ? <SaveIcon /> : <EditIcon />}
+                                onClick={handleEditToggle}
+                                disabled={saving}
+                                color={editMode ? 'success' : 'primary'}
+                            >
+                                {editMode ? 'Hủy chỉnh sửa' : 'Chỉnh sửa thông tin'}
                             </Button>
                         </Box>
-                    </Grid>
+                    </Paper>
                 </Grid>
-            </Paper>
 
-            <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs
-                        value={tabValue}
-                        onChange={handleTabChange}
-                        aria-label="profile tabs"
-                        centered
-                    >
-                        <Tab
-                            icon={<HistoryIcon />}
-                            label="Appointment History"
-                            {...a11yProps(0)}
-                        />
-                        <Tab
-                            icon={<AssignmentIcon />}
-                            label="Medical Records"
-                            {...a11yProps(1)}
-                        />
-                    </Tabs>
-                </Box>
-                <TabPanel value={tabValue} index={0}>
-                    <AppointmentHistory />
-                </TabPanel>
-                <TabPanel value={tabValue} index={1}>
-                    <MedicalRecords />
-                </TabPanel>
-            </Box>
+                {/* Main content */}
+                <Grid item xs={12} md={8}>
+                    <Paper sx={{ p: 0 }}>
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tabs
+                                value={tabValue}
+                                onChange={handleTabChange}
+                                aria-label="profile tabs"
+                                variant="fullWidth"
+                            >
+                                <Tab
+                                    icon={<PersonIcon />}
+                                    label="Thông tin cá nhân"
+                                    {...a11yProps(0)}
+                                />
+                                <Tab
+                                    icon={<MedicalServicesIcon />}
+                                    label="Hồ sơ y tế"
+                                    {...a11yProps(1)}
+                                />
+                            </Tabs>
+                        </Box>
+
+                        {/* Personal Information */}
+                        <TabPanel value={tabValue} index={0}>
+                            {success && (
+                                <Alert severity="success" sx={{ mb: 3 }}>
+                                    {success}
+                                </Alert>
+                            )}
+                            {error && (
+                                <Alert severity="error" sx={{ mb: 3 }}>
+                                    {error}
+                                </Alert>
+                            )}
+
+                            <Box px={3} pb={3}>
+                                <Grid container spacing={3}>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            required
+                                            fullWidth
+                                            label="Họ"
+                                            name="lastName"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange}
+                                            disabled={!editMode || saving}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            required
+                                            fullWidth
+                                            label="Tên"
+                                            name="firstName"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange}
+                                            disabled={!editMode || saving}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            required
+                                            fullWidth
+                                            label="Email"
+                                            name="email"
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
+                                            disabled={!editMode || saving}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            label="Số điện thoại"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleInputChange}
+                                            disabled={!editMode || saving}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <FormControl fullWidth disabled={!editMode || saving}>
+                                            <InputLabel id="gender-label">Giới tính</InputLabel>
+                                            <Select
+                                                labelId="gender-label"
+                                                name="gender"
+                                                value={formData.gender}
+                                                label="Giới tính"
+                                                onChange={handleSelectChange}
+                                            >
+                                                <MenuItem value="male">Nam</MenuItem>
+                                                <MenuItem value="female">Nữ</MenuItem>
+                                                <MenuItem value="other">Khác</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <DatePicker
+                                            label="Ngày sinh"
+                                            value={formData.dateOfBirth ? new Date(formData.dateOfBirth) : null}
+                                            onChange={(newValue) => {
+                                                setFormData({
+                                                    ...formData,
+                                                    dateOfBirth: newValue ? newValue.toISOString() : '',
+                                                });
+                                            }}
+                                            disabled={!editMode || saving}
+                                            slotProps={{
+                                                textField: {
+                                                    fullWidth: true
+                                                }
+                                            }}
+                                        />
+                                    </Grid>
+                                    {editMode && (
+                                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                onClick={handleSaveProfile}
+                                                disabled={saving}
+                                                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
+                                            >
+                                                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                            </Button>
+                                        </Grid>
+                                    )}
+                                </Grid>
+                            </Box>
+                        </TabPanel>
+
+                        {/* Medical Records */}
+                        <TabPanel value={tabValue} index={1}>
+                            <Box px={3} pb={3}>
+                                <MedicalRecords />
+                            </Box>
+                        </TabPanel>
+                    </Paper>
+                </Grid>
+            </Grid>
 
             {/* Change Password Dialog */}
             <Dialog open={openPasswordDialog} onClose={handleClosePasswordDialog}>
-                <DialogTitle>Change Password</DialogTitle>
+                <DialogTitle>Đổi mật khẩu</DialogTitle>
                 <DialogContent>
-                    {passwordSuccess ? (
+                    <DialogContentText mb={2}>
+                        Để đổi mật khẩu, vui lòng nhập mật khẩu hiện tại và mật khẩu mới của bạn.
+                    </DialogContentText>
+                    {passwordError && (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {passwordError}
+                        </Alert>
+                    )}
+                    {passwordSuccess && (
                         <Alert severity="success" sx={{ mb: 2 }}>
                             {passwordSuccess}
                         </Alert>
-                    ) : (
-                        <>
-                            <DialogContentText>
-                                Please enter your current password and a new password.
-                            </DialogContentText>
-                            {passwordError && (
-                                <Alert severity="error" sx={{ my: 2 }}>
-                                    {passwordError}
-                                </Alert>
-                            )}
-                            <TextField
-                                autoFocus
-                                margin="dense"
-                                name="current"
-                                label="Current Password"
-                                type="password"
-                                fullWidth
-                                variant="outlined"
-                                value={password.current}
-                                onChange={handlePasswordChange}
-                                sx={{ mt: 2 }}
-                            />
-                            <TextField
-                                margin="dense"
-                                name="new"
-                                label="New Password"
-                                type="password"
-                                fullWidth
-                                variant="outlined"
-                                value={password.new}
-                                onChange={handlePasswordChange}
-                            />
-                            <TextField
-                                margin="dense"
-                                name="confirm"
-                                label="Confirm New Password"
-                                type="password"
-                                fullWidth
-                                variant="outlined"
-                                value={password.confirm}
-                                onChange={handlePasswordChange}
-                            />
-                        </>
                     )}
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        name="current"
+                        label="Mật khẩu hiện tại"
+                        type="password"
+                        fullWidth
+                        variant="outlined"
+                        value={password.current}
+                        onChange={handlePasswordChange}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="new"
+                        label="Mật khẩu mới"
+                        type="password"
+                        fullWidth
+                        variant="outlined"
+                        value={password.new}
+                        onChange={handlePasswordChange}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        name="confirm"
+                        label="Xác nhận mật khẩu mới"
+                        type="password"
+                        fullWidth
+                        variant="outlined"
+                        value={password.confirm}
+                        onChange={handlePasswordChange}
+                    />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleClosePasswordDialog}>Cancel</Button>
-                    {!passwordSuccess && (
-                        <Button onClick={handleChangePassword} variant="contained" color="primary">
-                            Change Password
-                        </Button>
-                    )}
+                    <Button onClick={handleClosePasswordDialog} color="inherit">
+                        Hủy bỏ
+                    </Button>
+                    <Button onClick={handleChangePassword} color="primary" variant="contained">
+                        Đổi mật khẩu
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Container>

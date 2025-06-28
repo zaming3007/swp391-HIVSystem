@@ -1,637 +1,571 @@
-import React, { useState } from 'react';
-import {
-    Box,
-    Container,
-    Typography,
-    Tabs,
-    Tab,
-    Card,
-    CardContent,
-    Button,
-    Divider,
-    Chip,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    TextField,
-    Alert,
-    Paper,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    useTheme,
-    RadioGroup,
-    Radio,
-    FormControlLabel,
-    FormLabel,
-} from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Alert, Box, Button, Container, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Paper, Select, Step, StepLabel, Stepper, TextField, Typography, SelectChangeEvent, FormControlLabel, Radio, RadioGroup, FormLabel } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import {
-    CalendarMonth as CalendarIcon,
-    Person as PersonIcon,
-    MedicalServices as MedicalServicesIcon,
-    AccessTime as TimeIcon,
-    Close as CloseIcon,
-    Add as AddIcon,
-    Videocam as VideocamIcon,
-    PersonPin as PersonPinIcon,
-} from '@mui/icons-material';
-import { Appointment, Doctor, Service } from '../../types';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import EventIcon from '@mui/icons-material/Event';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import PersonIcon from '@mui/icons-material/Person';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import DescriptionIcon from '@mui/icons-material/Description';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import format from 'date-fns/format';
+import { useNavigate } from 'react-router-dom';
+import { RootState } from '../../store';
+import { Service, Doctor, AppointmentCreateDto, AppointmentType } from '../../types';
+import { getServices, getDoctorsByServiceId, getAvailableSlots, createAppointment } from '../../services/appointmentService';
+import { toast } from 'react-toastify';
 
-interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`appointment-tabpanel-${index}`}
-            aria-labelledby={`appointment-tab-${index}`}
-            {...other}
-        >
-            {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-        </div>
-    );
-}
-
-function a11yProps(index: number) {
-    return {
-        id: `appointment-tab-${index}`,
-        'aria-controls': `appointment-tabpanel-${index}`,
-    };
-}
+const steps = ['Chọn dịch vụ', 'Chọn bác sĩ & lịch', 'Xác nhận lịch hẹn'];
 
 const AppointmentPage: React.FC = () => {
-    const theme = useTheme();
-    const [tabValue, setTabValue] = useState(0);
-    const [openBooking, setOpenBooking] = useState(false);
-    const [selectedService, setSelectedService] = useState('');
-    const [selectedDoctor, setSelectedDoctor] = useState('');
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
+    const [activeStep, setActiveStep] = useState(0);
+    const [services, setServices] = useState<Service[]>([]);
+    const [selectedService, setSelectedService] = useState<Service | null>(null);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [selectedDoctor, setSelectedDoctor] = useState<string>('');
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [selectedTime, setSelectedTime] = useState('');
-    const [notes, setNotes] = useState('');
-    const [appointmentType, setAppointmentType] = useState('truc-tiep');
-    const [bookingSuccess, setBookingSuccess] = useState(false);
-    const [bookingError, setBookingError] = useState('');
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [selectedTime, setSelectedTime] = useState<string>('');
+    const [notes, setNotes] = useState<string>('');
+    const [errors, setErrors] = useState<{ [key: string]: string }>({});
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+    const [appointmentType, setAppointmentType] = useState<AppointmentType>('offline');
 
-    const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-        setTabValue(newValue);
+    // Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/auth/login?redirect=/appointment', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
+    // Lấy danh sách dịch vụ
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const servicesData = await getServices();
+                setServices(servicesData);
+            } catch (error) {
+                console.error('Failed to fetch services', error);
+                toast.error('Không thể tải danh sách dịch vụ');
+            }
+        };
+
+        fetchServices();
+    }, []);
+
+    // Khi chọn dịch vụ, lấy danh sách bác sĩ cho dịch vụ đó
+    useEffect(() => {
+        const fetchDoctors = async () => {
+            if (selectedService) {
+                try {
+                    const doctorsData = await getDoctorsByServiceId(selectedService.id);
+                    setDoctors(doctorsData);
+                    if (doctorsData.length > 0) {
+                        setSelectedDoctor(doctorsData[0].id);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch doctors', error);
+                    toast.error('Không thể tải danh sách bác sĩ');
+                }
+            }
+        };
+
+        fetchDoctors();
+    }, [selectedService]);
+
+    // Khi chọn bác sĩ và ngày, lấy các khung giờ có sẵn
+    useEffect(() => {
+        const fetchAvailableSlots = async () => {
+            if (selectedDoctor && selectedDate && selectedService) {
+                try {
+                    const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+                    const slots = await getAvailableSlots(
+                        selectedDoctor,
+                        formattedDate,
+                        selectedService.id
+                    );
+                    setAvailableSlots(slots);
+                    setSelectedTime(''); // Reset selected time when slots change
+                } catch (error) {
+                    console.error('Failed to fetch available slots', error);
+                    setAvailableSlots([]);
+                }
+            }
+        };
+
+        fetchAvailableSlots();
+    }, [selectedDoctor, selectedDate, selectedService]);
+
+    const handleServiceChange = (event: SelectChangeEvent<string>) => {
+        const serviceId = event.target.value;
+        const service = services.find(s => s.id === serviceId) || null;
+        setSelectedService(service);
+        setErrors({ ...errors, service: '' });
     };
 
-    const handleOpenBooking = () => {
-        setOpenBooking(true);
-        resetForm();
+    const handleDoctorChange = (event: SelectChangeEvent<string>) => {
+        setSelectedDoctor(event.target.value);
+        setErrors({ ...errors, doctor: '' });
     };
 
-    const handleCloseBooking = () => {
-        setOpenBooking(false);
-        if (bookingSuccess) {
-            setBookingSuccess(false);
+    const handleDateChange = (date: Date | null) => {
+        setSelectedDate(date);
+        setErrors({ ...errors, date: '' });
+    };
+
+    const handleTimeChange = (event: SelectChangeEvent<string>) => {
+        setSelectedTime(event.target.value);
+        setErrors({ ...errors, time: '' });
+    };
+
+    const handleNotesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNotes(event.target.value);
+    };
+
+    const handleAppointmentTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setAppointmentType(event.target.value as AppointmentType);
+    };
+
+    const validateStep = (step: number) => {
+        let newErrors: { [key: string]: string } = {};
+        let isValid = true;
+
+        if (step === 0) {
+            if (!selectedService) {
+                newErrors.service = 'Vui lòng chọn một dịch vụ';
+                isValid = false;
+            }
+        } else if (step === 1) {
+            if (!selectedDoctor) {
+                newErrors.doctor = 'Vui lòng chọn bác sĩ';
+                isValid = false;
+            }
+            if (!selectedDate) {
+                newErrors.date = 'Vui lòng chọn ngày';
+                isValid = false;
+            }
+            if (!selectedTime) {
+                newErrors.time = 'Vui lòng chọn giờ';
+                isValid = false;
+            }
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleNext = () => {
+        if (validateStep(activeStep)) {
+            setActiveStep((prevActiveStep) => prevActiveStep + 1);
         }
     };
 
-    const resetForm = () => {
-        setSelectedService('');
-        setSelectedDoctor('');
-        setSelectedDate(new Date());
-        setSelectedTime('');
-        setNotes('');
-        setAppointmentType('truc-tiep');
-        setBookingError('');
+    const handleBack = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
 
-    const handleBookAppointment = () => {
-        // Validate form
-        if (!selectedService || !selectedDoctor || !selectedDate || !selectedTime || !appointmentType) {
-            setBookingError('Vui lòng điền đầy đủ tất cả các trường bắt buộc');
-            return;
+    const handleSubmit = async () => {
+        try {
+            if (!selectedService || !selectedDoctor || !selectedDate || !selectedTime || !user) {
+                setSubmitError('Vui lòng nhập đầy đủ thông tin');
+                toast.error('Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            const appointmentData: AppointmentCreateDto = {
+                patientId: user.id,
+                doctorId: selectedDoctor,
+                serviceId: selectedService.id,
+                date: format(selectedDate, 'yyyy-MM-dd'),
+                startTime: selectedTime,
+                appointmentType: appointmentType,
+                notes: notes
+            };
+
+            const result = await createAppointment(appointmentData);
+
+            if (result) {
+                setSubmitSuccess(true);
+                toast.success('Đặt lịch thành công! Đang chuyển hướng...');
+                // Chuyển hướng đến trang xem lịch hẹn sau 2 giây
+                setTimeout(() => {
+                    navigate('/appointment/my-appointments');
+                }, 2000);
+            } else {
+                setSubmitError('Đặt lịch thất bại, vui lòng thử lại sau');
+                toast.error('Đặt lịch thất bại, vui lòng thử lại sau');
+            }
+        } catch (error) {
+            console.error('Error creating appointment', error);
+            setSubmitError('Đã xảy ra lỗi khi đặt lịch');
+            toast.error('Đã xảy ra lỗi khi đặt lịch');
         }
-
-        // Simulate appointment booking
-        setTimeout(() => {
-            // In a real app, this would be an API call and you would add the appointment to state
-            // For demo purposes, we're just showing success message
-            setBookingSuccess(true);
-            setBookingError('');
-        }, 1000);
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return theme.palette.success.main;
-            case 'pending':
-                return theme.palette.warning.main;
-            case 'cancelled':
-                return theme.palette.error.main;
-            case 'completed':
-                return theme.palette.info.main;
+    // Hiển thị thông tin dịch vụ đã chọn
+    const getSelectedServiceInfo = () => {
+        if (!selectedService) return null;
+
+        return (
+            <Box mt={2}>
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                            <Typography variant="h6">{selectedService.name}</Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="body1">{selectedService.description}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography variant="body2">
+                                <strong>Thời gian:</strong> {selectedService.duration} phút
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography variant="body2">
+                                <strong>Giá:</strong> {selectedService.price.toLocaleString('vi-VN')} VNĐ
+                            </Typography>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Box>
+        );
+    };
+
+    // Hiển thị thông tin bác sĩ đã chọn
+    const getSelectedDoctorInfo = () => {
+        if (!selectedDoctor) return null;
+
+        const doctor = doctors.find(d => d.id === selectedDoctor);
+        if (!doctor) return null;
+
+        return (
+            <Box mt={2}>
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={3}>
+                            <Box
+                                component="img"
+                                sx={{
+                                    width: '100%',
+                                    borderRadius: '5px',
+                                    objectFit: 'cover',
+                                    height: '150px'
+                                }}
+                                alt={`${doctor.firstName} ${doctor.lastName}`}
+                                src={doctor.imageUrl || 'https://via.placeholder.com/150'}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={9}>
+                            <Typography variant="h6">{doctor.firstName} {doctor.lastName}</Typography>
+                            <Typography variant="body2">
+                                <strong>Chuyên khoa:</strong> {doctor.specialization}
+                            </Typography>
+                            <Typography variant="body2">
+                                <strong>Kinh nghiệm:</strong> {doctor.experience}
+                            </Typography>
+                            {doctor.biography && (
+                                <Typography variant="body2" sx={{ mt: 1 }}>
+                                    {doctor.biography}
+                                </Typography>
+                            )}
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Box>
+        );
+    };
+
+    // Hiển thị bước 1: Chọn dịch vụ
+    const getStepContent = (step: number) => {
+        switch (step) {
+            case 0:
+                return (
+                    <Box>
+                        <Typography variant="h6" gutterBottom>
+                            Chọn dịch vụ bạn cần
+                        </Typography>
+
+                        <FormControl fullWidth error={!!errors.service} sx={{ mt: 2 }}>
+                            <InputLabel id="service-label">Dịch vụ</InputLabel>
+                            <Select
+                                labelId="service-label"
+                                value={selectedService?.id || ''}
+                                label="Dịch vụ"
+                                onChange={handleServiceChange}
+                                startAdornment={<MedicalServicesIcon sx={{ mr: 1 }} />}
+                            >
+                                {services.map((service) => (
+                                    <MenuItem key={service.id} value={service.id}>
+                                        {service.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            {errors.service && <FormHelperText>{errors.service}</FormHelperText>}
+                        </FormControl>
+
+                        {getSelectedServiceInfo()}
+                    </Box>
+                );
+
+            case 1:
+                return (
+                    <Box>
+                        {/* Chọn bác sĩ */}
+                        <FormControl fullWidth margin="normal" error={!!errors.doctor}>
+                            <InputLabel id="doctor-label">Bác sĩ</InputLabel>
+                            <Select
+                                labelId="doctor-label"
+                                id="doctor-select"
+                                value={selectedDoctor}
+                                label="Bác sĩ"
+                                onChange={handleDoctorChange}
+                                startAdornment={<PersonIcon sx={{ mr: 1 }} />}
+                            >
+                                {doctors.map((doctor) => (
+                                    <MenuItem key={doctor.id} value={doctor.id}>
+                                        {doctor.firstName} {doctor.lastName} - {doctor.specialization}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            {errors.doctor && <FormHelperText>{errors.doctor}</FormHelperText>}
+                        </FormControl>
+
+                        {/* Thông tin bác sĩ */}
+                        {getSelectedDoctorInfo()}
+
+                        {/* Chọn ngày */}
+                        <FormControl fullWidth margin="normal" error={!!errors.date}>
+                            <DatePicker
+                                label="Ngày khám"
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                format="dd/MM/yyyy"
+                                slotProps={{
+                                    textField: {
+                                        fullWidth: true,
+                                        margin: "normal",
+                                        error: !!errors.date,
+                                        helperText: errors.date,
+                                        InputProps: {
+                                            startAdornment: <EventIcon sx={{ mr: 1 }} />
+                                        }
+                                    }
+                                }}
+                                disablePast
+                            />
+                        </FormControl>
+
+                        {/* Chọn thời gian */}
+                        <FormControl fullWidth margin="normal" error={!!errors.time}>
+                            <InputLabel id="time-label">Thời gian</InputLabel>
+                            <Select
+                                labelId="time-label"
+                                id="time-select"
+                                value={selectedTime}
+                                label="Thời gian"
+                                onChange={handleTimeChange}
+                                startAdornment={<AccessTimeIcon sx={{ mr: 1 }} />}
+                                disabled={availableSlots.length === 0}
+                            >
+                                {availableSlots.map((slot) => (
+                                    <MenuItem key={slot} value={slot}>
+                                        {slot}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                            {errors.time && <FormHelperText>{errors.time}</FormHelperText>}
+                            {availableSlots.length === 0 && (
+                                <FormHelperText>
+                                    Không có khung giờ nào khả dụng cho ngày này. Vui lòng chọn ngày khác.
+                                </FormHelperText>
+                            )}
+                        </FormControl>
+
+                        {/* Chọn loại hẹn: online hoặc offline */}
+                        <FormControl component="fieldset" margin="normal">
+                            <FormLabel component="legend">Loại cuộc hẹn</FormLabel>
+                            <RadioGroup
+                                row
+                                name="appointmentType"
+                                value={appointmentType}
+                                onChange={handleAppointmentTypeChange}
+                            >
+                                <FormControlLabel
+                                    value="offline"
+                                    control={<Radio />}
+                                    label={
+                                        <Box display="flex" alignItems="center">
+                                            <LocalHospitalIcon sx={{ mr: 1 }} />
+                                            <span>Tại phòng khám</span>
+                                        </Box>
+                                    }
+                                />
+                                <FormControlLabel
+                                    value="online"
+                                    control={<Radio />}
+                                    label={
+                                        <Box display="flex" alignItems="center">
+                                            <VideocamIcon sx={{ mr: 1 }} />
+                                            <span>Tư vấn trực tuyến</span>
+                                        </Box>
+                                    }
+                                />
+                            </RadioGroup>
+                            <FormHelperText>
+                                {appointmentType === 'online'
+                                    ? 'Bạn sẽ được cung cấp link cuộc họp sau khi đặt lịch thành công.'
+                                    : 'Vui lòng đến phòng khám trước 15 phút so với giờ hẹn.'}
+                            </FormHelperText>
+                        </FormControl>
+                    </Box>
+                );
+
+            case 2:
+                return (
+                    <Box>
+                        <Typography variant="h6" gutterBottom>
+                            Xác nhận thông tin lịch hẹn
+                        </Typography>
+
+                        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body1">
+                                        <MedicalServicesIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                        <strong>Dịch vụ:</strong> {selectedService?.name}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body1">
+                                        <PersonIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                        <strong>Bác sĩ:</strong> {
+                                            doctors.find(d => d.id === selectedDoctor) ?
+                                                `${doctors.find(d => d.id === selectedDoctor)?.firstName} ${doctors.find(d => d.id === selectedDoctor)?.lastName}` :
+                                                ''
+                                        }
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body1">
+                                        <EventIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                        <strong>Ngày khám:</strong> {selectedDate ? format(selectedDate, 'dd/MM/yyyy') : ''}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="body1">
+                                        <AccessTimeIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                        <strong>Thời gian:</strong> {selectedTime}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Typography variant="body1">
+                                        {appointmentType === 'online'
+                                            ? <VideocamIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                            : <LocalHospitalIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                        }
+                                        <strong>Loại cuộc hẹn:</strong> {appointmentType === 'online' ? 'Tư vấn trực tuyến' : 'Tại phòng khám'}
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                        </Paper>
+
+                        <FormControl fullWidth margin="normal">
+                            <TextField
+                                id="notes"
+                                label="Ghi chú"
+                                multiline
+                                rows={4}
+                                value={notes}
+                                onChange={handleNotesChange}
+                                placeholder="Nhập ghi chú hoặc triệu chứng của bạn"
+                                InputProps={{
+                                    startAdornment: <DescriptionIcon sx={{ mr: 1, mt: 1 }} />
+                                }}
+                            />
+                        </FormControl>
+
+                        {submitError && (
+                            <Alert severity="error" sx={{ mt: 2 }}>
+                                {submitError}
+                            </Alert>
+                        )}
+
+                        {submitSuccess && (
+                            <Alert severity="success" sx={{ mt: 2 }}>
+                                Đặt lịch thành công! Bạn sẽ được chuyển đến trang lịch hẹn của mình.
+                            </Alert>
+                        )}
+                    </Box>
+                );
             default:
-                return theme.palette.grey[500];
-        }
-    };
-
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return 'Đã xác nhận';
-            case 'pending':
-                return 'Chờ xác nhận';
-            case 'cancelled':
-                return 'Đã hủy';
-            case 'completed':
-                return 'Đã hoàn thành';
-            default:
-                return status;
+                return 'Unknown step';
         }
     };
 
     return (
-        <Container maxWidth="lg" sx={{ py: 6 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                <Typography variant="h4" component="h1">
-                    Lịch Hẹn
+        <Container maxWidth="lg">
+            <Box sx={{ py: 4 }}>
+                <Typography variant="h4" gutterBottom align="center" fontWeight="bold">
+                    Đặt lịch hẹn
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={handleOpenBooking}
-                >
-                    Đặt Lịch Hẹn Mới
-                </Button>
-            </Box>
 
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    aria-label="appointment tabs"
-                >
-                    <Tab label="Sắp Tới" {...a11yProps(0)} />
-                    <Tab label="Đã Qua" {...a11yProps(1)} />
-                    <Tab label="Đã Hủy" {...a11yProps(2)} />
-                </Tabs>
-            </Box>
+                <Typography variant="body1" align="center" color="text.secondary" paragraph>
+                    Đặt lịch hẹn với bác sĩ của chúng tôi một cách nhanh chóng và dễ dàng.
+                </Typography>
 
-            <TabPanel value={tabValue} index={0}>
-                {upcomingAppointments.length > 0 ? (
-                    upcomingAppointments.map((appointment) => (
-                        <AppointmentCard
-                            key={appointment.id}
-                            appointment={appointment}
-                            statusColor={getStatusColor(appointment.status)}
-                            statusLabel={getStatusLabel(appointment.status)}
-                        />
-                    ))
-                ) : (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h6" color="text.secondary" gutterBottom>
-                            Không có lịch hẹn sắp tới
-                        </Typography>
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            startIcon={<AddIcon />}
-                            onClick={handleOpenBooking}
-                            sx={{ mt: 2 }}
-                        >
-                            Đặt Lịch Hẹn
-                        </Button>
-                    </Paper>
-                )}
-            </TabPanel>
+                <Box sx={{ width: '100%', mt: 4 }}>
+                    <Stepper activeStep={activeStep} alternativeLabel>
+                        {steps.map((label) => (
+                            <Step key={label}>
+                                <StepLabel>{label}</StepLabel>
+                            </Step>
+                        ))}
+                    </Stepper>
 
-            <TabPanel value={tabValue} index={1}>
-                {pastAppointments.length > 0 ? (
-                    pastAppointments.map((appointment) => (
-                        <AppointmentCard
-                            key={appointment.id}
-                            appointment={appointment}
-                            statusColor={getStatusColor(appointment.status)}
-                            statusLabel={getStatusLabel(appointment.status)}
-                        />
-                    ))
-                ) : (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h6" color="text.secondary">
-                            Không có lịch hẹn đã qua
-                        </Typography>
-                    </Paper>
-                )}
-            </TabPanel>
+                    <Box sx={{ mt: 4, p: 3, border: '1px solid #eaeaea', borderRadius: 2 }}>
+                        {getStepContent(activeStep)}
 
-            <TabPanel value={tabValue} index={2}>
-                {cancelledAppointments.length > 0 ? (
-                    cancelledAppointments.map((appointment) => (
-                        <AppointmentCard
-                            key={appointment.id}
-                            appointment={appointment}
-                            statusColor={getStatusColor(appointment.status)}
-                            statusLabel={getStatusLabel(appointment.status)}
-                        />
-                    ))
-                ) : (
-                    <Paper sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography variant="h6" color="text.secondary">
-                            Không có lịch hẹn đã hủy
-                        </Typography>
-                    </Paper>
-                )}
-            </TabPanel>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                            <Button
+                                disabled={activeStep === 0}
+                                onClick={handleBack}
+                                variant="outlined"
+                            >
+                                Quay lại
+                            </Button>
 
-            {/* Book Appointment Dialog */}
-            <Dialog open={openBooking} onClose={handleCloseBooking} maxWidth="md" fullWidth>
-                <DialogTitle>
-                    {bookingSuccess ? 'Đặt Lịch Hẹn Thành Công' : 'Đặt Lịch Hẹn'}
-                </DialogTitle>
-                <DialogContent>
-                    {bookingSuccess ? (
-                        <Box sx={{ textAlign: 'center', py: 2 }}>
-                            <Alert severity="success" sx={{ mb: 2 }}>
-                                Lịch hẹn của bạn đã được đặt thành công!
-                            </Alert>
-                            <DialogContentText>
-                                Bạn sẽ nhận được email xác nhận với chi tiết lịch hẹn của mình.
-                                Bạn có thể xem và quản lý lịch hẹn trên trang này.
-                            </DialogContentText>
-                        </Box>
-                    ) : (
-                        <>
-                            {bookingError && (
-                                <Alert severity="error" sx={{ mb: 2 }}>
-                                    {bookingError}
-                                </Alert>
+                            {activeStep === steps.length - 1 ? (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleSubmit}
+                                    disabled={submitSuccess}
+                                >
+                                    Xác nhận đặt lịch
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleNext}
+                                >
+                                    Tiếp theo
+                                </Button>
                             )}
-                            <DialogContentText sx={{ mb: 3 }}>
-                                Vui lòng điền thông tin chi tiết dưới đây để đặt lịch hẹn.
-                            </DialogContentText>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box sx={{ mb: 2 }}>
-                                    <FormControl component="fieldset">
-                                        <FormLabel component="legend">Hình thức khám</FormLabel>
-                                        <RadioGroup
-                                            row
-                                            name="appointment-type"
-                                            value={appointmentType}
-                                            onChange={(e) => setAppointmentType(e.target.value)}
-                                        >
-                                            <FormControlLabel
-                                                value="truc-tiep"
-                                                control={<Radio />}
-                                                label={
-                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                        <PersonPinIcon sx={{ mr: 1 }} />
-                                                        <span>Trực tiếp tại cơ sở</span>
-                                                    </Box>
-                                                }
-                                            />
-                                            <FormControlLabel
-                                                value="online"
-                                                control={<Radio />}
-                                                label={
-                                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                        <VideocamIcon sx={{ mr: 1 }} />
-                                                        <span>Tư vấn online</span>
-                                                    </Box>
-                                                }
-                                            />
-                                        </RadioGroup>
-                                    </FormControl>
-                                </Box>
-
-                                <Box>
-                                    <FormControl fullWidth required>
-                                        <InputLabel id="service-select-label">Dịch Vụ</InputLabel>
-                                        <Select
-                                            labelId="service-select-label"
-                                            id="service-select"
-                                            value={selectedService}
-                                            label="Dịch Vụ"
-                                            onChange={(e) => setSelectedService(e.target.value)}
-                                        >
-                                            {services.map((service) => (
-                                                <MenuItem key={service.id} value={service.id}>
-                                                    {service.name} ({service.price}.000 VNĐ, {service.duration} phút)
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-                                <Box>
-                                    <FormControl fullWidth required>
-                                        <InputLabel id="doctor-select-label">Bác Sĩ</InputLabel>
-                                        <Select
-                                            labelId="doctor-select-label"
-                                            id="doctor-select"
-                                            value={selectedDoctor}
-                                            label="Bác Sĩ"
-                                            onChange={(e) => setSelectedDoctor(e.target.value)}
-                                        >
-                                            {doctors.map((doctor) => (
-                                                <MenuItem key={doctor.id} value={doctor.id}>
-                                                    BS. {doctor.firstName} {doctor.lastName} ({doctor.specialization})
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
-                                    <Box sx={{ flex: 1 }}>
-                                        <LocalizationProvider dateAdapter={AdapterDateFns}>
-                                            <DatePicker
-                                                label="Ngày"
-                                                value={selectedDate}
-                                                onChange={setSelectedDate}
-                                                minDate={new Date()}
-                                                sx={{ width: '100%' }}
-                                            />
-                                        </LocalizationProvider>
-                                    </Box>
-                                    <Box sx={{ flex: 1 }}>
-                                        <FormControl fullWidth required>
-                                            <InputLabel id="time-select-label">Giờ</InputLabel>
-                                            <Select
-                                                labelId="time-select-label"
-                                                id="time-select"
-                                                value={selectedTime}
-                                                label="Giờ"
-                                                onChange={(e) => setSelectedTime(e.target.value)}
-                                            >
-                                                {timeSlots.map((slot) => (
-                                                    <MenuItem key={slot} value={slot}>
-                                                        {slot}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Box>
-                                </Box>
-
-                                {appointmentType === 'truc-tiep' && (
-                                    <Box>
-                                        <FormControl fullWidth>
-                                            <InputLabel id="location-select-label">Địa điểm khám</InputLabel>
-                                            <Select
-                                                labelId="location-select-label"
-                                                id="location-select"
-                                                defaultValue="cs-1"
-                                                label="Địa điểm khám"
-                                            >
-                                                <MenuItem value="cs-1">Cơ sở 1: 123 Đường Nguyễn Văn A, Quận 1, TP. HCM</MenuItem>
-                                                <MenuItem value="cs-2">Cơ sở 2: 456 Đường Lê Lợi, Quận 3, TP. HCM</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    </Box>
-                                )}
-
-                                {appointmentType === 'online' && (
-                                    <Alert severity="info" sx={{ mt: 1 }}>
-                                        Lịch hẹn online sẽ được thực hiện qua Zoom. Thông tin phòng họp sẽ được gửi qua email sau khi đặt lịch thành công.
-                                    </Alert>
-                                )}
-
-                                <Box>
-                                    <TextField
-                                        fullWidth
-                                        id="notes"
-                                        label="Ghi Chú (Không bắt buộc)"
-                                        multiline
-                                        rows={3}
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        placeholder={appointmentType === 'online' ? "Nhập các triệu chứng, mối quan tâm hoặc thông tin bổ sung cho bác sĩ..." : "Nhập các triệu chứng, mối quan tâm hoặc thông tin bổ sung..."}
-                                    />
-                                </Box>
-                            </Box>
-                        </>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseBooking}>
-                        {bookingSuccess ? 'Đóng' : 'Hủy'}
-                    </Button>
-                    {!bookingSuccess && (
-                        <Button onClick={handleBookAppointment} variant="contained" color="primary">
-                            Đặt Lịch Hẹn
-                        </Button>
-                    )}
-                </DialogActions>
-            </Dialog>
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
         </Container>
     );
 };
-
-interface AppointmentCardProps {
-    appointment: Appointment;
-    statusColor: string;
-    statusLabel: string;
-}
-
-const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment, statusColor, statusLabel }) => {
-    return (
-        <Card sx={{ mb: 2 }}>
-            <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                    <Box>
-                        <Typography variant="h6" component="div">
-                            {appointment.serviceName}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <PersonIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                                BS. {appointment.doctorName}
-                            </Typography>
-                        </Box>
-                    </Box>
-                    <Chip
-                        label={statusLabel}
-                        sx={{
-                            backgroundColor: statusColor,
-                            color: '#fff',
-                            textTransform: 'capitalize'
-                        }}
-                    />
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    <Box sx={{ width: { xs: '100%', sm: 'calc(33.333% - 8px)' }, display: 'flex', alignItems: 'center' }}>
-                        <CalendarIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2">
-                            {appointment.date}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ width: { xs: '100%', sm: 'calc(33.333% - 8px)' }, display: 'flex', alignItems: 'center' }}>
-                        <TimeIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2">
-                            {appointment.startTime}
-                        </Typography>
-                    </Box>
-                    <Box sx={{ width: { xs: '100%', sm: 'calc(33.333% - 8px)' }, display: 'flex', alignItems: 'center' }}>
-                        <MedicalServicesIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2">
-                            Mã lịch hẹn: {appointment.id.substring(0, 8)}
-                        </Typography>
-                    </Box>
-                </Box>
-
-                {appointment.status === 'confirmed' && (
-                    <Box sx={{ mt: 2 }}>
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            startIcon={<CloseIcon />}
-                        >
-                            Hủy Lịch Hẹn
-                        </Button>
-                    </Box>
-                )}
-            </CardContent>
-        </Card>
-    );
-};
-
-// Sample data
-const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30',
-    '11:00', '11:30', '13:00', '13:30',
-    '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30'
-];
-
-const services: Service[] = [
-    {
-        id: '1',
-        name: 'Tư Vấn Liệu Pháp Hormone',
-        description: 'Tư vấn ban đầu hoặc theo dõi cho liệu pháp thay thế hormone.',
-        category: 'Gender-Affirming',
-        price: 150,
-        duration: 60,
-    },
-    {
-        id: '2',
-        name: 'Buổi Trị Liệu Giới Tính',
-        description: 'Buổi trị liệu một-một tập trung vào bản dạng giới và quá trình chuyển đổi.',
-        category: 'Mental Health',
-        price: 120,
-        duration: 50,
-    },
-    {
-        id: '3',
-        name: 'Trị Liệu Giọng Nói và Giao Tiếp',
-        description: 'Trị liệu làm nữ hóa hoặc nam hóa giọng nói với chuyên gia ngôn ngữ trị liệu.',
-        category: 'Gender-Affirming',
-        price: 100,
-        duration: 45,
-    },
-];
-
-const doctors: Doctor[] = [
-    {
-        id: '1',
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        specialization: 'Nội tiết học',
-        experience: 8,
-        gender: 'female',
-        bio: 'Chuyên về liệu pháp hormone cho chuyển đổi giới tính.',
-        available: true,
-    },
-    {
-        id: '2',
-        firstName: 'Michael',
-        lastName: 'Chen',
-        specialization: 'Tâm thần học',
-        experience: 12,
-        gender: 'male',
-        bio: 'Chuyên môn về bản dạng giới và hỗ trợ sức khỏe tâm thần trong quá trình chuyển đổi.',
-        available: true,
-    },
-    {
-        id: '3',
-        firstName: 'Aisha',
-        lastName: 'Khan',
-        specialization: 'Trị liệu ngôn ngữ',
-        experience: 6,
-        gender: 'female',
-        bio: 'Chuyên gia về làm nữ hóa và nam hóa giọng nói.',
-        available: true,
-    },
-];
-
-const upcomingAppointments: Appointment[] = [
-    {
-        id: 'apt12345',
-        patientId: '1',
-        doctorId: '1',
-        serviceId: '1',
-        date: '15/06/2023',
-        startTime: '10:00',
-        endTime: '11:00',
-        status: 'confirmed',
-        patientName: 'Người dùng Demo',
-        doctorName: 'Sarah Johnson',
-        serviceName: 'Tư Vấn Liệu Pháp Hormone',
-    },
-    {
-        id: 'apt12346',
-        patientId: '1',
-        doctorId: '2',
-        serviceId: '2',
-        date: '22/06/2023',
-        startTime: '14:30',
-        endTime: '15:20',
-        status: 'pending',
-        patientName: 'Người dùng Demo',
-        doctorName: 'Michael Chen',
-        serviceName: 'Buổi Trị Liệu Giới Tính',
-    },
-];
-
-const pastAppointments: Appointment[] = [
-    {
-        id: 'apt12340',
-        patientId: '1',
-        doctorId: '1',
-        serviceId: '1',
-        date: '05/05/2023',
-        startTime: '09:30',
-        endTime: '10:30',
-        status: 'completed',
-        patientName: 'Người dùng Demo',
-        doctorName: 'Sarah Johnson',
-        serviceName: 'Tư Vấn Liệu Pháp Hormone',
-    },
-];
-
-const cancelledAppointments: Appointment[] = [
-    {
-        id: 'apt12339',
-        patientId: '1',
-        doctorId: '3',
-        serviceId: '3',
-        date: '20/05/2023',
-        startTime: '13:00',
-        endTime: '13:45',
-        status: 'cancelled',
-        patientName: 'Người dùng Demo',
-        doctorName: 'Aisha Khan',
-        serviceName: 'Trị Liệu Giọng Nói và Giao Tiếp',
-    },
-];
 
 export default AppointmentPage; 

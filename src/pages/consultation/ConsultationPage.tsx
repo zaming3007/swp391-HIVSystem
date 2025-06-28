@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Container,
@@ -22,23 +22,23 @@ import {
     DialogContentText,
     DialogTitle,
     useTheme,
-    SelectChangeEvent
+    SelectChangeEvent,
+    IconButton
 } from '@mui/material';
 import {
     Send as SendIcon,
     ForumOutlined as ForumIcon,
     AccessTime as TimeIcon,
     Add as AddIcon,
+    Close as CloseIcon
 } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
 import { formatDistanceToNow } from 'date-fns';
-import { RootState } from '../../store';
 import { Consultation } from '../../types';
+import { consultationService } from '../../services';
 
 const ConsultationPage: React.FC = () => {
     const theme = useTheme();
-    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-    const [consultations, setConsultations] = useState<Consultation[]>(sampleConsultations);
+    const [consultations, setConsultations] = useState<Consultation[]>([]);
     const [openNewConsultation, setOpenNewConsultation] = useState(false);
     const [formData, setFormData] = useState({
         topic: '',
@@ -48,6 +48,33 @@ const ConsultationPage: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [selectedTopic, setSelectedTopic] = useState('all');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = currentUser?.id;
+    const isAuthenticated = !!userId;
+
+    // Load user's consultations
+    useEffect(() => {
+        const loadConsultations = async () => {
+            if (!userId) return;
+
+            try {
+                setLoading(true);
+                const data = await consultationService.getConsultations(userId);
+                setConsultations(data);
+            } catch (err) {
+                console.error('Error loading consultations:', err);
+                setError('Không thể tải dữ liệu tư vấn. Vui lòng thử lại sau.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadConsultations();
+    }, [userId]);
 
     const filteredConsultations = selectedTopic === 'all'
         ? consultations
@@ -73,34 +100,34 @@ const ConsultationPage: React.FC = () => {
         setSelectedTopic(event.target.value);
     };
 
-    const handleSubmitConsultation = () => {
+    const handleSubmitConsultation = async () => {
         // Validate form
         if (!formData.topic.trim() || !formData.question.trim()) {
-            setFormError('Please fill in all fields');
+            setFormError('Vui lòng điền đầy đủ thông tin');
             return;
         }
 
         if (formData.question.trim().length < 20) {
-            setFormError('Your question should be at least 20 characters long');
+            setFormError('Câu hỏi của bạn nên có ít nhất 20 ký tự');
+            return;
+        }
+
+        if (!userId) {
+            setFormError('Vui lòng đăng nhập để gửi câu hỏi');
             return;
         }
 
         setFormError('');
         setSubmitting(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            const newConsultation: Consultation = {
-                id: Math.random().toString(36).substr(2, 9),
-                patientId: user?.id || '',
+        try {
+            const newConsultation = await consultationService.createConsultation({
+                patientId: userId,
                 topic: formData.topic,
-                question: formData.question,
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-            };
+                question: formData.question
+            });
 
             setConsultations([newConsultation, ...consultations]);
-            setSubmitting(false);
             setSubmitSuccess(true);
 
             // Close dialog after showing success message
@@ -108,7 +135,12 @@ const ConsultationPage: React.FC = () => {
                 handleCloseNewConsultation();
                 setSubmitSuccess(false);
             }, 2000);
-        }, 1500);
+        } catch (err) {
+            console.error('Error creating consultation:', err);
+            setFormError('Có lỗi xảy ra khi gửi câu hỏi. Vui lòng thử lại sau.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const getStatusColor = (status: string) => {
@@ -122,12 +154,23 @@ const ConsultationPage: React.FC = () => {
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'answered':
+                return 'Đã trả lời';
+            case 'pending':
+                return 'Đang chờ';
+            default:
+                return status;
+        }
+    };
+
     if (!isAuthenticated) {
         return (
             <Container maxWidth="md" sx={{ py: 8 }}>
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <Typography variant="h5" color="text.secondary">
-                        Please login to access consultations
+                        Vui lòng đăng nhập để sử dụng dịch vụ tư vấn
                     </Typography>
                 </Paper>
             </Container>
@@ -138,7 +181,7 @@ const ConsultationPage: React.FC = () => {
         <Container maxWidth="lg" sx={{ py: 6 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
                 <Typography variant="h4" component="h1">
-                    My Consultations
+                    Tư Vấn Trực Tuyến
                 </Typography>
                 <Button
                     variant="contained"
@@ -146,47 +189,59 @@ const ConsultationPage: React.FC = () => {
                     startIcon={<AddIcon />}
                     onClick={handleOpenNewConsultation}
                 >
-                    New Consultation
+                    Câu Hỏi Mới
                 </Button>
             </Box>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+                    {error}
+                </Alert>
+            )}
 
             <Box sx={{ mb: 4 }}>
                 <Paper sx={{ p: 3 }}>
                     <Typography variant="h6" gutterBottom>
-                        About Consultations
+                        Thông Tin Dịch Vụ Tư Vấn
                     </Typography>
                     <Typography variant="body1" paragraph>
-                        Use our consultation service to ask questions about gender healthcare, transition processes, or any health concerns.
-                        Our team of healthcare professionals will respond to your questions, typically within 24-48 hours.
+                        Sử dụng dịch vụ tư vấn của chúng tôi để đặt câu hỏi về chăm sóc sức khỏe HIV,
+                        các vấn đề liên quan đến điều trị hoặc bất kỳ mối quan tâm sức khỏe nào khác.
+                        Đội ngũ chuyên gia y tế của chúng tôi sẽ trả lời câu hỏi của bạn, thường trong vòng 24-48 giờ.
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Note: Consultations are not a substitute for emergency medical care or in-person medical appointments.
+                        Lưu ý: Tư vấn trực tuyến không thay thế cho chăm sóc y tế khẩn cấp hoặc các cuộc hẹn khám trực tiếp.
                     </Typography>
                 </Paper>
             </Box>
 
             <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
                 <Typography variant="body1" sx={{ mr: 2 }}>
-                    Filter by topic:
+                    Lọc theo chủ đề:
                 </Typography>
                 <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
                     <Select
                         value={selectedTopic}
                         onChange={handleTopicFilter}
                     >
-                        <MenuItem value="all">All Topics</MenuItem>
-                        <MenuItem value="hormone">Hormone Therapy</MenuItem>
-                        <MenuItem value="surgery">Surgery</MenuItem>
-                        <MenuItem value="mental">Mental Health</MenuItem>
-                        <MenuItem value="general">General Health</MenuItem>
+                        <MenuItem value="all">Tất Cả</MenuItem>
+                        <MenuItem value="ARV">Thuốc ARV</MenuItem>
+                        <MenuItem value="CD4">Xét Nghiệm CD4/Tải Lượng Virus</MenuItem>
+                        <MenuItem value="tác dụng phụ">Tác Dụng Phụ</MenuItem>
+                        <MenuItem value="dinh dưỡng">Dinh Dưỡng</MenuItem>
+                        <MenuItem value="chung">Sức Khỏe Chung</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
 
-            {filteredConsultations.length === 0 ? (
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                </Box>
+            ) : filteredConsultations.length === 0 ? (
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <Typography variant="h6" color="text.secondary" gutterBottom>
-                        No consultations found
+                        Không tìm thấy câu hỏi tư vấn nào
                     </Typography>
                     <Button
                         variant="outlined"
@@ -195,7 +250,7 @@ const ConsultationPage: React.FC = () => {
                         onClick={handleOpenNewConsultation}
                         sx={{ mt: 2 }}
                     >
-                        Start a New Consultation
+                        Tạo Câu Hỏi Mới
                     </Button>
                 </Paper>
             ) : (
@@ -217,7 +272,7 @@ const ConsultationPage: React.FC = () => {
                                             </Box>
                                         </Box>
                                         <Chip
-                                            label={consultation.status}
+                                            label={getStatusLabel(consultation.status)}
                                             sx={{
                                                 backgroundColor: getStatusColor(consultation.status),
                                                 color: '#fff',
@@ -228,7 +283,7 @@ const ConsultationPage: React.FC = () => {
 
                                     <Box sx={{ mb: 3 }}>
                                         <Typography variant="subtitle1" fontWeight="medium" gutterBottom>
-                                            Question:
+                                            Câu hỏi:
                                         </Typography>
                                         <Typography variant="body1" paragraph>
                                             {consultation.question}
@@ -240,7 +295,7 @@ const ConsultationPage: React.FC = () => {
                                             <Divider sx={{ my: 2 }} />
                                             <Box>
                                                 <Typography variant="subtitle1" fontWeight="medium" gutterBottom>
-                                                    Response from {consultation.responderName || 'Healthcare Professional'}:
+                                                    Trả lời từ {consultation.responderName || 'Chuyên gia y tế'}:
                                                 </Typography>
                                                 <Typography variant="body1">
                                                     {consultation.response}
@@ -249,7 +304,7 @@ const ConsultationPage: React.FC = () => {
                                                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                                                         <TimeIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
                                                         <Typography variant="body2" color="text.secondary">
-                                                            Responded {formatDistanceToNow(new Date(consultation.respondedAt), { addSuffix: true })}
+                                                            {formatDistanceToNow(new Date(consultation.respondedAt), { addSuffix: true })}
                                                         </Typography>
                                                     </Box>
                                                 )}
@@ -257,93 +312,86 @@ const ConsultationPage: React.FC = () => {
                                         </>
                                     )}
                                 </CardContent>
-                                <CardActions>
-                                    {consultation.status === 'pending' && (
-                                        <Button size="small" color="primary">
-                                            Edit Question
-                                        </Button>
-                                    )}
-                                    {consultation.status === 'answered' && (
-                                        <Button size="small" color="primary" startIcon={<ForumIcon />}>
-                                            Follow-up Question
-                                        </Button>
-                                    )}
-                                </CardActions>
                             </Card>
                         </Box>
                     ))}
                 </Box>
             )}
 
-            {/* New Consultation Dialog */}
             <Dialog open={openNewConsultation} onClose={handleCloseNewConsultation} maxWidth="md" fullWidth>
                 <DialogTitle>
-                    {submitSuccess ? 'Consultation Submitted' : 'New Consultation'}
+                    {submitSuccess ? "Câu Hỏi Đã Gửi Thành Công" : "Gửi Câu Hỏi Mới"}
+                    <IconButton
+                        aria-label="close"
+                        onClick={handleCloseNewConsultation}
+                        sx={{
+                            position: 'absolute',
+                            right: 8,
+                            top: 8,
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
                 </DialogTitle>
                 <DialogContent>
                     {submitSuccess ? (
-                        <Box sx={{ textAlign: 'center', py: 2 }}>
-                            <Alert severity="success" sx={{ mb: 2 }}>
-                                Your consultation has been submitted successfully!
-                            </Alert>
-                            <DialogContentText>
-                                A healthcare professional will respond to your question as soon as possible. You can view the status of your consultation on this page.
-                            </DialogContentText>
-                        </Box>
+                        <Alert severity="success" sx={{ mt: 2 }}>
+                            Câu hỏi của bạn đã được gửi thành công! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
+                        </Alert>
                     ) : (
-                        <>
+                        <Box sx={{ mt: 2 }}>
                             {formError && (
-                                <Alert severity="error" sx={{ mb: 2 }}>
+                                <Alert severity="error" sx={{ mb: 3 }}>
                                     {formError}
                                 </Alert>
                             )}
-                            <DialogContentText sx={{ mb: 3 }}>
-                                Please provide details about your consultation request. Be as specific as possible to receive the most helpful response.
-                            </DialogContentText>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <Box>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="Topic"
-                                        name="topic"
-                                        value={formData.topic}
-                                        onChange={handleInputChange}
-                                        disabled={submitting}
-                                        placeholder="e.g., Hormone Therapy, Surgery Consultation, Mental Health Support"
-                                    />
-                                </Box>
-                                <Box>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        label="Your Question"
-                                        name="question"
-                                        value={formData.question}
-                                        onChange={handleInputChange}
-                                        multiline
-                                        rows={6}
-                                        disabled={submitting}
-                                        placeholder="Describe your question or concern in detail..."
-                                    />
-                                </Box>
-                            </Box>
-                        </>
+
+                            <FormControl fullWidth margin="normal">
+                                <Select
+                                    value={formData.topic}
+                                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                                    displayEmpty
+                                    name="topic"
+                                >
+                                    <MenuItem value="" disabled>Chọn chủ đề câu hỏi</MenuItem>
+                                    <MenuItem value="Thuốc ARV">Thuốc ARV</MenuItem>
+                                    <MenuItem value="Xét nghiệm CD4/Tải lượng virus">Xét nghiệm CD4/Tải lượng virus</MenuItem>
+                                    <MenuItem value="Tác dụng phụ của thuốc">Tác dụng phụ của thuốc</MenuItem>
+                                    <MenuItem value="Dinh dưỡng cho người có HIV">Dinh dưỡng cho người có HIV</MenuItem>
+                                    <MenuItem value="Sức khỏe tâm lý">Sức khỏe tâm lý</MenuItem>
+                                    <MenuItem value="Câu hỏi chung">Câu hỏi chung</MenuItem>
+                                </Select>
+                            </FormControl>
+
+                            <TextField
+                                label="Câu hỏi của bạn"
+                                multiline
+                                rows={6}
+                                fullWidth
+                                margin="normal"
+                                name="question"
+                                value={formData.question}
+                                onChange={handleInputChange}
+                                placeholder="Mô tả chi tiết câu hỏi hoặc vấn đề bạn đang gặp phải..."
+                                helperText="Cung cấp càng nhiều chi tiết càng tốt để chúng tôi có thể giúp bạn hiệu quả nhất"
+                            />
+
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                                Câu hỏi của bạn sẽ được trả lời bởi các chuyên gia y tế trong vòng 24-48 giờ.
+                            </Typography>
+                        </Box>
                     )}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseNewConsultation}>
-                        {submitSuccess ? 'Close' : 'Cancel'}
-                    </Button>
+                <DialogActions sx={{ p: 2, pt: 0 }}>
                     {!submitSuccess && (
                         <Button
-                            onClick={handleSubmitConsultation}
                             variant="contained"
                             color="primary"
-                            disabled={submitting}
                             startIcon={submitting ? <CircularProgress size={20} /> : <SendIcon />}
+                            onClick={handleSubmitConsultation}
+                            disabled={submitting}
                         >
-                            {submitting ? 'Submitting...' : 'Submit Consultation'}
+                            {submitting ? 'Đang Gửi...' : 'Gửi Câu Hỏi'}
                         </Button>
                     )}
                 </DialogActions>
@@ -351,39 +399,5 @@ const ConsultationPage: React.FC = () => {
         </Container>
     );
 };
-
-// Sample data
-const sampleConsultations: Consultation[] = [
-    {
-        id: 'c123456',
-        patientId: '1',
-        topic: 'Hormone Therapy Questions',
-        question: 'I\'m considering starting hormone therapy (estrogen) and would like to know more about the potential side effects. What are the most common side effects I should be aware of, and are there any long-term health concerns I should consider?',
-        response: 'Common side effects of estrogen therapy include breast tenderness, mood changes, and decreased libido. Long-term considerations include potential increased risk of blood clots and certain types of cancer. However, these risks are generally low for most people and must be weighed against the benefits of gender-affirming care. I recommend scheduling an in-person consultation to discuss your specific health profile and create a personalized plan.',
-        status: 'answered',
-        createdAt: '2023-05-10T14:30:00Z',
-        respondedAt: '2023-05-11T09:15:00Z',
-        responderName: 'Dr. Sarah Johnson',
-    },
-    {
-        id: 'c123457',
-        patientId: '1',
-        topic: 'Mental Health Support During Transition',
-        question: 'I\'ve been experiencing anxiety as I begin my transition journey. What mental health resources do you offer specifically for transgender patients? Are there support groups or counseling services available?',
-        status: 'pending',
-        createdAt: '2023-05-18T16:45:00Z',
-    },
-    {
-        id: 'c123458',
-        patientId: '1',
-        topic: 'Surgery Recovery Information',
-        question: 'I\'m scheduled for top surgery next month and would like more information about the recovery process. How long should I expect to take off work? Are there specific post-operative care instructions I should follow?',
-        response: 'Recovery from top surgery typically requires 1-2 weeks off work for desk jobs, longer for physical work. Specific post-operative care includes drain management (if applicable), limited arm movement for 2-4 weeks, scar care, and wearing a compression vest. We\'ll provide detailed instructions before your surgery, but I\'d be happy to discuss specific concerns at your pre-op appointment next week.',
-        status: 'answered',
-        createdAt: '2023-04-05T10:20:00Z',
-        respondedAt: '2023-04-06T13:40:00Z',
-        responderName: 'Dr. Michael Chen',
-    },
-];
 
 export default ConsultationPage; 

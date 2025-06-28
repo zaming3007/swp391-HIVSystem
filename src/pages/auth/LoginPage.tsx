@@ -14,14 +14,22 @@ import {
     IconButton,
     Alert,
     CircularProgress,
+    Divider,
+    Grid,
+    Paper,
 } from '@mui/material';
 import {
     LockOutlined as LockOutlinedIcon,
     Visibility as VisibilityIcon,
     VisibilityOff as VisibilityOffIcon,
+    AdminPanelSettings as AdminIcon,
+    MedicalServices as DoctorIcon,
+    Person as PatientIcon,
+    Support as StaffIcon,
 } from '@mui/icons-material';
 import type { RootState } from '../../store';
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
+import { authService } from '../../services/authService';
 
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -45,37 +53,47 @@ const LoginPage: React.FC = () => {
         try {
             dispatch(loginStart());
 
-            // Simulating API call - in a real app, you would make an actual API call here
-            // const response = await loginApi({ email, password });
+            // Call API through our service
+            const response = await authService.login({ email, password });
 
-            // For demo purposes, using fake credentials
-            setTimeout(() => {
-                if (email === 'demo@example.com' && password === 'password') {
-                    const fakeUser = {
-                        id: '1',
-                        firstName: 'Demo',
-                        lastName: 'User',
-                        email: 'demo@example.com',
-                        role: 'patient' as const,
-                    };
+            // On success, update Redux state
+            dispatch(loginSuccess({
+                user: response.user,
+                token: response.token
+            }));
 
-                    dispatch(loginSuccess({
-                        user: fakeUser,
-                        token: 'fake-jwt-token'
-                    }));
-
+            // Redirect based on user role
+            const userRole = response.user.role;
+            switch (userRole) {
+                case 'admin':
+                    navigate('/admin');
+                    break;
+                case 'doctor':
+                    navigate('/doctor');
+                    break;
+                case 'staff':
+                    navigate('/staff');
+                    break;
+                case 'customer':
+                    navigate('/app/appointments');
+                    break;
+                default:
+                    // Fallback to profile page
                     navigate('/app/profile');
-                } else {
-                    dispatch(loginFailure('Email hoặc mật khẩu không chính xác'));
-                }
-            }, 1000);
-        } catch (error) {
-            dispatch(loginFailure('Đã xảy ra lỗi. Vui lòng thử lại.'));
+            }
+        } catch (error: any) {
+            dispatch(loginFailure(error.message || 'Đã xảy ra lỗi. Vui lòng thử lại.'));
         }
     };
 
     const handleTogglePasswordVisibility = () => {
         setShowPassword(!showPassword);
+    };
+
+    // Helper function to log in directly with demo accounts
+    const loginWithDemoAccount = (demoEmail: string) => {
+        setEmail(demoEmail);
+        setPassword('password');
     };
 
     return (
@@ -171,10 +189,137 @@ const LoginPage: React.FC = () => {
                 </Box>
             </Box>
 
+            {/* Demo Accounts Section */}
             <Box sx={{ mt: 4, width: '100%' }}>
-                <Typography variant="body2" color="text.secondary" align="center">
-                    Tài khoản demo: demo@example.com / password
+                <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        Tài khoản demo
+                    </Typography>
+                </Divider>
+
+                <Grid container spacing={2} sx={{ mt: 2 }}>
+                    <Grid item xs={6} sm={3}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => loginWithDemoAccount('admin@example.com')}
+                        >
+                            <AdminIcon fontSize="large" color="primary" />
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Admin
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                admin@example.com
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => loginWithDemoAccount('doctor@example.com')}
+                        >
+                            <DoctorIcon fontSize="large" color="primary" />
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Doctor
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                doctor@example.com
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => loginWithDemoAccount('staff@example.com')}
+                        >
+                            <StaffIcon fontSize="large" color="primary" />
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Staff
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                staff@example.com
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                p: 2,
+                                textAlign: 'center',
+                                cursor: 'pointer',
+                                '&:hover': { bgcolor: 'primary.light', color: 'white' },
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            onClick={() => loginWithDemoAccount('patient@example.com')}
+                        >
+                            <PatientIcon fontSize="large" color="primary" />
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Customer
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                patient@example.com
+                            </Typography>
+                        </Paper>
+                    </Grid>
+                </Grid>
+
+                <Typography variant="caption" color="text.secondary" align="center" sx={{ display: 'block', mt: 2 }}>
+                    Mật khẩu cho tất cả tài khoản: "password"
                 </Typography>
+
+                {/* Reset localStorage button */}
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => {
+                            localStorage.removeItem('authToken');
+                            localStorage.removeItem('user');
+                            localStorage.removeItem('userRole');
+                            window.location.reload();
+                        }}
+                    >
+                        Xóa dữ liệu đăng nhập và khởi động lại
+                    </Button>
+                </Box>
             </Box>
         </Box>
     );

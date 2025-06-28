@@ -26,9 +26,13 @@ import icongender from '../../images/icongender.png';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import AuthStatus from '../auth/AuthStatus';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 const Header: React.FC = () => {
     const location = useLocation();
+    const { user } = useSelector((state: RootState) => state.auth);
     const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
     const [teamMenuOpen, setTeamMenuOpen] = useState(false);
     const [resourcesMenuOpen, setResourcesMenuOpen] = useState(false);
@@ -42,9 +46,11 @@ const Header: React.FC = () => {
     // Các dịch vụ dropdown với thông tin tab
     const serviceItems = [
         { name: 'Tất cả Dịch vụ', path: '/services', tabIndex: 0 },
-        { name: 'Điều trị ARV', path: '/services', tabIndex: 1 },
-        { name: 'Xét nghiệm HIV', path: '/services', tabIndex: 2 },
-        { name: 'Tư vấn Tâm lý', path: '/services', tabIndex: 3 }
+        { name: 'Xét nghiệm HIV', path: '/services', tabIndex: 1 },
+        { name: 'Điều trị HIV', path: '/services', tabIndex: 2 },
+        { name: 'Chăm sóc HIV', path: '/services', tabIndex: 3 },
+        { name: 'Dự phòng HIV', path: '/services', tabIndex: 4 },
+        { name: 'Hỗ trợ Tâm lý', path: '/services', tabIndex: 5 }
     ];
 
     // Các danh mục đội ngũ dropdown với thông tin tab
@@ -478,73 +484,110 @@ const Header: React.FC = () => {
                         </Popper>
                     </Box>
 
-                    {/* Menu cho màn hình nhỏ */}
-                    <Box sx={{ display: { xs: 'flex', md: 'none' }, ml: 'auto' }}>
+                    {/* AuthStatus và Menu mobile */}
+                    <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {/* Thêm AuthStatus */}
+                        <AuthStatus />
+
+                        {/* Menu mobile */}
                         <IconButton
-                            size="large"
-                            aria-label="menu"
+                            color="inherit"
+                            aria-label="open menu"
+                            edge="end"
                             onClick={handleMobileMenuToggle}
+                            sx={{ display: { md: 'none' } }}
                         >
                             <MenuIcon />
                         </IconButton>
-                        <Drawer
-                            anchor="right"
-                            open={mobileMenuOpen}
-                            onClose={() => setMobileMenuOpen(false)}
-                        >
-                            <Box sx={{ width: 250 }}>
-                                <List>
-                                    <ListItem button component={RouterLink} to="/">
-                                        <ListItemText primary="Trang chủ" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/services">
-                                        <ListItemText primary="Dịch vụ" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/education/basic-hiv-info">
-                                        <ListItemText primary="Tài liệu" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/app/appointments">
-                                        <ListItemText primary="Đặt lịch hẹn" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/app/reminder">
-                                        <ListItemText primary="Nhắc nhở thuốc" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/app/consultations">
-                                        <ListItemText primary="Tư vấn trực tuyến" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/app/test-results">
-                                        <ListItemText primary="Kết quả xét nghiệm" />
-                                    </ListItem>
-                                    <ListItem button component={RouterLink} to="/team">
-                                        <ListItemText primary="Đội ngũ y tế" />
-                                    </ListItem>
-                                </List>
-                            </Box>
-                        </Drawer>
                     </Box>
-
-                    {/* Đăng nhập/Đăng ký nút */}
-                    <Stack direction="row" spacing={2} sx={{ display: { xs: 'none', md: 'flex' } }}>
-                        <Button
-                            component={RouterLink}
-                            to="/auth/login"
-                            variant="outlined"
-                            sx={{ borderRadius: '20px' }}
-                        >
-                            Đăng nhập
-                        </Button>
-                        <Button
-                            component={RouterLink}
-                            to="/auth/register"
-                            variant="contained"
-                            sx={{ borderRadius: '20px' }}
-                        >
-                            Đăng ký
-                        </Button>
-                    </Stack>
                 </Toolbar>
             </Container>
-        </AppBar>
+
+            {/* Menu mobile drawer */}
+            <Drawer
+                anchor="right"
+                open={mobileMenuOpen}
+                onClose={() => setMobileMenuOpen(false)}
+            >
+                <Box sx={{ width: 250 }}>
+                    <List>
+                        <ListItem component={RouterLink} to="/">
+                            <ListItemText primary="Trang chủ" />
+                        </ListItem>
+                        <ListItem component={RouterLink} to="/services">
+                            <ListItemText primary="Dịch vụ" />
+                        </ListItem>
+                        <ListItem component={RouterLink} to="/education/basic-hiv-info">
+                            <ListItemText primary="Tài liệu" />
+                        </ListItem>
+
+                        {/* Conditional Menu Items based on role */}
+                        {user?.role === 'customer' && (
+                            <>
+                                <ListItem component={RouterLink} to="/app/appointments">
+                                    <ListItemText primary="Đặt lịch hẹn" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/app/reminder">
+                                    <ListItemText primary="Nhắc nhở thuốc" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/app/consultations">
+                                    <ListItemText primary="Tư vấn trực tuyến" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/app/test-results">
+                                    <ListItemText primary="Kết quả xét nghiệm" />
+                                </ListItem>
+                            </>
+                        )}
+
+                        {user?.role === 'doctor' && (
+                            <>
+                                <ListItem component={RouterLink} to="/doctor">
+                                    <ListItemText primary="Dashboard" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/doctor/patients">
+                                    <ListItemText primary="Bệnh nhân" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/doctor/appointments">
+                                    <ListItemText primary="Lịch hẹn" />
+                                </ListItem>
+                            </>
+                        )}
+
+                        {user?.role === 'staff' && (
+                            <>
+                                <ListItem component={RouterLink} to="/staff">
+                                    <ListItemText primary="Dashboard" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/staff/patients">
+                                    <ListItemText primary="Danh sách bệnh nhân" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/staff/check-in">
+                                    <ListItemText primary="Hỗ trợ check-in" />
+                                </ListItem>
+                            </>
+                        )}
+
+                        {user?.role === 'admin' && (
+                            <>
+                                <ListItem component={RouterLink} to="/admin">
+                                    <ListItemText primary="Dashboard" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/admin/users">
+                                    <ListItemText primary="Quản lý người dùng" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/admin/services">
+                                    <ListItemText primary="Quản lý dịch vụ" />
+                                </ListItem>
+                            </>
+                        )}
+
+                        <ListItem component={RouterLink} to="/team">
+                            <ListItemText primary="Đội ngũ y tế" />
+                        </ListItem>
+                    </List>
+                </Box>
+            </Drawer>
+        </AppBar >
     );
 };
 

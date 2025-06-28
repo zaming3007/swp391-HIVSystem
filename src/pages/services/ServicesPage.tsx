@@ -99,10 +99,10 @@ const ServicesPage: React.FC = () => {
     return (
         <Container maxWidth="lg" sx={{ py: 6 }}>
             <Typography variant="h3" component="h1" gutterBottom>
-                Dịch Vụ Của Chúng Tôi
+                Dịch Vụ Điều Trị & Chăm Sóc HIV
             </Typography>
             <Typography variant="subtitle1" paragraph>
-                Chúng tôi cung cấp một loạt các dịch vụ chăm sóc sức khỏe khẳng định giới tính toàn diện được thiết kế để đáp ứng nhu cầu đặc biệt của bạn.
+                Chúng tôi cung cấp các dịch vụ y tế toàn diện cho việc phòng ngừa, xét nghiệm, điều trị và chăm sóc HIV nhằm nâng cao chất lượng cuộc sống cho người nhiễm HIV và ngăn ngừa lây truyền trong cộng đồng.
             </Typography>
 
             {/* Search bar */}
@@ -133,9 +133,11 @@ const ServicesPage: React.FC = () => {
                     scrollButtons="auto"
                 >
                     <Tab label="Tất Cả Dịch Vụ" {...a11yProps(0)} />
-                    <Tab label="Chăm Sóc Khẳng Định Giới Tính" {...a11yProps(1)} />
-                    <Tab label="Sức Khỏe Tâm Thần" {...a11yProps(2)} />
-                    <Tab label="Chăm Sóc Cơ Bản" {...a11yProps(3)} />
+                    <Tab label="Xét Nghiệm HIV" {...a11yProps(1)} />
+                    <Tab label="Điều Trị HIV" {...a11yProps(2)} />
+                    <Tab label="Chăm Sóc HIV" {...a11yProps(3)} />
+                    <Tab label="Dự Phòng HIV" {...a11yProps(4)} />
+                    <Tab label="Sức Khỏe Tâm Thần" {...a11yProps(5)} />
                 </Tabs>
             </Box>
 
@@ -155,49 +157,81 @@ const ServicesPage: React.FC = () => {
                 </Grid>
             </TabPanel>
 
-            {/* Gender-Affirming Care Tab */}
+            {/* HIV Testing Tab */}
             <TabPanel value={tabValue} index={1}>
                 <Grid container spacing={4}>
-                    {filterByCategory('Gender-Affirming').map((service) => (
+                    {filterByCategory('hiv-testing').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('Gender-Affirming').length === 0 && (
+                    {filterByCategory('hiv-testing').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ khẳng định giới tính nào phù hợp với "{searchTerm}"</Typography>
+                            <Typography variant="h6">Không tìm thấy dịch vụ xét nghiệm HIV nào phù hợp với "{searchTerm}"</Typography>
+                        </Box>
+                    )}
+                </Grid>
+            </TabPanel>
+
+            {/* HIV Treatment Tab */}
+            <TabPanel value={tabValue} index={2}>
+                <Grid container spacing={4}>
+                    {filterByCategory('hiv-treatment').map((service) => (
+                        <Grid item xs={12} sm={6} md={4} key={service.id}>
+                            <ServiceCard service={service} />
+                        </Grid>
+                    ))}
+                    {filterByCategory('hiv-treatment').length === 0 && (
+                        <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                            <Typography variant="h6">Không tìm thấy dịch vụ điều trị HIV nào phù hợp với "{searchTerm}"</Typography>
+                        </Box>
+                    )}
+                </Grid>
+            </TabPanel>
+
+            {/* HIV Care Tab */}
+            <TabPanel value={tabValue} index={3}>
+                <Grid container spacing={4}>
+                    {filterByCategory('hiv-care').map((service) => (
+                        <Grid item xs={12} sm={6} md={4} key={service.id}>
+                            <ServiceCard service={service} />
+                        </Grid>
+                    ))}
+                    {filterByCategory('hiv-care').length === 0 && (
+                        <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                            <Typography variant="h6">Không tìm thấy dịch vụ chăm sóc HIV nào phù hợp với "{searchTerm}"</Typography>
+                        </Box>
+                    )}
+                </Grid>
+            </TabPanel>
+
+            {/* HIV Prevention Tab */}
+            <TabPanel value={tabValue} index={4}>
+                <Grid container spacing={4}>
+                    {filterByCategory('hiv-prevention').map((service) => (
+                        <Grid item xs={12} sm={6} md={4} key={service.id}>
+                            <ServiceCard service={service} />
+                        </Grid>
+                    ))}
+                    {filterByCategory('hiv-prevention').length === 0 && (
+                        <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                            <Typography variant="h6">Không tìm thấy dịch vụ dự phòng HIV nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
             </TabPanel>
 
             {/* Mental Health Tab */}
-            <TabPanel value={tabValue} index={2}>
+            <TabPanel value={tabValue} index={5}>
                 <Grid container spacing={4}>
-                    {filterByCategory('Mental Health').map((service) => (
+                    {filterByCategory('mental-health').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('Mental Health').length === 0 && (
+                    {filterByCategory('mental-health').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
                             <Typography variant="h6">Không tìm thấy dịch vụ sức khỏe tâm thần nào phù hợp với "{searchTerm}"</Typography>
-                        </Box>
-                    )}
-                </Grid>
-            </TabPanel>
-
-            {/* Primary Care Tab */}
-            <TabPanel value={tabValue} index={3}>
-                <Grid container spacing={4}>
-                    {filterByCategory('Primary Care').map((service) => (
-                        <Grid item xs={12} sm={6} md={4} key={service.id}>
-                            <ServiceCard service={service} />
-                        </Grid>
-                    ))}
-                    {filterByCategory('Primary Care').length === 0 && (
-                        <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ chăm sóc cơ bản nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
@@ -239,12 +273,17 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
                 <Box>
                     <Box sx={{ mb: 1 }}>
                         <Chip
-                            label={service.category === 'Gender-Affirming' ? 'Khẳng định giới tính' :
-                                service.category === 'Mental Health' ? 'Sức khỏe tâm thần' :
-                                    'Chăm sóc cơ bản'}
+                            label={service.category === 'hiv-testing' ? 'Xét nghiệm HIV' :
+                                service.category === 'hiv-treatment' ? 'Điều trị HIV' :
+                                    service.category === 'hiv-care' ? 'Chăm sóc HIV' :
+                                        service.category === 'hiv-prevention' ? 'Dự phòng HIV' :
+                                            service.category === 'mental-health' ? 'Sức khỏe tâm thần' : 'Khác'}
                             color={
-                                service.category === 'Gender-Affirming' ? 'primary' :
-                                    service.category === 'Mental Health' ? 'secondary' : 'default'
+                                service.category === 'hiv-testing' ? 'info' :
+                                    service.category === 'hiv-treatment' ? 'primary' :
+                                        service.category === 'hiv-care' ? 'success' :
+                                            service.category === 'hiv-prevention' ? 'secondary' :
+                                                service.category === 'mental-health' ? 'warning' : 'default'
                             }
                             size="small"
                         />
