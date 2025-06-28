@@ -27,7 +27,7 @@ import MyAppointmentsPage from './pages/appointment/MyAppointmentsPage';
 import ReminderPage from './pages/reminder/ReminderPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
 import ConsultationQAPage from './pages/consultation/ConsultationQAPage';
-import CycleTrackingPage from './pages/cycle/CycleTrackingPage';
+
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -106,7 +106,7 @@ const AppRoutes: React.FC = () => {
           <Route path="reminder" element={<ReminderPage />} />
           <Route path="test-results" element={<div>Kết quả xét nghiệm & Lịch sử khám</div>} />
           <Route path="medical-history" element={<div>Lịch sử khám và điều trị</div>} />
-          <Route path="cycle-tracking" element={<CycleTrackingPage />} />
+
           <Route path="qa" element={<ConsultationQAPage />} />
         </Route>
 

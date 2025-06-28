@@ -53,25 +53,25 @@ namespace AuthApi.Services
         {
             try
             {
-                // Print register attempt for debugging
-                Console.WriteLine($"Register attempt - Email: {request.Email}");
-                
+            // Print register attempt for debugging
+            Console.WriteLine($"Register attempt - Email: {request.Email}");
+            
                 // Check if user already exists
                 if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-                {
-                    throw new Exception("Email đã được sử dụng");
-                }
+            {
+                throw new Exception("Email đã được sử dụng");
+            }
 
                 // Generate a new unique ID
                 string userId = Guid.NewGuid().ToString();
                 
                 // Create new user with explicit ID
-                var user = new User
-                {
+            var user = new User
+            {
                     Id = userId,
                     FirstName = request.FirstName ?? string.Empty,
                     LastName = request.LastName ?? string.Empty,
-                    Email = request.Email,
+                Email = request.Email,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     Phone = request.Phone ?? string.Empty,
                     Gender = request.Gender ?? "Unspecified",
@@ -90,13 +90,13 @@ namespace AuthApi.Services
                 Console.WriteLine($"User created successfully: {user.Id}");
 
                 // Generate JWT token
-                var token = _tokenService.GenerateJwtToken(user);
+            var token = _tokenService.GenerateJwtToken(user);
 
-                return new AuthResponse
-                {
-                    Token = token,
-                    User = MapUserToDto(user)
-                };
+            return new AuthResponse
+            {
+                Token = token,
+                User = MapUserToDto(user)
+            };
             }
             catch (Exception ex)
             {

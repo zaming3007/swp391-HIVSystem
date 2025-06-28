@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service } from '../types';
 
-const API_URL = 'http://localhost:5002/api';
+const API_URL = 'http://localhost:5000/api';
 
 // Mock data cho trường hợp API không hoạt động
 const MOCK_SERVICES: Service[] = [
@@ -142,7 +142,7 @@ const generateMockTimeSlots = (date: string): string[] => {
 };
 
 // Flag để quyết định có sử dụng mock data hay không
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 // Tạo axios instance với interceptor để thêm token vào header
 const appointmentApi = axios.create({
@@ -151,7 +151,7 @@ const appointmentApi = axios.create({
 
 appointmentApi.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('authToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -289,9 +289,24 @@ export const getDoctorSchedule = async (doctorId: string): Promise<any[]> => {
 // Appointment API functions
 export const getMyAppointments = async (): Promise<Appointment[]> => {
     if (USE_MOCK_DATA) {
-        // Lấy appointments từ localStorage
-        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        return savedAppointments;
+        // Lấy userId của người dùng hiện tại từ localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user?.id;
+
+        if (!userId) {
+            console.error("User ID not found, cannot fetch appointments");
+            return [];
+        }
+
+        // Lấy tất cả appointments từ localStorage
+        const allAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
+
+        // Lọc theo userId hiện tại
+        const userAppointments = allAppointments.filter((appointment: Appointment) =>
+            appointment.patientId === userId
+        );
+
+        return userAppointments;
     }
     try {
         const response = await appointmentApi.get<ApiResponse<Appointment[]>>('/appointments/patient');
@@ -304,7 +319,22 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
 
 export const getAppointmentById = async (id: string): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
-        return null; // No mock appointments yet
+        // Lấy userId của người dùng hiện tại
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user?.id;
+
+        if (!userId) {
+            console.error("User not logged in, cannot fetch appointment");
+            return null;
+        }
+
+        // Tìm lịch hẹn trong localStorage
+        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
+        const appointment = savedAppointments.find((a: Appointment) =>
+            a.id === id && a.patientId === userId
+        );
+
+        return appointment || null;
     }
     try {
         const response = await appointmentApi.get<ApiResponse<Appointment>>(`/appointments/${id}`);
@@ -317,10 +347,23 @@ export const getAppointmentById = async (id: string): Promise<Appointment | null
 
 export const createAppointment = async (appointment: AppointmentCreateDto): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
+        // Lấy thông tin người dùng hiện tại
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user?.id;
+        const patientName = user?.firstName && user?.lastName ?
+            `${user.firstName} ${user.lastName}` :
+            "Unknown User";
+
+        if (!userId) {
+            console.error("User not logged in, cannot create appointment");
+            return null;
+        }
+
         // Create a mock appointment
         const mockAppointment: Appointment = {
             id: Math.random().toString(36).substring(7),
-            patientId: appointment.patientId,
+            patientId: userId,
+            patientName: patientName,
             doctorId: appointment.doctorId,
             serviceId: appointment.serviceId,
             date: appointment.date,
@@ -356,9 +399,18 @@ export const createAppointment = async (appointment: AppointmentCreateDto): Prom
 
 export const updateAppointment = async (id: string, appointment: AppointmentUpdateDto): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
+        // Lấy userId của người dùng hiện tại
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user?.id;
+
+        if (!userId) {
+            console.error("User not logged in, cannot update appointment");
+            return null;
+        }
+
         // Update mock appointment in localStorage
         const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const index = savedAppointments.findIndex((a: Appointment) => a.id === id);
+        const index = savedAppointments.findIndex((a: Appointment) => a.id === id && a.patientId === userId);
 
         if (index !== -1) {
             savedAppointments[index] = { ...savedAppointments[index], ...appointment };
@@ -378,9 +430,18 @@ export const updateAppointment = async (id: string, appointment: AppointmentUpda
 
 export const cancelAppointment = async (id: string): Promise<boolean> => {
     if (USE_MOCK_DATA) {
+        // Lấy userId của người dùng hiện tại
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user?.id;
+
+        if (!userId) {
+            console.error("User not logged in, cannot cancel appointment");
+            return false;
+        }
+
         // Cancel mock appointment in localStorage
         const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const index = savedAppointments.findIndex((a: Appointment) => a.id === id);
+        const index = savedAppointments.findIndex((a: Appointment) => a.id === id && a.patientId === userId);
 
         if (index !== -1) {
             savedAppointments[index].status = 'cancelled';

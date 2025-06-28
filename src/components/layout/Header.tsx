@@ -421,7 +421,6 @@ const Header: React.FC = () => {
                                 item.hasSubmenu ? (
                                     <MenuItem
                                         key={item.name}
-                                        ref={teamButtonRef}
                                         onClick={handleTeamMenuToggle}
                                     >
                                         {item.name}

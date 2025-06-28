@@ -1,0 +1,16 @@
+{
+    "name": "health-care-fe",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "lint": "eslint .",
+        "preview": "vite preview",
+        "dev:all": "concurrently \"npm run dev\" \"cd ../AppointmentApi && dotnet run\" \"cd ../AuthApi && dotnet run\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.0"
+    }
+}
