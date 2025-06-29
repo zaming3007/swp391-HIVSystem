@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Diagnostics;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,11 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Thêm EntityFramework với PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    Console.WriteLine($"Connection string: {connectionString}");
+    options.UseNpgsql(connectionString);
+});
 
 // Cấu hình JWT Authentication
 var jwtSection = builder.Configuration.GetSection("JwtSettings");
@@ -96,29 +102,55 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Thêm endpoint root đơn giản cho healthcheck
-app.MapGet("/", () => "AppointmentApi is running!");
+app.MapGet("/", () => 
+{
+    Console.WriteLine("Root endpoint accessed");
+    return "AppointmentApi is running!";
+});
+
+// Thêm middleware để hiển thị lỗi chi tiết
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+        context.Response.ContentType = "text/plain";
+
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
+
+        if (exception != null)
+        {
+            await context.Response.WriteAsync($"Error: {exception.Message}\n\nStack Trace: {exception.StackTrace}");
+            Console.WriteLine($"Error: {exception.Message}\n\nStack Trace: {exception.StackTrace}");
+        }
+        else
+        {
+            await context.Response.WriteAsync("An error occurred.");
+        }
+    });
+});
 
 // Migrate and seed database at startup
-using (var scope = app.Services.CreateScope())
+try
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
+    using (var scope = app.Services.CreateScope())
     {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Console.WriteLine("Attempting database migration...");
         dbContext.Database.Migrate();
+        Console.WriteLine("Database migration completed successfully.");
     }
-    catch (Exception ex)
-    {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"An error occurred while migrating the database: {ex.Message}");
+    Console.WriteLine($"Stack trace: {ex.StackTrace}");
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Comment dòng này để tránh redirect HTTPS trên Railway
 // app.UseHttpsRedirection();
@@ -130,5 +162,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+Console.WriteLine("AppointmentApi is starting...");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine("Listening on port 80");
 
 app.Run(); 

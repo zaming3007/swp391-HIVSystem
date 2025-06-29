@@ -6,5 +6,4 @@ dockerfile = "Dockerfile"
 healthcheckPath = "/"
 healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
-startCommand = "/entrypoint.sh" 
+restartPolicyMaxRetries = 10 

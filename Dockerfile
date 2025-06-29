@@ -5,34 +5,19 @@ WORKDIR /app
 
 # Sao chép các file project và khôi phục các dependency
 COPY ./AppointmentApi/AppointmentApi.csproj ./AppointmentApi/
-COPY ./AuthApi/AuthApi.csproj ./AuthApi/
 RUN dotnet restore ./AppointmentApi/AppointmentApi.csproj
-RUN dotnet restore ./AuthApi/AuthApi.csproj
 
 # Sao chép toàn bộ mã nguồn và build ứng dụng
 COPY . ./
-RUN dotnet publish -c Release -o out ./AppointmentApi/AppointmentApi.csproj
-RUN dotnet publish -c Release -o out ./AuthApi/AuthApi.csproj
+RUN dotnet publish -c Release -o /app/out ./AppointmentApi/AppointmentApi.csproj
 
 # Tạo image runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build-env /app/out ./
+COPY --from=build-env /app/out .
 
-# Cài đặt supervisor và các công cụ hữu ích
-RUN apt-get update && apt-get install -y supervisor curl net-tools procps
+# Expose port
+EXPOSE 80
 
-# Sao chép các file cấu hình
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY healthcheck.sh /healthcheck.sh
-RUN chmod +x /healthcheck.sh
-
-# Sao chép và cấp quyền thực thi cho entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Expose các port
-EXPOSE 80 81
-
-# Khởi động bằng entrypoint script
-ENTRYPOINT ["/entrypoint.sh"] 
+# Khởi động ứng dụng
+ENTRYPOINT ["dotnet", "AppointmentApi.dll", "--urls", "http://0.0.0.0:80"] 
