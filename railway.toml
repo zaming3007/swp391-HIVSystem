@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd AppointmentApi && dotnet restore && dotnet publish -c Release -o out"
+
+[deploy]
+startCommand = "cd AppointmentApi/out && dotnet AppointmentApi.dll"
+healthcheckPath = "/api/services"
+healthcheckTimeout = 300 
