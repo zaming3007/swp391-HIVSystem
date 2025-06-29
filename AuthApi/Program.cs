@@ -99,6 +99,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Thêm endpoint root đơn giản cho healthcheck
+app.MapGet("/", () => "AuthApi is running!");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -141,5 +144,6 @@ app.MapControllers();
 Console.WriteLine("AuthAPI is starting...");
 Console.WriteLine($"JWT Settings - Issuer: {jwtSettings.Issuer}, Audience: {jwtSettings.Audience}");
 Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine("Listening on port 81");
 
 app.Run(); 

@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose các port
-EXPOSE 5000 5001
+EXPOSE 80 81
 
 # Khởi động supervisor để chạy cả hai API
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 

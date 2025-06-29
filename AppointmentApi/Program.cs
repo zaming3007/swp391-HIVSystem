@@ -95,6 +95,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Thêm endpoint root đơn giản cho healthcheck
+app.MapGet("/", () => "AppointmentApi is running!");
+
 // Migrate and seed database at startup
 using (var scope = app.Services.CreateScope())
 {
@@ -117,7 +120,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Comment dòng này để tránh redirect HTTPS trên Railway
+// app.UseHttpsRedirection();
 
 // Use CORS
 app.UseCors("AllowReact");
