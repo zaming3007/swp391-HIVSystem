@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service, AvailableSlot, AppointmentStatus, AppointmentType } from '../types';
+import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service, AvailableSlot, AppointmentType } from '../types';
+import { Appointment as AppointmentTypeFromAppointmentD } from '../types/appointment.d';
 
 // Base API URL
 const API_URL = 'https://appointmentapi-production.up.railway.app/api';
@@ -357,9 +358,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date().toISOString().split('T')[0],
                 startTime: "09:00",
                 endTime: "09:30",
-                status: "confirmed",
+                status: 1 as any, // Confirmed = 1
                 notes: "Lần đầu khám",
-                createdAt: new Date().toISOString(),
                 appointmentType: "offline" as AppointmentType
             },
             {
@@ -373,9 +373,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
                 startTime: "10:00",
                 endTime: "10:30",
-                status: "pending",
+                status: 0 as any, // Pending = 0
                 notes: "Xét nghiệm định kỳ",
-                createdAt: new Date().toISOString(),
                 appointmentType: "offline" as AppointmentType
             },
             {
@@ -389,9 +388,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
                 startTime: "14:00",
                 endTime: "15:00",
-                status: "completed",
+                status: 3 as any, // Completed = 3
                 notes: "Tư vấn tâm lý định kỳ",
-                createdAt: new Date().toISOString(),
                 appointmentType: "online" as AppointmentType,
                 meetingLink: "https://meet.google.com/abc-defg-hij"
             },
@@ -407,9 +405,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() + 172800000).toISOString().split('T')[0], // Ngày kia
                 startTime: "11:00",
                 endTime: "11:45",
-                status: "pending",
+                status: 0 as any, // Pending = 0
                 notes: "Khám theo dõi điều trị",
-                createdAt: new Date().toISOString(),
                 appointmentType: "offline" as AppointmentType
             },
             {
@@ -423,9 +420,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() + 259200000).toISOString().split('T')[0], // 3 ngày sau
                 startTime: "15:30",
                 endTime: "16:30",
-                status: "pending",
+                status: 0 as any, // Pending = 0
                 notes: "Tư vấn về tác dụng phụ thuốc",
-                createdAt: new Date().toISOString(),
                 appointmentType: "online" as AppointmentType,
                 meetingLink: "https://meet.google.com/xyz-abcd-efg"
             },
@@ -440,9 +436,8 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() - 604800000).toISOString().split('T')[0], // 1 tuần trước
                 startTime: "13:00",
                 endTime: "14:00",
-                status: "completed",
+                status: 3 as any, // Completed = 3
                 notes: "Khám định kỳ",
-                createdAt: new Date().toISOString(),
                 appointmentType: "offline" as AppointmentType
             },
             {
@@ -456,12 +451,11 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
                 date: new Date(Date.now() - 172800000).toISOString().split('T')[0], // 2 ngày trước
                 startTime: "09:30",
                 endTime: "10:15",
-                status: "cancelled",
+                status: 2 as any, // Cancelled = 2
                 notes: "Hủy do lịch cá nhân",
-                createdAt: new Date().toISOString(),
                 appointmentType: "offline" as AppointmentType
             }
-        ];
+        ] as unknown as Appointment[];
 
         // Kết hợp dữ liệu mẫu cố định với dữ liệu từ localStorage
         const combinedAppointments = [
@@ -486,7 +480,7 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
 
     try {
         console.log(`Making API request to /appointments/patient/${userId}`);
-        const response = await appointmentApi.get<ApiResponse<Appointment[]>>(`/appointments/patient/${userId}`);
+        const response = await appointmentApi.get<ApiResponse<Appointment[]>>('/appointments/patient/' + userId);
         console.log("API response for appointments:", response.data);
         return response.data.data || [];
     } catch (error) {
@@ -511,11 +505,10 @@ export const getAppointmentById = async (id: string): Promise<Appointment | null
             date: new Date().toISOString().split('T')[0],
             startTime: "09:00",
             endTime: "09:30",
-            status: "confirmed",
+            status: 1 as any, // Confirmed = 1
             notes: "Lần đầu khám",
-            createdAt: new Date().toISOString(),
             appointmentType: "offline"
-        };
+        } as unknown as Appointment;
     }
 
     try {
@@ -571,11 +564,10 @@ export const createAppointment = async (appointment: AppointmentCreateDto): Prom
             date: appointment.date,
             startTime: appointment.startTime,
             endTime: calculateEndTime(appointment.startTime, 30), // Giả định thời gian hẹn là 30 phút
-            status: "pending",
+            status: 0 as any, // Pending = 0
             notes: appointment.notes || "",
-            createdAt: new Date().toISOString(),
             appointmentType: appointment.appointmentType || "offline"
-        };
+        } as unknown as Appointment;
 
         console.log("Created mock appointment:", newAppointment);
 
@@ -662,12 +654,10 @@ export const updateAppointment = async (id: string, appointment: AppointmentUpda
             date: appointment.date || new Date().toISOString().split('T')[0],
             startTime: appointment.startTime || "09:00",
             endTime: "09:30",
-            status: "pending",
+            status: 0 as any, // Pending = 0
             notes: appointment.notes || "",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
             appointmentType: "offline"
-        };
+        } as unknown as Appointment;
     }
 
     try {
