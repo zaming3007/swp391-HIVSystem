@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 
 # Thiết lập thư mục làm việc
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN dotnet publish -c Release -o out ./AppointmentApi/AppointmentApi.csproj
 RUN dotnet publish -c Release -o out ./AuthApi/AuthApi.csproj
 
 # Tạo image runtime
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build-env /app/out ./
 
