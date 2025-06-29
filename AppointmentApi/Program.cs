@@ -14,15 +14,9 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173", 
-                "http://localhost:5175", 
-                "http://localhost:5176",
-                "https://swr302-fe-homelanding-production.up.railway.app"
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
