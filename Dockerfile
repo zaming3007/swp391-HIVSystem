@@ -19,12 +19,20 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build-env /app/out ./
 
-# Cài đặt supervisor để quản lý nhiều process
-RUN apt-get update && apt-get install -y supervisor
+# Cài đặt supervisor và các công cụ hữu ích
+RUN apt-get update && apt-get install -y supervisor curl net-tools procps
+
+# Sao chép các file cấu hình
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY healthcheck.sh /healthcheck.sh
+RUN chmod +x /healthcheck.sh
+
+# Sao chép và cấp quyền thực thi cho entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose các port
 EXPOSE 80 81
 
-# Khởi động supervisor để chạy cả hai API
-ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 
+# Khởi động bằng entrypoint script
+ENTRYPOINT ["/entrypoint.sh"] 
