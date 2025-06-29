@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AuthApi.Models
 {
-    [Table("services")]
+    [Table("Services")]
     public class Service
     {
         [Key]
@@ -40,25 +40,5 @@ namespace AuthApi.Models
         // Navigation properties
         public virtual ICollection<DoctorService> DoctorServices { get; set; } = new List<DoctorService>();
         public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-    }
-    
-    [Table("doctor_services")]
-    public class DoctorService
-    {
-        [Key]
-        [Column("id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        
-        [Column("doctor_id")]
-        public string DoctorId { get; set; }
-        
-        [Column("service_id")]
-        public string ServiceId { get; set; }
-        
-        [ForeignKey("DoctorId")]
-        public virtual Doctor Doctor { get; set; }
-        
-        [ForeignKey("ServiceId")]
-        public virtual Service Service { get; set; }
     }
 } 

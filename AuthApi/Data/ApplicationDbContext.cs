@@ -24,6 +24,17 @@ namespace AuthApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Cấu hình các bảng với tên PascalCase
+            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Consultation>().ToTable("Consultations");
+            modelBuilder.Entity<Answer>().ToTable("Answers");
+            modelBuilder.Entity<MedicationReminder>().ToTable("MedicationReminders");
+            modelBuilder.Entity<Doctor>().ToTable("Doctors");
+            modelBuilder.Entity<TimeSlot>().ToTable("TimeSlots");
+            modelBuilder.Entity<Service>().ToTable("Services");
+            modelBuilder.Entity<DoctorService>().ToTable("DoctorServices");
+            modelBuilder.Entity<Appointment>().ToTable("Appointments");
+
             // Cấu hình các ràng buộc và mối quan hệ
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)

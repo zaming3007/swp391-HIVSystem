@@ -63,7 +63,7 @@ namespace AppointmentApi.Controllers
         [HttpGet("doctor/{doctorId}")]
         public async Task<ActionResult<ApiResponse<List<Service>>>> GetByDoctorId(string doctorId)
         {
-            var services = await _serviceManager.GetServicesByDoctorIdAsync(doctorId);
+            var services = await _serviceManager.GetByDoctorIdAsync(doctorId);
             return new ApiResponse<List<Service>> 
             { 
                 Success = true, 

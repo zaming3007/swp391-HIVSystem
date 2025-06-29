@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuthApi.Models
 {
-    [Table("answers")]
+    [Table("Answers")]
     public class Answer
     {
         [Key]
@@ -29,7 +29,7 @@ namespace AuthApi.Models
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Navigation property
+        // Navigation properties
         [ForeignKey("ConsultationId")]
         public virtual Consultation Consultation { get; set; }
     }

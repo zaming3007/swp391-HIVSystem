@@ -10,12 +10,19 @@ import NoteIcon from '@mui/icons-material/Note';
 import { format, parseISO } from 'date-fns';
 import { RootState } from '../../store';
 import { Appointment } from '../../types';
-import { getMyAppointments, cancelAppointment } from '../../services/appointmentService';
+import { getMyAppointments, cancelAppointment, resetMockAppointments } from '../../services/appointmentService';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { toast } from 'react-toastify';
 
-// Define status types locally to avoid type conflicts
-type AppointmentStatusType = 'pending' | 'confirmed' | 'cancelled' | 'completed';
+// Định nghĩa enum AppointmentStatus để sử dụng trong component
+enum AppointmentStatus {
+    Pending = 0,
+    Confirmed = 1,
+    Cancelled = 2,
+    Completed = 3
+}
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -59,7 +66,21 @@ const MyAppointmentsPage: React.FC = () => {
         const fetchAppointments = async () => {
             try {
                 setIsLoading(true);
+                // Kiểm tra localStorage trước khi gọi API
+                console.log("Checking localStorage for appointments...");
+                const savedAppointments = localStorage.getItem('mockAppointments');
+                if (savedAppointments) {
+                    console.log("Found appointments in localStorage:", savedAppointments);
+                }
+
                 const data = await getMyAppointments();
+                console.log("Fetched appointments:", data);
+
+                // Kiểm tra trạng thái lịch hẹn
+                data.forEach(appointment => {
+                    console.log(`Appointment ${appointment.id}: status=${appointment.status}, type=${typeof appointment.status}`);
+                });
+
                 setAppointments(data);
                 setError(null);
             } catch (error) {
@@ -87,7 +108,7 @@ const MyAppointmentsPage: React.FC = () => {
                 if (success) {
                     // Update local state
                     setAppointments(appointments.map(app =>
-                        app.id === appointmentId ? { ...app, status: 'cancelled' } : app
+                        app.id === appointmentId ? { ...app, status: AppointmentStatus.Cancelled } : app
                     ));
                 } else {
                     alert('Không thể hủy lịch hẹn. Vui lòng thử lại sau.');
@@ -100,21 +121,33 @@ const MyAppointmentsPage: React.FC = () => {
     };
 
     // Filter appointments by status
-    const upcomingAppointments = appointments.filter(app =>
-        app.status === 'pending' || app.status === 'confirmed');
-    const completedAppointments = appointments.filter(app => app.status === 'completed');
-    const cancelledAppointments = appointments.filter(app => app.status === 'cancelled');
+    const upcomingAppointments = appointments.filter(app => {
+        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
+        return status === AppointmentStatus.Pending || status === AppointmentStatus.Confirmed;
+    });
+
+    const completedAppointments = appointments.filter(app => {
+        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
+        return status === AppointmentStatus.Completed;
+    });
+
+    const cancelledAppointments = appointments.filter(app => {
+        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
+        return status === AppointmentStatus.Cancelled;
+    });
 
     // Get status label
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'pending':
+    const getStatusLabel = (status: number | string) => {
+        const numStatus = typeof status === 'number' ? status : parseInt(status as string);
+
+        switch (numStatus) {
+            case AppointmentStatus.Pending:
                 return 'Đang chờ';
-            case 'confirmed':
+            case AppointmentStatus.Confirmed:
                 return 'Đã xác nhận';
-            case 'cancelled':
+            case AppointmentStatus.Cancelled:
                 return 'Đã hủy';
-            case 'completed':
+            case AppointmentStatus.Completed:
                 return 'Đã hoàn thành';
             default:
                 return 'Không xác định';
@@ -122,15 +155,17 @@ const MyAppointmentsPage: React.FC = () => {
     };
 
     // Get status color
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'pending':
+    const getStatusColor = (status: number | string) => {
+        const numStatus = typeof status === 'number' ? status : parseInt(status as string);
+
+        switch (numStatus) {
+            case AppointmentStatus.Pending:
                 return 'warning';
-            case 'confirmed':
+            case AppointmentStatus.Confirmed:
                 return 'primary';
-            case 'cancelled':
+            case AppointmentStatus.Cancelled:
                 return 'error';
-            case 'completed':
+            case AppointmentStatus.Completed:
                 return 'success';
             default:
                 return 'default';
@@ -141,6 +176,9 @@ const MyAppointmentsPage: React.FC = () => {
     const AppointmentCard = ({ appointment, onCancel }: { appointment: Appointment, onCancel: (id: string) => void }) => {
         // Format ngày giờ
         const formattedDate = format(parseISO(appointment.date), 'dd/MM/yyyy');
+        const status = typeof appointment.status === 'number'
+            ? appointment.status
+            : parseInt(appointment.status as unknown as string);
 
         return (
             <Card sx={{ mb: 2 }}>
@@ -150,8 +188,8 @@ const MyAppointmentsPage: React.FC = () => {
                             {appointment.serviceName}
                         </Typography>
                         <Chip
-                            label={getStatusLabel(appointment.status)}
-                            color={getStatusColor(appointment.status) as any}
+                            label={getStatusLabel(status)}
+                            color={getStatusColor(status) as any}
                             sx={{ fontWeight: 'bold' }}
                         />
                     </Box>
@@ -227,7 +265,7 @@ const MyAppointmentsPage: React.FC = () => {
                         )}
                     </Grid>
 
-                    {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
+                    {(status === AppointmentStatus.Pending || status === AppointmentStatus.Confirmed) && (
                         <>
                             <Divider sx={{ my: 2 }} />
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -246,6 +284,21 @@ const MyAppointmentsPage: React.FC = () => {
         );
     };
 
+    // Thêm hàm xử lý xóa dữ liệu localStorage
+    const handleResetAppointments = () => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa tất cả lịch hẹn đã lưu? Thao tác này sẽ tải lại trang.')) {
+            try {
+                resetMockAppointments();
+                toast.success('Đã xóa dữ liệu lịch hẹn');
+                // Tải lại trang để cập nhật dữ liệu
+                window.location.reload();
+            } catch (error) {
+                console.error('Error resetting appointments', error);
+                toast.error('Không thể xóa dữ liệu lịch hẹn');
+            }
+        }
+    };
+
     return (
         <Container maxWidth="lg">
             <Box sx={{ py: 4 }}>
@@ -253,13 +306,24 @@ const MyAppointmentsPage: React.FC = () => {
                     <Typography variant="h4" component="h1">
                         Lịch Hẹn Của Tôi
                     </Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => navigate('/appointment')}
-                    >
-                        Đặt Lịch Hẹn Mới
-                    </Button>
+                    <Box>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => navigate('/appointment')}
+                            sx={{ mr: 1 }}
+                        >
+                            Đặt Lịch Hẹn Mới
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={handleResetAppointments}
+                        >
+                            Xóa dữ liệu
+                        </Button>
+                    </Box>
                 </Box>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

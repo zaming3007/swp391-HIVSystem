@@ -12,10 +12,17 @@ namespace AppointmentApi.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly IDoctorService _doctorService;
+        private readonly IServiceManager _serviceManager;
 
-        public AppointmentsController(IAppointmentService appointmentService)
+        public AppointmentsController(
+            IAppointmentService appointmentService, 
+            IDoctorService doctorService,
+            IServiceManager serviceManager)
         {
             _appointmentService = appointmentService;
+            _doctorService = doctorService;
+            _serviceManager = serviceManager;
         }
 
         [HttpGet]
@@ -201,7 +208,7 @@ namespace AppointmentApi.Controllers
                 return Forbid();
             }
 
-            var result = await _appointmentService.CancelAsync(id);
+            var result = await _appointmentService.DeleteAsync(id);
             
             return new ApiResponse<bool> 
             { 
@@ -212,28 +219,26 @@ namespace AppointmentApi.Controllers
         }
 
         [HttpGet("available-slots")]
-        public async Task<ActionResult<ApiResponse<List<string>>>> GetAvailableSlots(
+        public async Task<ActionResult<ApiResponse<List<AvailableSlot>>>> GetAvailableSlots(
             [FromQuery] string doctorId, 
-            [FromQuery] DateTime date, 
-            [FromQuery] string serviceId)
+            [FromQuery] DateTime date)
         {
             try
             {
-                var slots = await _appointmentService.GetAvailableSlotsAsync(doctorId, date, serviceId);
-                
-                return new ApiResponse<List<string>> 
+                var slots = await _doctorService.GetAvailableSlotsAsync(doctorId, date);
+                return new ApiResponse<List<AvailableSlot>> 
                 { 
                     Success = true, 
-                    Message = "Lấy danh sách slot trống thành công", 
+                    Message = "Lấy danh sách khung giờ trống thành công", 
                     Data = slots 
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse<List<string>> 
+                return BadRequest(new ApiResponse<List<AvailableSlot>> 
                 { 
                     Success = false, 
-                    Message = ex.Message 
+                    Message = $"Lỗi khi lấy khung giờ trống: {ex.Message}" 
                 });
             }
         }

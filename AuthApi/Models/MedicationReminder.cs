@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuthApi.Models
 {
-    [Table("medication_reminders")]
+    [Table("MedicationReminders")]
     public class MedicationReminder
     {
         [Key]

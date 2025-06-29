@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace AuthApi.Models
 {
-    [Table("doctors")]
+    [Table("Doctors")]
     public class Doctor
     {
         [Key]
@@ -57,28 +57,5 @@ namespace AuthApi.Models
         
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}";
-    }
-    
-    [Table("time_slots")]
-    public class TimeSlot
-    {
-        [Key]
-        [Column("id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        
-        [Column("doctor_id")]
-        public string DoctorId { get; set; }
-        
-        [Column("day_of_week")]
-        public int DayOfWeek { get; set; }
-        
-        [Column("start_time")]
-        public string StartTime { get; set; }
-        
-        [Column("end_time")]
-        public string EndTime { get; set; }
-        
-        [ForeignKey("DoctorId")]
-        public virtual Doctor Doctor { get; set; }
     }
 } 

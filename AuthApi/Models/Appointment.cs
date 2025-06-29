@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace AuthApi.Models
 {
-    [Table("appointments")]
+    [Table("Appointments")]
     public class Appointment
     {
         [Key]
@@ -70,7 +70,8 @@ namespace AuthApi.Models
     {
         Pending = 0,
         Confirmed = 1,
-        Cancelled = 2,
-        Completed = 3
+        Completed = 2,
+        Cancelled = 3,
+        NoShow = 4
     }
 } 

@@ -50,6 +50,7 @@ const AppointmentPage: React.FC = () => {
         const fetchServices = async () => {
             try {
                 const servicesData = await getServices();
+                console.log("Services data received:", servicesData);
                 setServices(servicesData);
             } catch (error) {
                 console.error('Failed to fetch services', error);
@@ -189,24 +190,97 @@ const AppointmentPage: React.FC = () => {
                 notes: notes
             };
 
+            console.log("Creating appointment with data:", appointmentData);
+
+            // Lưu thông tin người dùng vào localStorage nếu chưa có
+            if (!localStorage.getItem('userId')) {
+                localStorage.setItem('userId', user.id);
+                console.log("Saved userId to localStorage:", user.id);
+            }
+
+            if (!localStorage.getItem('userName') && user.firstName) {
+                const fullName = `${user.firstName} ${user.lastName || ''}`.trim();
+                localStorage.setItem('userName', fullName);
+                console.log("Saved userName to localStorage:", fullName);
+            }
+
             const result = await createAppointment(appointmentData);
+            console.log("Appointment creation result:", result);
 
             if (result) {
                 setSubmitSuccess(true);
                 toast.success('Đặt lịch thành công! Đang chuyển hướng...');
+
+                // Lưu thông tin lịch hẹn vừa tạo vào localStorage để đảm bảo hiển thị
+                try {
+                    const existingAppointmentsJson = localStorage.getItem('mockAppointments');
+                    let appointments = [];
+
+                    if (existingAppointmentsJson) {
+                        try {
+                            appointments = JSON.parse(existingAppointmentsJson);
+                            if (!Array.isArray(appointments)) {
+                                console.warn("mockAppointments is not an array, resetting to empty array");
+                                appointments = [];
+                            }
+                        } catch (parseError) {
+                            console.error("Error parsing mockAppointments:", parseError);
+                            appointments = [];
+                        }
+                    }
+
+                    // Thêm lịch hẹn mới vào danh sách nếu chưa có
+                    if (!appointments.some(app => app.id === result.id)) {
+                        appointments.push(result);
+                        localStorage.setItem('mockAppointments', JSON.stringify(appointments));
+                        console.log("Added new appointment to localStorage. Total appointments:", appointments.length);
+                    }
+                } catch (error) {
+                    console.error("Failed to update localStorage with new appointment:", error);
+                }
+
                 // Chuyển hướng đến trang xem lịch hẹn sau 2 giây
                 setTimeout(() => {
                     navigate('/appointment/my-appointments');
                 }, 2000);
             } else {
-                setSubmitError('Đặt lịch thất bại, vui lòng thử lại sau');
-                toast.error('Đặt lịch thất bại, vui lòng thử lại sau');
+                setSubmitError('Đã xảy ra lỗi khi đặt lịch. Vui lòng thử lại sau.');
+                toast.error('Đã xảy ra lỗi khi đặt lịch');
             }
         } catch (error) {
-            console.error('Error creating appointment', error);
-            setSubmitError('Đã xảy ra lỗi khi đặt lịch');
+            console.error('Error submitting appointment', error);
+            setSubmitError('Đã xảy ra lỗi khi đặt lịch. Vui lòng thử lại sau.');
             toast.error('Đã xảy ra lỗi khi đặt lịch');
         }
+    };
+
+    // Thêm hàm debug để kiểm tra dữ liệu localStorage
+    const handleDebug = () => {
+        console.log("=== DEBUG INFO ===");
+        console.log("User:", user);
+        console.log("Selected service:", selectedService);
+        console.log("Selected doctor:", selectedDoctor);
+        console.log("Selected date:", selectedDate);
+        console.log("Selected time:", selectedTime);
+
+        console.log("=== LOCAL STORAGE ===");
+        console.log("userId:", localStorage.getItem('userId'));
+        console.log("userName:", localStorage.getItem('userName'));
+
+        const appointments = localStorage.getItem('mockAppointments');
+        if (appointments) {
+            try {
+                const parsed = JSON.parse(appointments);
+                console.log("mockAppointments:", parsed);
+            } catch (error) {
+                console.error("Error parsing mockAppointments:", error);
+            }
+        } else {
+            console.log("mockAppointments: Not found");
+        }
+
+        // Mở trang debug.html trong tab mới
+        window.open('/debug.html', '_blank');
     };
 
     // Hiển thị thông tin dịch vụ đã chọn
@@ -511,25 +585,31 @@ const AppointmentPage: React.FC = () => {
     };
 
     return (
-        <Container maxWidth="lg">
+        <Container maxWidth="md">
             <Box sx={{ py: 4 }}>
-                <Typography variant="h4" gutterBottom align="center" fontWeight="bold">
-                    Đặt lịch hẹn
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Đặt Lịch Hẹn
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        color="info"
+                        onClick={handleDebug}
+                        size="small"
+                    >
+                        Debug
+                    </Button>
+                </Box>
 
-                <Typography variant="body1" align="center" color="text.secondary" paragraph>
-                    Đặt lịch hẹn với bác sĩ của chúng tôi một cách nhanh chóng và dễ dàng.
-                </Typography>
+                <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+                    {steps.map((label) => (
+                        <Step key={label}>
+                            <StepLabel>{label}</StepLabel>
+                        </Step>
+                    ))}
+                </Stepper>
 
                 <Box sx={{ width: '100%', mt: 4 }}>
-                    <Stepper activeStep={activeStep} alternativeLabel>
-                        {steps.map((label) => (
-                            <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
-                            </Step>
-                        ))}
-                    </Stepper>
-
                     <Box sx={{ mt: 4, p: 3, border: '1px solid #eaeaea', borderRadius: 2 }}>
                         {getStepContent(activeStep)}
 

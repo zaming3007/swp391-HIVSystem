@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug LocalStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        .danger {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .primary {
+            background-color: #4d79ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Debug LocalStorage</h1>
+
+    <div>
+        <h2>Thông tin người dùng</h2>
+        <div>
+            <strong>User ID:</strong> <span id="userId">Loading...</span>
+        </div>
+        <div>
+            <strong>User Name:</strong> <span id="userName">Loading...</span>
+        </div>
+        <div>
+            <strong>Auth Token:</strong> <span id="authToken">Loading...</span>
+        </div>
+    </div>
+
+    <div>
+        <h2>Lịch hẹn</h2>
+        <button class="primary" onclick="refreshData()">Làm mới dữ liệu</button>
+        <button class="danger" onclick="clearAppointments()">Xóa tất cả lịch hẹn</button>
+        <h3>mockAppointments:</h3>
+        <pre id="appointments">Loading...</pre>
+    </div>
+
+    <div>
+        <h2>Thao tác</h2>
+        <button class="primary" onclick="addSampleAppointment()">Thêm lịch hẹn mẫu</button>
+        <button class="danger" onclick="clearAllData()">Xóa tất cả dữ liệu</button>
+    </div>
+
+    <script>
+        function refreshData() {
+            document.getElementById('userId').textContent = localStorage.getItem('userId') || 'Không có';
+            document.getElementById('userName').textContent = localStorage.getItem('userName') || 'Không có';
+
+            const token = localStorage.getItem('authToken');
+            document.getElementById('authToken').textContent = token ? token.substring(0, 20) + '...' : 'Không có';
+
+            const appointments = localStorage.getItem('mockAppointments');
+            if (appointments) {
+                try {
+                    const parsed = JSON.parse(appointments);
+                    document.getElementById('appointments').textContent = JSON.stringify(parsed, null, 2);
+                } catch (error) {
+                    document.getElementById('appointments').textContent = 'Lỗi: ' + error.message;
+                }
+            } else {
+                document.getElementById('appointments').textContent = 'Không có dữ liệu';
+            }
+        }
+
+        function clearAppointments() {
+            if (confirm('Bạn có chắc chắn muốn xóa tất cả lịch hẹn?')) {
+                localStorage.removeItem('mockAppointments');
+                alert('Đã xóa tất cả lịch hẹn');
+                refreshData();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Bạn có chắc chắn muốn xóa tất cả dữ liệu?')) {
+                localStorage.clear();
+                alert('Đã xóa tất cả dữ liệu');
+                refreshData();
+            }
+        }
+
+        function addSampleAppointment() {
+            const userId = localStorage.getItem('userId') || 'user123';
+            const newAppointment = {
+                id: 'sample_' + Math.random().toString(36).substring(2, 9),
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "1",
+                doctorName: "Nguyễn Minh Anh",
+                serviceId: "1",
+                serviceName: "Tư vấn trước xét nghiệm HIV",
+                date: new Date().toISOString().split('T')[0],
+                startTime: "09:00",
+                endTime: "09:30",
+                status: 0, // Pending
+                notes: "Lịch hẹn mẫu được tạo từ debug.html",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline"
+            };
+
+            let appointments = [];
+            const existingData = localStorage.getItem('mockAppointments');
+
+            if (existingData) {
+                try {
+                    appointments = JSON.parse(existingData);
+                    if (!Array.isArray(appointments)) {
+                        appointments = [];
+                    }
+                } catch (error) {
+                    appointments = [];
+                }
+            }
+
+            appointments.push(newAppointment);
+            localStorage.setItem('mockAppointments', JSON.stringify(appointments));
+            alert('Đã thêm lịch hẹn mẫu');
+            refreshData();
+        }
+
+        // Tải dữ liệu khi trang được mở
+        refreshData();
+    </script>
+</body>
+
+</html>

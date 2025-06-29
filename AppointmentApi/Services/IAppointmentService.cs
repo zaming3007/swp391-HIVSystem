@@ -23,9 +23,6 @@ namespace AppointmentApi.Services
         Task<Appointment?> UpdateAsync(string id, AppointmentUpdateDto appointmentDto);
         
         // Xóa/hủy lịch hẹn
-        Task<bool> CancelAsync(string id);
-        
-        // Lấy các khung giờ trống cho bác sĩ theo ngày
-        Task<List<string>> GetAvailableSlotsAsync(string doctorId, DateTime date, string serviceId);
+        Task<bool> DeleteAsync(string id);
     }
 } 

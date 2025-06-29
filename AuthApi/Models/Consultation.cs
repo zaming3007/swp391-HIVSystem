@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AuthApi.Models
 {
-    [Table("consultations")]
+    [Table("Consultations")]
     public class Consultation
     {
         [Key]

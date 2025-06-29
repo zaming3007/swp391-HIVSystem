@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service } from '../types';
+import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service, AvailableSlot, AppointmentStatus, AppointmentType } from '../types';
 
-const API_URL = 'http://localhost:5000/api';
+// Base API URL
+const API_URL = 'https://appointmentapi-production.up.railway.app/api';
 
 // Mock data cho trường hợp API không hoạt động
 const MOCK_SERVICES: Service[] = [
@@ -165,13 +166,17 @@ appointmentApi.interceptors.request.use(
 // Service API functions
 export const getServices = async (): Promise<Service[]> => {
     if (USE_MOCK_DATA) {
+        console.log("Using mock services data");
         return MOCK_SERVICES;
     }
     try {
+        console.log("Fetching services from API:", API_URL + '/services');
         const response = await appointmentApi.get<ApiResponse<Service[]>>('/services');
+        console.log("API response:", response.data);
         return response.data.data || [];
     } catch (error) {
         console.error("Error fetching services:", error);
+        console.log("Falling back to mock data");
         return MOCK_SERVICES; // Fallback to mock data on error
     }
 };
@@ -248,10 +253,12 @@ export const getDoctorsByServiceId = async (serviceId: string): Promise<Doctor[]
         const serviceToDoctorMap: { [key: string]: string[] } = {
             "1": ["1", "3", "4"], // Khám tổng quát
             "2": ["1", "3"],      // Tư vấn sức khỏe tâm thần
-            "3": ["2"],           // Liệu pháp hormone
-            "4": ["4"],           // Tư vấn HIV/AIDS
-            "5": ["5"],           // Luyện giọng
-            "6": ["2", "4"]       // Sức khỏe tình dục
+            "3": ["2", "5"],      // Khám da liễu
+            "4": ["1", "4"],      // Điều trị ARV
+            "5": ["2", "3"],      // Tư vấn tuân thủ điều trị
+            "6": ["3"],           // Hỗ trợ tâm lý
+            "7": ["4", "1"],      // Tầm soát nhiễm trùng
+            "8": ["2", "5"]       // Tư vấn PrEP
         };
 
         const doctorIds = serviceToDoctorMap[serviceId] || [];
@@ -262,19 +269,31 @@ export const getDoctorsByServiceId = async (serviceId: string): Promise<Doctor[]
         return response.data.data || [];
     } catch (error) {
         console.error("Error fetching doctors by service ID:", error);
-        return [];
+        // Fallback to mock data
+        const serviceToDoctorMap: { [key: string]: string[] } = {
+            "1": ["1", "3", "4"],
+            "2": ["1", "3"],
+            "3": ["2", "5"],
+            "4": ["1", "4"],
+            "5": ["2", "3"],
+            "6": ["3"],
+            "7": ["4", "1"],
+            "8": ["2", "5"]
+        };
+
+        const doctorIds = serviceToDoctorMap[serviceId] || [];
+        return MOCK_DOCTORS.filter(doctor => doctorIds.includes(doctor.id));
     }
 };
 
 export const getDoctorSchedule = async (doctorId: string): Promise<any[]> => {
-    // Mock schedule always returns same data
     if (USE_MOCK_DATA) {
+        // Return mock schedule data
         return [
-            { day: "Monday", startTime: "09:00", endTime: "17:00" },
-            { day: "Tuesday", startTime: "09:00", endTime: "17:00" },
-            { day: "Wednesday", startTime: "09:00", endTime: "17:00" },
-            { day: "Thursday", startTime: "09:00", endTime: "17:00" },
-            { day: "Friday", startTime: "09:00", endTime: "17:00" }
+            { dayOfWeek: 1, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 2, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 4, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 5, startTime: "08:00", endTime: "12:00" }
         ];
     }
     try {
@@ -282,60 +301,223 @@ export const getDoctorSchedule = async (doctorId: string): Promise<any[]> => {
         return response.data.data || [];
     } catch (error) {
         console.error("Error fetching doctor schedule:", error);
-        return [];
+        return [
+            { dayOfWeek: 1, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 2, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 4, startTime: "08:00", endTime: "17:00" },
+            { dayOfWeek: 5, startTime: "08:00", endTime: "12:00" }
+        ];
     }
 };
 
 // Appointment API functions
 export const getMyAppointments = async (): Promise<Appointment[]> => {
-    if (USE_MOCK_DATA) {
-        // Lấy userId của người dùng hiện tại từ localStorage
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user?.id;
+    const userId = localStorage.getItem('userId');
+    console.log("Getting appointments for user ID:", userId);
 
-        if (!userId) {
-            console.error("User ID not found, cannot fetch appointments");
-            return [];
+    if (!userId) {
+        console.warn("No user ID found in localStorage");
+        return [];
+    }
+
+    if (USE_MOCK_DATA) {
+        console.log("Using mock appointments data");
+
+        // Kiểm tra xem có lịch hẹn đã lưu trong localStorage không
+        let savedAppointments: any[] = [];
+        try {
+            const savedData = localStorage.getItem('mockAppointments');
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    if (Array.isArray(parsed)) {
+                        savedAppointments = parsed;
+                        console.log("Found saved appointments in localStorage:", savedAppointments.length);
+                    } else {
+                        console.warn("mockAppointments is not an array");
+                    }
+                } catch (parseError) {
+                    console.error("Error parsing mockAppointments:", parseError);
+                }
+            }
+        } catch (error) {
+            console.error("Error reading saved appointments:", error);
         }
 
-        // Lấy tất cả appointments từ localStorage
-        const allAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
+        // Dữ liệu mẫu cố định
+        const mockAppointments = [
+            {
+                id: "1",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "1",
+                doctorName: "Nguyễn Minh Anh",
+                serviceId: "1",
+                serviceName: "Tư vấn trước xét nghiệm HIV",
+                date: new Date().toISOString().split('T')[0],
+                startTime: "09:00",
+                endTime: "09:30",
+                status: 1, // AppointmentStatus.Confirmed
+                notes: "Lần đầu khám",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline" as AppointmentType
+            },
+            {
+                id: "2",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "2",
+                doctorName: "Trần Hoàng Nam",
+                serviceId: "2",
+                serviceName: "Xét nghiệm HIV nhanh",
+                date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+                startTime: "10:00",
+                endTime: "10:30",
+                status: 0, // AppointmentStatus.Pending
+                notes: "Xét nghiệm định kỳ",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline" as AppointmentType
+            },
+            {
+                id: "3",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "3",
+                doctorName: "Lê Thị Hương",
+                serviceId: "6",
+                serviceName: "Hỗ trợ tâm lý cho người nhiễm HIV",
+                date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
+                startTime: "14:00",
+                endTime: "15:00",
+                status: 3, // AppointmentStatus.Completed
+                notes: "Tư vấn tâm lý định kỳ",
+                createdAt: new Date().toISOString(),
+                appointmentType: "online" as AppointmentType,
+                meetingLink: "https://meet.google.com/abc-defg-hij"
+            },
+            // Thêm lịch hẹn mới vừa đặt
+            {
+                id: "4",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "4",
+                doctorName: "Phạm Văn Khoa",
+                serviceId: "4",
+                serviceName: "Điều trị ARV định kỳ",
+                date: new Date(Date.now() + 172800000).toISOString().split('T')[0], // Ngày kia
+                startTime: "11:00",
+                endTime: "11:45",
+                status: 0, // AppointmentStatus.Pending
+                notes: "Khám theo dõi điều trị",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline" as AppointmentType
+            },
+            {
+                id: "5",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "5",
+                doctorName: "Hoàng Thị Lan",
+                serviceId: "5",
+                serviceName: "Tư vấn tuân thủ điều trị",
+                date: new Date(Date.now() + 259200000).toISOString().split('T')[0], // 3 ngày sau
+                startTime: "15:30",
+                endTime: "16:30",
+                status: 0, // AppointmentStatus.Pending
+                notes: "Tư vấn về tác dụng phụ thuốc",
+                createdAt: new Date().toISOString(),
+                appointmentType: "online" as AppointmentType,
+                meetingLink: "https://meet.google.com/xyz-abcd-efg"
+            },
+            {
+                id: "6",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "1",
+                doctorName: "Nguyễn Minh Anh",
+                serviceId: "7",
+                serviceName: "Tầm soát nhiễm trùng cơ hội",
+                date: new Date(Date.now() - 604800000).toISOString().split('T')[0], // 1 tuần trước
+                startTime: "13:00",
+                endTime: "14:00",
+                status: 3, // AppointmentStatus.Completed
+                notes: "Khám định kỳ",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline" as AppointmentType
+            },
+            {
+                id: "7",
+                patientId: userId,
+                patientName: "Nguyễn Văn A",
+                doctorId: "2",
+                doctorName: "Trần Hoàng Nam",
+                serviceId: "8",
+                serviceName: "Tư vấn PrEP (Dự phòng trước phơi nhiễm)",
+                date: new Date(Date.now() - 172800000).toISOString().split('T')[0], // 2 ngày trước
+                startTime: "09:30",
+                endTime: "10:15",
+                status: 2, // AppointmentStatus.Cancelled
+                notes: "Hủy do lịch cá nhân",
+                createdAt: new Date().toISOString(),
+                appointmentType: "offline" as AppointmentType
+            }
+        ];
 
-        // Lọc theo userId hiện tại
-        const userAppointments = allAppointments.filter((appointment: Appointment) =>
-            appointment.patientId === userId
-        );
+        // Kết hợp dữ liệu mẫu cố định với dữ liệu từ localStorage
+        const combinedAppointments = [
+            ...mockAppointments,
+            ...savedAppointments.filter(app =>
+                // Chỉ thêm các lịch hẹn chưa có trong dữ liệu mẫu
+                !mockAppointments.some(mockApp => mockApp.id === app.id)
+            )
+        ];
 
-        return userAppointments;
+        console.log("Combined appointments:", combinedAppointments.length);
+
+        // Lưu lại danh sách kết hợp vào localStorage để đảm bảo tính nhất quán
+        try {
+            localStorage.setItem('mockAppointments', JSON.stringify(combinedAppointments));
+        } catch (error) {
+            console.error("Failed to update mockAppointments in localStorage:", error);
+        }
+
+        return combinedAppointments;
     }
+
     try {
-        const response = await appointmentApi.get<ApiResponse<Appointment[]>>('/appointments/patient');
+        console.log(`Making API request to /appointments/patient/${userId}`);
+        const response = await appointmentApi.get<ApiResponse<Appointment[]>>(`/appointments/patient/${userId}`);
+        console.log("API response for appointments:", response.data);
         return response.data.data || [];
     } catch (error) {
-        console.error("Error fetching appointments:", error);
+        console.error("Error fetching my appointments:", error);
+        // Return empty array on error
         return [];
     }
 };
 
 export const getAppointmentById = async (id: string): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
-        // Lấy userId của người dùng hiện tại
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user?.id;
-
-        if (!userId) {
-            console.error("User not logged in, cannot fetch appointment");
-            return null;
-        }
-
-        // Tìm lịch hẹn trong localStorage
-        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const appointment = savedAppointments.find((a: Appointment) =>
-            a.id === id && a.patientId === userId
-        );
-
-        return appointment || null;
+        // Return a mock appointment
+        const userId = localStorage.getItem('userId') || "";
+        return {
+            id: id,
+            patientId: userId,
+            patientName: "Nguyễn Văn A",
+            doctorId: "1",
+            doctorName: "Nguyễn Minh Anh",
+            serviceId: "1",
+            serviceName: "Tư vấn trước xét nghiệm HIV",
+            date: new Date().toISOString().split('T')[0],
+            startTime: "09:00",
+            endTime: "09:30",
+            status: 1, // AppointmentStatus.Confirmed
+            notes: "Lần đầu khám",
+            createdAt: new Date().toISOString(),
+            appointmentType: "offline"
+        };
     }
+
     try {
         const response = await appointmentApi.get<ApiResponse<Appointment>>(`/appointments/${id}`);
         return response.data.data || null;
@@ -347,49 +529,107 @@ export const getAppointmentById = async (id: string): Promise<Appointment | null
 
 export const createAppointment = async (appointment: AppointmentCreateDto): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
-        // Lấy thông tin người dùng hiện tại
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user?.id;
-        const patientName = user?.firstName && user?.lastName ?
-            `${user.firstName} ${user.lastName}` :
-            "Unknown User";
+        console.log("Creating mock appointment:", appointment);
 
-        if (!userId) {
-            console.error("User not logged in, cannot create appointment");
-            return null;
+        // Lấy thông tin chi tiết về dịch vụ và bác sĩ
+        let serviceName = "Dịch vụ Demo";
+        let doctorName = "Bác sĩ Demo";
+
+        try {
+            // Lấy tên dịch vụ từ danh sách dịch vụ
+            console.log("Fetching service details for ID:", appointment.serviceId);
+            const service = await getServiceById(appointment.serviceId);
+            console.log("Service details:", service);
+            if (service) {
+                serviceName = service.name;
+            }
+
+            // Lấy tên bác sĩ từ danh sách bác sĩ
+            console.log("Fetching doctor details for ID:", appointment.doctorId);
+            const doctor = await getDoctorById(appointment.doctorId);
+            console.log("Doctor details:", doctor);
+            if (doctor) {
+                doctorName = `${doctor.firstName} ${doctor.lastName}`;
+            }
+        } catch (error) {
+            console.error("Error fetching service or doctor details:", error);
         }
 
-        // Create a mock appointment
-        const mockAppointment: Appointment = {
-            id: Math.random().toString(36).substring(7),
-            patientId: userId,
-            patientName: patientName,
+        // Lấy tên người dùng từ localStorage
+        const userName = localStorage.getItem('userName') || "Nguyễn Văn A";
+        console.log("User name from localStorage:", userName);
+
+        // Tạo lịch hẹn mới với thông tin đầy đủ
+        const newAppointment = {
+            id: Math.random().toString(36).substring(2, 9),
+            patientId: appointment.patientId,
+            patientName: userName,
             doctorId: appointment.doctorId,
+            doctorName: doctorName,
             serviceId: appointment.serviceId,
+            serviceName: serviceName,
             date: appointment.date,
             startTime: appointment.startTime,
-            endTime: new Date(new Date(`${appointment.date}T${appointment.startTime}`).getTime() + 3600000).toTimeString().slice(0, 5),
-            status: 'pending',
-            appointmentType: appointment.appointmentType,
-            // Tạo link meeting nếu là hẹn online
-            meetingLink: appointment.appointmentType === 'online' ?
-                `https://meet.google.com/${Math.random().toString(36).substring(2, 10)}` : undefined,
-            notes: appointment.notes,
-            // Get names from mock data
-            serviceName: MOCK_SERVICES.find(s => s.id === appointment.serviceId)?.name,
-            doctorName: MOCK_DOCTORS.find(d => d.id === appointment.doctorId)?.firstName + ' ' +
-                MOCK_DOCTORS.find(d => d.id === appointment.doctorId)?.lastName
+            endTime: calculateEndTime(appointment.startTime, 30), // Giả định thời gian hẹn là 30 phút
+            status: 0, // AppointmentStatus.Pending
+            notes: appointment.notes || "",
+            createdAt: new Date().toISOString(),
+            appointmentType: appointment.appointmentType || "offline"
         };
 
-        // Save to localStorage to persist between refreshes
-        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        savedAppointments.push(mockAppointment);
-        localStorage.setItem('mockAppointments', JSON.stringify(savedAppointments));
+        console.log("Created mock appointment:", newAppointment);
 
-        return mockAppointment;
+        // Lưu vào localStorage để có thể hiển thị trong danh sách lịch hẹn
+        try {
+            const existingAppointmentsJson = localStorage.getItem('mockAppointments');
+            console.log("Existing appointments in localStorage:", existingAppointmentsJson);
+
+            let appointments = [];
+
+            if (existingAppointmentsJson) {
+                try {
+                    appointments = JSON.parse(existingAppointmentsJson);
+                    console.log("Parsed appointments:", appointments);
+
+                    if (!Array.isArray(appointments)) {
+                        console.warn("mockAppointments is not an array, resetting to empty array");
+                        appointments = [];
+                    }
+                } catch (parseError) {
+                    console.error("Error parsing mockAppointments:", parseError);
+                    appointments = [];
+                }
+            }
+
+            appointments.push(newAppointment);
+            localStorage.setItem('mockAppointments', JSON.stringify(appointments));
+            console.log("Saved appointment to localStorage. Total appointments:", appointments.length);
+
+            // Kiểm tra lại dữ liệu đã lưu
+            const savedData = localStorage.getItem('mockAppointments');
+            console.log("Verification - Saved data in localStorage:", savedData);
+        } catch (error) {
+            console.error("Failed to save appointment to localStorage:", error);
+        }
+
+        return newAppointment;
     }
+
     try {
-        const response = await appointmentApi.post<ApiResponse<Appointment>>('/appointments', appointment);
+        // Lấy thông tin người dùng từ localStorage
+        const patientName = localStorage.getItem('userName') || "Bệnh nhân";
+
+        // Chuẩn bị query parameters
+        const queryParams = new URLSearchParams({
+            patientId: appointment.patientId,
+            patientName: patientName
+        }).toString();
+
+        const response = await appointmentApi.post<ApiResponse<Appointment>>(
+            `/appointments?${queryParams}`,
+            appointment
+        );
+
         return response.data.data || null;
     } catch (error) {
         console.error("Error creating appointment:", error);
@@ -397,28 +637,39 @@ export const createAppointment = async (appointment: AppointmentCreateDto): Prom
     }
 };
 
+// Helper function to calculate end time
+const calculateEndTime = (startTime: string, durationMinutes: number): string => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    let endHours = hours + Math.floor((minutes + durationMinutes) / 60);
+    const endMinutes = (minutes + durationMinutes) % 60;
+
+    if (endHours >= 24) endHours -= 24;
+
+    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+};
+
 export const updateAppointment = async (id: string, appointment: AppointmentUpdateDto): Promise<Appointment | null> => {
     if (USE_MOCK_DATA) {
-        // Lấy userId của người dùng hiện tại
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user?.id;
-
-        if (!userId) {
-            console.error("User not logged in, cannot update appointment");
-            return null;
-        }
-
-        // Update mock appointment in localStorage
-        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const index = savedAppointments.findIndex((a: Appointment) => a.id === id && a.patientId === userId);
-
-        if (index !== -1) {
-            savedAppointments[index] = { ...savedAppointments[index], ...appointment };
-            localStorage.setItem('mockAppointments', JSON.stringify(savedAppointments));
-            return savedAppointments[index];
-        }
-        return null;
+        // Mock update response
+        return {
+            id: id,
+            patientId: "user123",
+            patientName: "Nguyễn Văn A",
+            doctorId: "doctor123",
+            doctorName: "Bác sĩ Demo",
+            serviceId: "service123",
+            serviceName: "Dịch vụ Demo",
+            date: appointment.date || new Date().toISOString().split('T')[0],
+            startTime: appointment.startTime || "09:00",
+            endTime: "09:30",
+            status: 0, // AppointmentStatus.Pending
+            notes: appointment.notes || "",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            appointmentType: "offline"
+        };
     }
+
     try {
         const response = await appointmentApi.put<ApiResponse<Appointment>>(`/appointments/${id}`, appointment);
         return response.data.data || null;
@@ -430,26 +681,10 @@ export const updateAppointment = async (id: string, appointment: AppointmentUpda
 
 export const cancelAppointment = async (id: string): Promise<boolean> => {
     if (USE_MOCK_DATA) {
-        // Lấy userId của người dùng hiện tại
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user?.id;
-
-        if (!userId) {
-            console.error("User not logged in, cannot cancel appointment");
-            return false;
-        }
-
-        // Cancel mock appointment in localStorage
-        const savedAppointments = JSON.parse(localStorage.getItem('mockAppointments') || '[]');
-        const index = savedAppointments.findIndex((a: Appointment) => a.id === id && a.patientId === userId);
-
-        if (index !== -1) {
-            savedAppointments[index].status = 'cancelled';
-            localStorage.setItem('mockAppointments', JSON.stringify(savedAppointments));
-            return true;
-        }
-        return false;
+        // Mock cancellation
+        return true;
     }
+
     try {
         const response = await appointmentApi.delete<ApiResponse<boolean>>(`/appointments/${id}`);
         return response.data.data || false;
@@ -461,16 +696,31 @@ export const cancelAppointment = async (id: string): Promise<boolean> => {
 
 export const getAvailableSlots = async (doctorId: string, date: string, serviceId: string): Promise<string[]> => {
     if (USE_MOCK_DATA) {
-        // Return mock time slots
+        // Return mock available slots
         return generateMockTimeSlots(date);
     }
+
     try {
-        const response = await appointmentApi.get<ApiResponse<string[]>>(
-            `/appointments/available-slots?doctorId=${doctorId}&date=${date}&serviceId=${serviceId}`
+        const response = await appointmentApi.get<ApiResponse<AvailableSlot[]>>(
+            `/appointments/available-slots?doctorId=${doctorId}&date=${date}`
         );
-        return response.data.data || [];
+
+        if (response.data.data && response.data.data.length > 0) {
+            return response.data.data[0].availableTimes || [];
+        }
+        return [];
     } catch (error) {
         console.error("Error fetching available slots:", error);
-        return [];
+        return generateMockTimeSlots(date); // Fallback to mock data
+    }
+};
+
+// Helper function to reset localStorage appointments
+export const resetMockAppointments = (): void => {
+    try {
+        localStorage.removeItem('mockAppointments');
+        console.log("Removed mockAppointments from localStorage");
+    } catch (error) {
+        console.error("Error removing mockAppointments from localStorage:", error);
     }
 }; 

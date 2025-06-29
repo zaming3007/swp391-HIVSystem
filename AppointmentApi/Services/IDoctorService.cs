@@ -21,5 +21,8 @@ namespace AppointmentApi.Services
         
         // Kiểm tra xem bác sĩ có sẵn tại thời điểm cụ thể không
         Task<bool> IsAvailableAsync(string doctorId, DateTime date, string startTime, int durationMinutes);
+        
+        // Lấy thông tin các slot khả dụng của bác sĩ
+        Task<List<AvailableSlot>> GetAvailableSlotsAsync(string doctorId, DateTime date);
     }
 } 

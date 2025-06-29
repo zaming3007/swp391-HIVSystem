@@ -1,238 +1,163 @@
 using AppointmentApi.Models;
+using AppointmentApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentApi.Services
 {
     public class AppointmentService : IAppointmentService
     {
-        private readonly List<Appointment> _appointments = new List<Appointment>();
-        private readonly IDoctorService _doctorService;
-        private readonly IServiceManager _serviceManager;
+        private readonly ApplicationDbContext _context;
 
-        public AppointmentService(IDoctorService doctorService, IServiceManager serviceManager)
+        public AppointmentService(ApplicationDbContext context)
         {
-            _doctorService = doctorService;
-            _serviceManager = serviceManager;
-            
-            // Tạo dữ liệu demo
-            SeedDemoData();
+            _context = context;
         }
 
         public async Task<List<Appointment>> GetAllAsync()
         {
-            // Trả về một bản sao của danh sách để tránh sửa đổi trực tiếp
-            return await Task.FromResult(_appointments.ToList());
+            return await _context.Appointments
+                .OrderByDescending(a => a.Date)
+                .ThenBy(a => a.StartTime)
+                .ToListAsync();
         }
 
         public async Task<Appointment?> GetByIdAsync(string id)
         {
-            return await Task.FromResult(_appointments.FirstOrDefault(a => a.Id == id));
-        }
-
-        public async Task<List<Appointment>> GetByPatientIdAsync(string patientId)
-        {
-            return await Task.FromResult(_appointments.Where(a => a.PatientId == patientId).ToList());
+            return await _context.Appointments
+                .FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<List<Appointment>> GetByDoctorIdAsync(string doctorId)
         {
-            return await Task.FromResult(_appointments.Where(a => a.DoctorId == doctorId).ToList());
+            return await _context.Appointments
+                .Where(a => a.DoctorId == doctorId)
+                .OrderByDescending(a => a.Date)
+                .ThenBy(a => a.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<List<Appointment>> GetByPatientIdAsync(string patientId)
+        {
+            return await _context.Appointments
+                .Where(a => a.PatientId == patientId)
+                .OrderByDescending(a => a.Date)
+                .ThenBy(a => a.StartTime)
+                .ToListAsync();
         }
 
         public async Task<Appointment> CreateAsync(string patientId, string patientName, AppointmentCreateDto appointmentDto)
         {
-            // Lấy thông tin bác sĩ và dịch vụ
-            var doctor = await _doctorService.GetByIdAsync(appointmentDto.DoctorId);
-            var service = await _serviceManager.GetByIdAsync(appointmentDto.ServiceId);
-            
+            // Tìm bác sĩ từ ID
+            var doctor = await _context.Doctors.FindAsync(appointmentDto.DoctorId);
             if (doctor == null)
-                throw new ArgumentException($"Không tìm thấy bác sĩ với ID: {appointmentDto.DoctorId}");
-                
+            {
+                throw new Exception("Không tìm thấy bác sĩ");
+            }
+
+            // Tìm dịch vụ từ ID
+            var service = await _context.Services.FindAsync(appointmentDto.ServiceId);
             if (service == null)
-                throw new ArgumentException($"Không tìm thấy dịch vụ với ID: {appointmentDto.ServiceId}");
+            {
+                throw new Exception("Không tìm thấy dịch vụ");
+            }
+
+            // Tính giờ kết thúc dựa trên thời gian bắt đầu và thời lượng dịch vụ
+            var startTimeParts = appointmentDto.StartTime.Split(':');
+            var startHour = int.Parse(startTimeParts[0]);
+            var startMinute = int.Parse(startTimeParts[1]);
             
-            // Kiểm tra bác sĩ có sẵn không
-            bool isAvailable = await _doctorService.IsAvailableAsync(
-                appointmentDto.DoctorId, 
-                appointmentDto.Date, 
-                appointmentDto.StartTime, 
-                service.Duration);
-                
-            if (!isAvailable)
-                throw new InvalidOperationException("Bác sĩ không có sẵn tại thời điểm này");
-            
-            // Tính giờ kết thúc
-            string endTime = CalculateEndTime(appointmentDto.StartTime, service.Duration);
-            
-            // Tạo lịch hẹn mới
+            var endTime = new DateTime(
+                appointmentDto.Date.Year, 
+                appointmentDto.Date.Month, 
+                appointmentDto.Date.Day, 
+                startHour, 
+                startMinute, 
+                0
+            ).AddMinutes(service.Duration);
+
+            var endTimeStr = $"{endTime.Hour:D2}:{endTime.Minute:D2}";
+
+            // Tạo cuộc hẹn mới
             var appointment = new Appointment
             {
                 PatientId = patientId,
                 PatientName = patientName,
-                DoctorId = appointmentDto.DoctorId,
+                DoctorId = doctor.Id,
                 DoctorName = doctor.FullName,
-                ServiceId = appointmentDto.ServiceId,
+                ServiceId = service.Id,
                 ServiceName = service.Name,
                 Date = appointmentDto.Date,
                 StartTime = appointmentDto.StartTime,
-                EndTime = endTime,
+                EndTime = endTimeStr,
                 Notes = appointmentDto.Notes,
-                Status = AppointmentStatus.Pending,
-                CreatedAt = DateTime.UtcNow
+                Status = AppointmentStatus.Pending
             };
-            
-            _appointments.Add(appointment);
+
+            await _context.Appointments.AddAsync(appointment);
+            await _context.SaveChangesAsync();
             
             return appointment;
         }
 
-        public async Task<Appointment?> UpdateAsync(string id, AppointmentUpdateDto appointmentDto)
+        public async Task<Appointment?> UpdateAsync(string id, AppointmentUpdateDto updateDto)
         {
-            var appointment = await GetByIdAsync(id);
-            if (appointment == null)
-                return null;
-                
-            // Nếu muốn đổi thời gian, cần kiểm tra xem bác sĩ có sẵn không
-            if (appointmentDto.Date.HasValue || appointmentDto.StartTime != null)
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null) return null;
+
+            if (updateDto.Date.HasValue)
             {
-                var date = appointmentDto.Date ?? appointment.Date;
-                var startTime = appointmentDto.StartTime ?? appointment.StartTime;
+                appointment.Date = updateDto.Date.Value;
+            }
+
+            if (!string.IsNullOrEmpty(updateDto.StartTime))
+            {
+                appointment.StartTime = updateDto.StartTime;
                 
-                // Lấy thời lượng dịch vụ
-                var service = await _serviceManager.GetByIdAsync(appointment.ServiceId);
-                if (service == null)
-                    throw new ArgumentException($"Không tìm thấy dịch vụ với ID: {appointment.ServiceId}");
-                
-                // Kiểm tra tính khả dụng
-                bool isAvailable = await _doctorService.IsAvailableAsync(
-                    appointment.DoctorId, 
-                    date, 
-                    startTime, 
-                    service.Duration);
-                    
-                if (!isAvailable)
-                    throw new InvalidOperationException("Bác sĩ không có sẵn tại thời điểm này");
-                
-                // Cập nhật thông tin lịch hẹn
-                if (appointmentDto.Date.HasValue)
-                    appointment.Date = appointmentDto.Date.Value;
-                    
-                if (appointmentDto.StartTime != null)
+                // Tính lại giờ kết thúc nếu cần
+                var service = await _context.Services.FindAsync(appointment.ServiceId);
+                if (service != null)
                 {
-                    appointment.StartTime = appointmentDto.StartTime;
-                    appointment.EndTime = CalculateEndTime(appointmentDto.StartTime, service.Duration);
+                    var startTimeParts = updateDto.StartTime.Split(':');
+                    var startHour = int.Parse(startTimeParts[0]);
+                    var startMinute = int.Parse(startTimeParts[1]);
+                    
+                    var endTime = new DateTime(
+                        appointment.Date.Year, 
+                        appointment.Date.Month, 
+                        appointment.Date.Day, 
+                        startHour, 
+                        startMinute, 
+                        0
+                    ).AddMinutes(service.Duration);
+
+                    appointment.EndTime = $"{endTime.Hour:D2}:{endTime.Minute:D2}";
                 }
             }
-            
-            // Cập nhật trạng thái và ghi chú
-            if (appointmentDto.Status.HasValue)
-                appointment.Status = appointmentDto.Status.Value;
-                
-            if (appointmentDto.Notes != null)
-                appointment.Notes = appointmentDto.Notes;
-                
+
+            if (updateDto.Status.HasValue)
+            {
+                appointment.Status = updateDto.Status.Value;
+            }
+
+            if (!string.IsNullOrEmpty(updateDto.Notes))
+            {
+                appointment.Notes = updateDto.Notes;
+            }
+
             appointment.UpdatedAt = DateTime.UtcNow;
-            
+
+            await _context.SaveChangesAsync();
             return appointment;
         }
 
-        public async Task<bool> CancelAsync(string id)
+        public async Task<bool> DeleteAsync(string id)
         {
-            var appointment = await GetByIdAsync(id);
-            if (appointment == null)
-                return false;
-                
-            appointment.Status = AppointmentStatus.Cancelled;
-            appointment.UpdatedAt = DateTime.UtcNow;
-            
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null) return false;
+
+            _context.Appointments.Remove(appointment);
+            await _context.SaveChangesAsync();
             return true;
         }
-
-        public async Task<List<string>> GetAvailableSlotsAsync(string doctorId, DateTime date, string serviceId)
-        {
-            // Lấy thông tin bác sĩ và dịch vụ
-            var doctor = await _doctorService.GetByIdAsync(doctorId);
-            var service = await _serviceManager.GetByIdAsync(serviceId);
-            
-            if (doctor == null || service == null)
-                return new List<string>();
-                
-            // Lấy lịch làm việc của bác sĩ cho ngày cụ thể
-            var schedule = (await _doctorService.GetScheduleAsync(doctorId))
-                .FirstOrDefault(s => s.DayOfWeek == date.DayOfWeek);
-                
-            if (schedule == null)
-                return new List<string>(); // Bác sĩ không làm việc vào ngày này
-                
-            // Lấy tất cả các lịch hẹn của bác sĩ trong ngày
-            var doctorAppointments = _appointments
-                .Where(a => a.DoctorId == doctorId && 
-                       a.Date.Date == date.Date && 
-                       a.Status != AppointmentStatus.Cancelled)
-                .ToList();
-                
-            // Tạo danh sách các khung giờ từ lịch làm việc
-            var availableSlots = GenerateTimeSlots(schedule.StartTime, schedule.EndTime, service.Duration);
-            
-            // Loại bỏ các khung giờ đã có lịch hẹn
-            foreach (var appointment in doctorAppointments)
-            {
-                availableSlots.RemoveAll(slot => IsTimeOverlap(
-                    slot, 
-                    CalculateEndTime(slot, service.Duration), 
-                    appointment.StartTime, 
-                    appointment.EndTime));
-            }
-            
-            return availableSlots;
-        }
-        
-        #region Helper Methods
-        
-        private string CalculateEndTime(string startTime, int durationMinutes)
-        {
-            if (!TimeSpan.TryParse(startTime, out var timeSpan))
-            {
-                throw new ArgumentException("Invalid start time format");
-            }
-            
-            var endTimeSpan = timeSpan.Add(TimeSpan.FromMinutes(durationMinutes));
-            return $"{endTimeSpan.Hours:D2}:{endTimeSpan.Minutes:D2}";
-        }
-        
-        private bool IsTimeOverlap(string start1, string end1, string start2, string end2)
-        {
-            // Chuyển đổi các chuỗi thời gian thành TimeSpan
-            TimeSpan.TryParse(start1, out var startTime1);
-            TimeSpan.TryParse(end1, out var endTime1);
-            TimeSpan.TryParse(start2, out var startTime2);
-            TimeSpan.TryParse(end2, out var endTime2);
-            
-            // Kiểm tra xem có chồng chéo không
-            return startTime1 < endTime2 && endTime1 > startTime2;
-        }
-        
-        private List<string> GenerateTimeSlots(string startTime, string endTime, int durationMinutes)
-        {
-            var slots = new List<string>();
-            
-            TimeSpan.TryParse(startTime, out var currentTime);
-            TimeSpan.TryParse(endTime, out var end);
-            
-            // Tạo các khung giờ với khoảng thời gian bằng với thời lượng dịch vụ
-            while (currentTime.Add(TimeSpan.FromMinutes(durationMinutes)) <= end)
-            {
-                slots.Add($"{currentTime.Hours:D2}:{currentTime.Minutes:D2}");
-                currentTime = currentTime.Add(TimeSpan.FromMinutes(30)); // Mỗi slot cách nhau 30 phút
-            }
-            
-            return slots;
-        }
-        
-        private void SeedDemoData()
-        {
-            // Demo data sẽ được thêm vào khi cần thiết
-        }
-        
-        #endregion
     }
 } 

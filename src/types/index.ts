@@ -98,6 +98,7 @@ export interface Consultation {
     status: 'pending' | 'answered';
     createdAt: string;
     answeredAt?: string;
+    topic?: string;
 }
 
 export interface ConsultationFormData {

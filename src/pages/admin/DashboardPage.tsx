@@ -62,6 +62,7 @@ const recentAppointments: Appointment[] = [
         patientName: 'Alex Johnson',
         doctorName: 'Sarah Johnson',
         serviceName: 'Hormone Therapy Consultation',
+        appointmentType: 'offline'
     },
     {
         id: 'apt12346',
@@ -75,6 +76,7 @@ const recentAppointments: Appointment[] = [
         patientName: 'Taylor Smith',
         doctorName: 'Michael Chen',
         serviceName: 'Gender Therapy Session',
+        appointmentType: 'offline'
     },
     {
         id: 'apt12347',
@@ -88,6 +90,7 @@ const recentAppointments: Appointment[] = [
         patientName: 'Jamie Williams',
         doctorName: 'Aisha Khan',
         serviceName: 'Voice and Communication Therapy',
+        appointmentType: 'online'
     },
     {
         id: 'apt12348',
@@ -101,30 +104,43 @@ const recentAppointments: Appointment[] = [
         patientName: 'Morgan Lee',
         doctorName: 'Sarah Johnson',
         serviceName: 'Hormone Therapy Consultation',
+        appointmentType: 'offline'
     },
 ];
 
 // Sample consultations data
-const pendingConsultations: Consultation[] = [
+const recentConsultations: Consultation[] = [
     {
         id: 'c123457',
         patientId: '1',
         topic: 'Mental Health Support During Transition',
-        question: 'I\'ve been experiencing anxiety as I begin my transition journey. What mental health resources do you offer specifically for transgender patients? Are there support groups or counseling services available?',
+        title: 'Mental Health Support During Transition',
+        category: 'Mental Health',
+        question: 'I\'ve been experiencing increased anxiety since starting my transition. What coping strategies would you recommend?',
         status: 'pending',
-        createdAt: '2023-05-18T16:45:00Z',
-        patientName: 'Alex Johnson',
+        createdAt: '2023-06-14T10:30:00Z',
+        patientName: 'Alex Johnson'
     },
     {
         id: 'c123459',
         patientId: '2',
         topic: 'Insurance Coverage Questions',
-        question: 'Does your clinic work with insurance providers for gender-affirming care? I\'m specifically interested in knowing if hormone therapy is covered under my plan.',
+        title: 'Insurance Coverage Questions',
+        category: 'Insurance',
+        question: 'Does my insurance plan cover hormone therapy? I\'m having trouble understanding my benefits.',
         status: 'pending',
-        createdAt: '2023-05-19T10:15:00Z',
-        patientName: 'Taylor Smith',
-    },
+        createdAt: '2023-06-15T14:20:00Z',
+        patientName: 'Taylor Smith'
+    }
 ];
+
+// Dashboard stats
+const dashboardStats = {
+    totalUsers: 245,
+    totalAppointments: 128,
+    totalConsultations: 67,
+    pendingConsultations: recentConsultations.length
+};
 
 const AdminDashboardPage: React.FC = () => {
     const theme = useTheme();
@@ -270,7 +286,7 @@ const AdminDashboardPage: React.FC = () => {
                             </Button>
                         </Box>
                         <List>
-                            {pendingConsultations.map((consultation) => (
+                            {recentConsultations.map((consultation) => (
                                 <React.Fragment key={consultation.id}>
                                     <ListItem alignItems="flex-start">
                                         <ListItemAvatar>
@@ -297,7 +313,7 @@ const AdminDashboardPage: React.FC = () => {
                                     <Divider variant="inset" component="li" />
                                 </React.Fragment>
                             ))}
-                            {pendingConsultations.length === 0 && (
+                            {recentConsultations.length === 0 && (
                                 <ListItem>
                                     <ListItemText
                                         primary="No pending consultations"

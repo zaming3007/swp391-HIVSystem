@@ -36,6 +36,8 @@ export interface Service {
     doctorIds: string[];
 }
 
+export type AppointmentType = 'online' | 'offline';
+
 export interface Appointment {
     id: string;
     patientId: string;
@@ -51,6 +53,8 @@ export interface Appointment {
     notes: string;
     createdAt: string;
     updatedAt?: string;
+    appointmentType?: AppointmentType;
+    meetingLink?: string;
 }
 
 export enum AppointmentStatus {
@@ -61,11 +65,13 @@ export enum AppointmentStatus {
 }
 
 export interface AppointmentCreateDto {
+    patientId: string;
     doctorId: string;
     serviceId: string;
     date: string;
     startTime: string;
     notes: string;
+    appointmentType?: AppointmentType;
 }
 
 export interface AppointmentUpdateDto {

@@ -1,45 +1,55 @@
 using AppointmentApi.Models;
+using AppointmentApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentApi.Services
 {
     public class ServiceManager : IServiceManager
     {
-        private readonly List<Service> _services = new List<Service>();
+        private readonly ApplicationDbContext _context;
 
-        public ServiceManager()
+        public ServiceManager(ApplicationDbContext context)
         {
-            // Khởi tạo dữ liệu mẫu
-            SeedDemoData();
+            _context = context;
         }
 
         public async Task<List<Service>> GetAllAsync()
         {
-            return await Task.FromResult(_services.ToList());
+            return await _context.Services.ToListAsync();
         }
 
         public async Task<Service?> GetByIdAsync(string id)
         {
-            return await Task.FromResult(_services.FirstOrDefault(s => s.Id == id));
+            return await _context.Services.FindAsync(id);
+        }
+
+        public async Task<List<Service>> GetByDoctorIdAsync(string doctorId)
+        {
+            var doctorExists = await _context.Doctors.AnyAsync(d => d.Id == doctorId);
+            if (!doctorExists) return new List<Service>();
+
+            // Tạm thời trả về tất cả các dịch vụ (trong thực tế sẽ dùng bảng quan hệ)
+            return await GetAllAsync();
         }
 
         public async Task<List<Service>> GetByCategoryAsync(string category)
         {
-            return await Task.FromResult(_services.Where(s => 
-                s.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
-                .ToList());
+            return await _context.Services
+                .Where(s => s.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+                .ToListAsync();
         }
 
         public async Task<List<Service>> GetServicesByDoctorIdAsync(string doctorId)
         {
             // Trong thực tế, sẽ lấy từ mối quan hệ doctor-service trong database
             // Ở đây chúng ta trả về các dịch vụ có chứa doctorId trong DoctorIds
-            return await Task.FromResult(_services.Where(s => s.DoctorIds.Contains(doctorId)).ToList());
+            return await Task.FromResult(_context.Services.Where(s => s.DoctorIds.Contains(doctorId)).ToList());
         }
         
         private void SeedDemoData()
         {
             // Khởi tạo dữ liệu mẫu cho dịch vụ
-            _services.Add(new Service
+            _context.Services.Add(new Service
             {
                 Id = "service1",
                 Name = "Khám và tư vấn HIV/AIDS",
@@ -51,7 +61,7 @@ namespace AppointmentApi.Services
                 DoctorIds = new List<string> { "doctor1", "doctor3" }
             });
             
-            _services.Add(new Service
+            _context.Services.Add(new Service
             {
                 Id = "service2",
                 Name = "Điều trị ARV",
@@ -63,7 +73,7 @@ namespace AppointmentApi.Services
                 DoctorIds = new List<string> { "doctor1", "doctor3" }
             });
             
-            _services.Add(new Service
+            _context.Services.Add(new Service
             {
                 Id = "service3",
                 Name = "Xét nghiệm HIV",
@@ -75,7 +85,7 @@ namespace AppointmentApi.Services
                 DoctorIds = new List<string> { "doctor1", "doctor3" }
             });
             
-            _services.Add(new Service
+            _context.Services.Add(new Service
             {
                 Id = "service4",
                 Name = "Tư vấn tâm lý",
@@ -87,7 +97,7 @@ namespace AppointmentApi.Services
                 DoctorIds = new List<string> { "doctor2" }
             });
             
-            _services.Add(new Service
+            _context.Services.Add(new Service
             {
                 Id = "service5",
                 Name = "Tư vấn dinh dưỡng",

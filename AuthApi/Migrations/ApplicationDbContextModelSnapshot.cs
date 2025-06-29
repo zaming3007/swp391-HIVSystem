@@ -56,7 +56,7 @@ namespace AuthApi.Migrations
 
                     b.HasIndex("ConsultationId");
 
-                    b.ToTable("answers");
+                    b.ToTable("Answers", (string)null);
 
                     b.HasData(
                         new
@@ -154,7 +154,7 @@ namespace AuthApi.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("appointments");
+                    b.ToTable("Appointments", (string)null);
 
                     b.HasData(
                         new
@@ -228,7 +228,7 @@ namespace AuthApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("consultations");
+                    b.ToTable("Consultations", (string)null);
 
                     b.HasData(
                         new
@@ -322,7 +322,7 @@ namespace AuthApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("doctors");
+                    b.ToTable("Doctors", (string)null);
 
                     b.HasData(
                         new
@@ -391,7 +391,7 @@ namespace AuthApi.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("doctor_services");
+                    b.ToTable("DoctorServices", (string)null);
 
                     b.HasData(
                         new
@@ -476,7 +476,7 @@ namespace AuthApi.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("medication_reminders");
+                    b.ToTable("MedicationReminders", (string)null);
 
                     b.HasData(
                         new
@@ -549,7 +549,7 @@ namespace AuthApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("services");
+                    b.ToTable("Services", (string)null);
 
                     b.HasData(
                         new
@@ -616,7 +616,7 @@ namespace AuthApi.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("time_slots");
+                    b.ToTable("TimeSlots", (string)null);
 
                     b.HasData(
                         new
@@ -725,13 +725,13 @@ namespace AuthApi.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = "1",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(794),
                             DateOfBirth = "1990-01-01",
                             Email = "admin@example.com",
                             FirstName = "Admin",
@@ -745,7 +745,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "2",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(2793),
                             DateOfBirth = "1985-05-15",
                             Email = "doctor@example.com",
                             FirstName = "Doctor",
@@ -759,7 +759,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "3",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(2799),
                             DateOfBirth = "1992-10-20",
                             Email = "staff@example.com",
                             FirstName = "Staff",
