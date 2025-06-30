@@ -1,48 +1,7 @@
-# Git
-.git
-.gitignore
-.gitattributes
-
-# Docker
-Dockerfile
-.dockerignore
-
-# IDE
-.idea
-.vscode
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-build/
-bld/
-[Bb]in/
-[Oo]bj/
-msbuild.log
-msbuild.err
-msbuild.wrn
-
-# Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-
-# Local development files
-*.env
-*.env.local
-*.env.development.local
-*.env.test.local
-*.env.production.local
-
-# Misc
-.DS_Store
-Thumbs.db 
+**/bin/ **/obj/ **/out/ **/node_modules/ **/.git/ **/.vs/ **/.vscode/ **
+/*.user
+**/
+*.suo **
+/*.userosscache
+**/
+*.sln.docstates **/npm-debug.log **/yarn-debug.log **/yarn-error.log

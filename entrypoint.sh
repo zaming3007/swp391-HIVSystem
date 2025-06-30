@@ -1,33 +1,24 @@
 #!/bin/bash
 set -e
 
-echo "Starting entrypoint script..."
-echo "Listing directory contents:"
-ls -la /app
+# Hiển thị thông tin môi trường
+echo "Starting AppointmentApi..."
+echo "Environment: $ASPNETCORE_ENVIRONMENT"
+echo "ASPNETCORE_URLS: $ASPNETCORE_URLS"
 
-echo "Checking supervisord configuration:"
-cat /etc/supervisor/conf.d/supervisord.conf
+# Kiểm tra biến môi trường DATABASE_URL
+if [ -z "$DATABASE_URL" ]; then
+  echo "WARNING: DATABASE_URL is not set. Using default connection string from appsettings.json"
+else
+  echo "DATABASE_URL is set. Using environment variable for database connection."
+fi
 
-echo "Starting supervisord in the background..."
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf &
+# Kiểm tra biến môi trường JWT_SECRET_KEY
+if [ -z "$JWT_SECRET_KEY" ]; then
+  echo "WARNING: JWT_SECRET_KEY is not set. Using default key from appsettings.json"
+else
+  echo "JWT_SECRET_KEY is set. Using environment variable for JWT signing."
+fi
 
-# Đợi một chút để các dịch vụ khởi động
-echo "Waiting for services to start..."
-sleep 30
-
-# Kiểm tra xem các dịch vụ có chạy không
-echo "Checking if services are running..."
-ps aux | grep dotnet
-
-# Kiểm tra xem các cổng có được lắng nghe không
-echo "Checking if ports are being listened to..."
-netstat -tulpn | grep LISTEN
-
-# Thử truy cập các endpoint
-echo "Trying to access endpoints..."
-curl -v http://localhost:80/ || echo "AppointmentApi not responding"
-curl -v http://localhost:81/ || echo "AuthApi not responding"
-
-# Tiếp tục chạy để giữ container hoạt động
-echo "Container is now running. Press Ctrl+C to stop."
-tail -f /dev/null 
+# Khởi động ứng dụng
+exec dotnet AppointmentApi.dll 
