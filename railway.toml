@@ -1,6 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
+# Không sử dụng buildDirectory để Railway tìm Dockerfile trong thư mục gốc
 
 [deploy]
 # Tạm thời tắt healthcheck để kiểm tra xem ứng dụng có khởi động được không

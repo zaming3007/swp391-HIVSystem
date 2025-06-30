@@ -1,12 +1,18 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
+# Liệt kê nội dung thư mục để debug
+RUN ls -la
+
+# Tạo cấu trúc thư mục
+RUN mkdir -p AppointmentApi
+
 # Sao chép file project và khôi phục dependencies
-COPY SWR302-fe-homelanding/AppointmentApi/AppointmentApi.csproj ./AppointmentApi/
+COPY AppointmentApi/*.csproj ./AppointmentApi/
 RUN dotnet restore ./AppointmentApi/AppointmentApi.csproj
 
 # Sao chép toàn bộ mã nguồn và build ứng dụng
-COPY SWR302-fe-homelanding/ ./
+COPY AppointmentApi/ ./AppointmentApi/
 RUN dotnet publish -c Release -o /app/publish ./AppointmentApi/AppointmentApi.csproj
 
 # Tạo image runtime
