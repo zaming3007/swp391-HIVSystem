@@ -3,8 +3,9 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 300
+# Tạm thời tắt healthcheck để kiểm tra xem ứng dụng có khởi động được không
+# healthcheckPath = "/health"
+# healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
