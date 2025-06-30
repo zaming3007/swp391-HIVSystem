@@ -1,18 +1,8 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
-WORKDIR /app
-
-# Sao chép file project và khôi phục dependencies
-COPY *.csproj ./
-RUN dotnet restore
-
-# Sao chép toàn bộ mã nguồn và build ứng dụng
-COPY . ./
-RUN dotnet publish -c Release -o /app/publish
-
-# Tạo image runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build-env /app/publish .
+
+# Sao chép các file đã được build sẵn
+COPY bin/Release/net8.0/publish/ .
 
 # Cài đặt curl để kiểm tra healthcheck
 RUN apt-get update && apt-get install -y curl

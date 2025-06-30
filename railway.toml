@@ -1,7 +1,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "SWR302-fe-homelanding/AppointmentApi/Dockerfile"
-# Không cần buildDirectory vì đã chỉ định đường dẫn đầy đủ đến Dockerfile
+buildDirectory = "SWR302-fe-homelanding/AppointmentApi"
 
 [deploy]
 healthcheckPath = "/"
@@ -10,4 +10,6 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [env]
-PORT = "8080" 
+PORT = "8080"
+ASPNETCORE_ENVIRONMENT = "Production"
+ASPNETCORE_URLS = "http://+:8080" 
