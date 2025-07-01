@@ -661,12 +661,14 @@ CREATE INDEX IX_Appointments_Date ON Appointments(AppointmentDate);
 CREATE INDEX IX_Appointments_Status ON Appointments(Status);
 
 -- Add sample appointments data
-INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, AppointmentTime, Purpose, Status, Notes)
-VALUES 
-(1, 1, '2024-03-20', '09:00:00', 'Regular check-up and medication review', 'Scheduled', 'Patient requested morning appointment'),
-(2, 1, '2024-03-20', '10:30:00', 'Follow-up after treatment adjustment', 'Scheduled', 'Bring latest test results'),
-(3, 2, '2024-03-20', '14:00:00', 'Initial consultation', 'Scheduled', 'New patient'),
-(1, 1, '2024-03-15', '09:00:00', 'Regular check-up', 'Completed', 'Patient showed good progress'),
-(2, 1, '2024-03-15', '10:30:00', 'Medication review', 'Completed', 'Adjusted dosage'),
-(3, 2, '2024-03-15', '14:00:00', 'Follow-up consultation', 'Completed', 'Patient reported side effects');
+-- Lưu ý: Chỉ chạy đoạn này sau khi đã có dữ liệu mẫu cho bảng Patients và Doctors
+-- Nếu không có dữ liệu mẫu, hãy bỏ qua hoặc sửa lại các PatientID, DoctorID cho đúng với dữ liệu thực tế
+-- INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, AppointmentTime, Purpose, Status, Notes)
+-- VALUES 
+-- (1, 1, '2024-03-20', '09:00:00', 'Regular check-up and medication review', 'Scheduled', 'Patient requested morning appointment'),
+-- (2, 1, '2024-03-20', '10:30:00', 'Follow-up after treatment adjustment', 'Scheduled', 'Bring latest test results'),
+-- (3, 2, '2024-03-20', '14:00:00', 'Initial consultation', 'Scheduled', 'New patient'),
+-- (1, 1, '2024-03-15', '09:00:00', 'Regular check-up', 'Completed', 'Patient showed good progress'),
+-- (2, 1, '2024-03-15', '10:30:00', 'Medication review', 'Completed', 'Adjusted dosage'),
+-- (3, 2, '2024-03-15', '14:00:00', 'Follow-up consultation', 'Completed', 'Patient reported side effects');
 

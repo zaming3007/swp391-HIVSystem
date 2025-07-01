@@ -10,10 +10,14 @@ const Login = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5001/api/auth/login', values);
-      localStorage.setItem('token', res.data.token);
-      message.success('Đăng nhập thành công!');
-      navigate('/');
+      const res = await axios.post('http://localhost:5000/api/auth/login', values);
+      if (res.data.success) {
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        message.success('Đăng nhập thành công!');
+        navigate('/');
+      } else {
+        message.error(res.data.message || 'Đăng nhập thất bại!');
+      }
     } catch (err) {
       message.error('Đăng nhập thất bại!');
     } finally {

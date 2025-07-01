@@ -32,9 +32,9 @@ INSERT INTO Facilities (FacilityName, Address, City, PhoneNumber) VALUES
 ('Branch Clinic', '456 Medical Road', 'City B', '0987654321');
 
 -- Insert sample appointments
-INSERT INTO Appointments (PatientID, DoctorID, FacilityID, AppointmentDate, AppointmentTime, Status) VALUES
-(1, 1, 1, '2024-03-20', '09:00:00', 'Completed'),
-(2, 2, 1, '2024-03-21', '10:00:00', 'Completed');
+INSERT INTO Appointments (PatientID, DoctorID, AppointmentDate, AppointmentTime, Purpose, Status, Notes) VALUES
+(1, 1, '2024-03-20', '09:00:00', N'Khám tổng quát', 'Completed', N'Đã hoàn thành'),
+(2, 2, '2024-03-21', '10:00:00', N'Tái khám', 'Completed', N'Đã hoàn thành');
 
 -- Insert sample medical examinations
 INSERT INTO MedicalExaminations (
