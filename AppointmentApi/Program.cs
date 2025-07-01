@@ -43,6 +43,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
+// In thông tin cấu hình JWT
+Console.WriteLine("JWT Settings:");
+Console.WriteLine($"  Issuer: {builder.Configuration["JwtSettings:Issuer"]}");
+Console.WriteLine($"  Audience: {builder.Configuration["JwtSettings:Audience"]}");
+Console.WriteLine($"  SecretKey exists: {!string.IsNullOrEmpty(builder.Configuration["JwtSettings:SecretKey"])}");
+
 // Cấu hình JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -55,7 +61,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"] ?? string.Empty))
+        };
+        
+        // Thêm event handlers để debug JWT
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                return System.Threading.Tasks.Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validated successfully");
+                return System.Threading.Tasks.Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine($"Challenge: {context.AuthenticateFailure?.Message}");
+                return System.Threading.Tasks.Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                Console.WriteLine("Token received for validation");
+                return System.Threading.Tasks.Task.CompletedTask;
+            }
         };
     });
 
@@ -92,8 +123,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Đăng ký các dịch vụ
+builder.Services.AddScoped<IDoctorService, AppointmentApi.Services.DoctorService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
-builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IServiceManager, ServiceManager>();
 
 var app = builder.Build();
 

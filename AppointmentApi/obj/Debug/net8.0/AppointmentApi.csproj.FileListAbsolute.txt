@@ -140,3 +140,5 @@ D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\z
 D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\services_response.json
+D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\Microsoft.EntityFrameworkCore.Relational.Design.dll
+D:\SWR302-fe-homelanding\SWR302-fe-homelanding\AppointmentApi\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.Design.dll

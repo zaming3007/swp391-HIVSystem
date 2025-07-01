@@ -16,14 +16,6 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { toast } from 'react-toastify';
 
-// Định nghĩa enum AppointmentStatus để sử dụng trong component
-enum AppointmentStatus {
-    Pending = 0,
-    Confirmed = 1,
-    Cancelled = 2,
-    Completed = 3
-}
-
 interface TabPanelProps {
     children?: React.ReactNode;
     index: number;
@@ -76,10 +68,14 @@ const MyAppointmentsPage: React.FC = () => {
                 const data = await getMyAppointments();
                 console.log("Fetched appointments:", data);
 
-                // Kiểm tra trạng thái lịch hẹn
-                data.forEach(appointment => {
-                    console.log(`Appointment ${appointment.id}: status=${appointment.status}, type=${typeof appointment.status}`);
-                });
+                // Log thêm thông tin về mỗi lịch hẹn
+                if (data && data.length > 0) {
+                    data.forEach(app => {
+                        console.log(`Appointment detail - id: ${app.id}, status: ${app.status}, type: ${typeof app.status}, service: ${app.serviceName}, date: ${app.date}`);
+                    });
+                } else {
+                    console.log("No appointments found or empty data array returned");
+                }
 
                 setAppointments(data);
                 setError(null);
@@ -108,7 +104,7 @@ const MyAppointmentsPage: React.FC = () => {
                 if (success) {
                     // Update local state
                     setAppointments(appointments.map(app =>
-                        app.id === appointmentId ? { ...app, status: AppointmentStatus.Cancelled } : app
+                        app.id === appointmentId ? { ...app, status: 'Cancelled' } : app
                     ));
                 } else {
                     alert('Không thể hủy lịch hẹn. Vui lòng thử lại sau.');
@@ -120,65 +116,74 @@ const MyAppointmentsPage: React.FC = () => {
         }
     };
 
-    // Filter appointments by status
+    // Filter appointments by status - Đơn giản hóa logic lọc
     const upcomingAppointments = appointments.filter(app => {
-        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
-        return status === AppointmentStatus.Pending || status === AppointmentStatus.Confirmed;
+        // Log để debug giá trị status
+        console.log(`Filtering upcoming appointment ${app.id}, status: ${app.status}, type: ${typeof app.status}`);
+
+        // Kiểm tra cả hai loại status - số và chuỗi
+        const status = app.status;
+        return status === 0 || status === "0" ||
+            status === 1 || status === "1" ||
+            status === "Pending" || status === "Confirmed";
     });
 
     const completedAppointments = appointments.filter(app => {
-        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
-        return status === AppointmentStatus.Completed;
+        const status = app.status;
+        return status === 3 || status === "3" || status === "Completed";
     });
 
     const cancelledAppointments = appointments.filter(app => {
-        const status = typeof app.status === 'number' ? app.status : parseInt(app.status as unknown as string);
-        return status === AppointmentStatus.Cancelled;
+        const status = app.status;
+        return status === 2 || status === "2" || status === "Cancelled";
     });
 
-    // Get status label
-    const getStatusLabel = (status: number | string) => {
-        const numStatus = typeof status === 'number' ? status : parseInt(status as string);
-
-        switch (numStatus) {
-            case AppointmentStatus.Pending:
-                return 'Đang chờ';
-            case AppointmentStatus.Confirmed:
-                return 'Đã xác nhận';
-            case AppointmentStatus.Cancelled:
-                return 'Đã hủy';
-            case AppointmentStatus.Completed:
-                return 'Đã hoàn thành';
-            default:
-                return 'Không xác định';
-        }
+    // Get status label - Đơn giản hóa logic hiển thị trạng thái
+    const getStatusLabel = (status: any): string => {
+        if (status === 0 || status === "0" || status === "Pending") return "Đang chờ";
+        if (status === 1 || status === "1" || status === "Confirmed") return "Đã xác nhận";
+        if (status === 2 || status === "2" || status === "Cancelled") return "Đã hủy";
+        if (status === 3 || status === "3" || status === "Completed") return "Đã hoàn thành";
+        return "Không xác định";
     };
 
-    // Get status color
-    const getStatusColor = (status: number | string) => {
-        const numStatus = typeof status === 'number' ? status : parseInt(status as string);
-
-        switch (numStatus) {
-            case AppointmentStatus.Pending:
-                return 'warning';
-            case AppointmentStatus.Confirmed:
-                return 'primary';
-            case AppointmentStatus.Cancelled:
-                return 'error';
-            case AppointmentStatus.Completed:
-                return 'success';
-            default:
-                return 'default';
-        }
+    // Get status color - Đơn giản hóa logic lấy màu
+    const getStatusColor = (status: any): "warning" | "primary" | "error" | "success" | "default" => {
+        if (status === 0 || status === "0" || status === "Pending") return "warning";
+        if (status === 1 || status === "1" || status === "Confirmed") return "primary";
+        if (status === 2 || status === "2" || status === "Cancelled") return "error";
+        if (status === 3 || status === "3" || status === "Completed") return "success";
+        return "default";
     };
 
     // Appointment Card component
     const AppointmentCard = ({ appointment, onCancel }: { appointment: Appointment, onCancel: (id: string) => void }) => {
         // Format ngày giờ
         const formattedDate = format(parseISO(appointment.date), 'dd/MM/yyyy');
-        const status = typeof appointment.status === 'number'
-            ? appointment.status
-            : parseInt(appointment.status as unknown as string);
+
+        // Xử lý status theo dữ liệu API
+        let status = appointment.status;
+        console.log("Card rendering appointment:", appointment.id, "with status:", status, "and type:", typeof status);
+
+        // Debug appointment để xem toàn bộ dữ liệu
+        console.log("Full appointment data:", appointment);
+
+        // Hiển thị giá trị appointmentType
+        let isOnline = false;
+
+        // Kiểm tra xem appointmentType có phải là online không bằng nhiều cách
+        if (appointment.appointmentType === 'online' ||
+            appointment.appointmentType === 'Online' ||
+            appointment.appointmentType === 1 ||
+            appointment.appointmentType === '1') {
+            isOnline = true;
+        }
+
+        console.log("Is online appointment:", isOnline);
+
+        // Mã hóa URL để sử dụng cho cuộc họp online
+        const meetingUrl = appointment.meetingLink ||
+            `https://meet.jit.si/${appointment.id.replace(/[^a-zA-Z0-9]/g, '')}`;
 
         return (
             <Card sx={{ mb: 2 }}>
@@ -225,21 +230,21 @@ const MyAppointmentsPage: React.FC = () => {
                         {/* Hiển thị loại cuộc hẹn và link nếu là online */}
                         <Grid item xs={12}>
                             <Typography variant="body2">
-                                {appointment.appointmentType === 'online'
+                                {isOnline
                                     ? <VideocamIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 1 }} />
                                     : <LocalHospitalIcon fontSize="small" sx={{ verticalAlign: 'middle', mr: 1 }} />
                                 }
-                                <strong>Loại cuộc hẹn:</strong> {appointment.appointmentType === 'online' ? 'Tư vấn trực tuyến' : 'Tại phòng khám'}
+                                <strong>Loại cuộc hẹn:</strong> {isOnline ? 'Tư vấn trực tuyến' : 'Tại phòng khám'}
                             </Typography>
                         </Grid>
 
-                        {appointment.appointmentType === 'online' && appointment.meetingLink && (
+                        {isOnline && (
                             <Grid item xs={12}>
                                 <Box sx={{ mt: 1, p: 2, bgcolor: 'primary.light', borderRadius: 1 }}>
                                     <Typography variant="body2" sx={{ color: 'white' }}>
                                         <strong>Link cuộc họp:</strong>
                                         <Button
-                                            href={appointment.meetingLink}
+                                            href={meetingUrl}
                                             target="_blank"
                                             variant="contained"
                                             size="small"
@@ -265,7 +270,7 @@ const MyAppointmentsPage: React.FC = () => {
                         )}
                     </Grid>
 
-                    {(status === AppointmentStatus.Pending || status === AppointmentStatus.Confirmed) && (
+                    {(status === 0 || status === "0" || status === "Pending" || status === "Confirmed") && (
                         <>
                             <Divider sx={{ my: 2 }} />
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

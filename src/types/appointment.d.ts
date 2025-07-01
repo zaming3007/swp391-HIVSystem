@@ -5,7 +5,7 @@ export interface ApiResponse<T> {
 }
 
 export interface Doctor {
-    id: string;
+    id: number;
     firstName: string;
     lastName: string;
     specialization: string;
@@ -42,7 +42,7 @@ export interface Appointment {
     id: string;
     patientId: string;
     patientName: string;
-    doctorId: string;
+    doctorId: number;
     doctorName: string;
     serviceId: string;
     serviceName: string;
@@ -82,7 +82,7 @@ export interface AppointmentUpdateDto {
 }
 
 export interface AvailableSlot {
-    doctorId: string;
+    doctorId: number;
     doctorName: string;
     date: string;
     availableTimes: string[];

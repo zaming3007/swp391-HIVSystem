@@ -6,19 +6,19 @@
 
 START TRANSACTION;
 CREATE TABLE "Doctors" (
-    "Id" text NOT NULL,
-    "FirstName" text NOT NULL,
-    "LastName" text NOT NULL,
-    "Specialization" text NOT NULL,
-    "Email" text NOT NULL,
-    "Phone" text NOT NULL,
-    "ProfileImage" text NOT NULL,
-    "Available" boolean NOT NULL,
-    "Bio" text NOT NULL,
-    "Experience" integer NOT NULL,
-    "CreatedAt" timestamp with time zone NOT NULL,
-    "UpdatedAt" timestamp with time zone,
-    CONSTRAINT "PK_Doctors" PRIMARY KEY ("Id")
+        "Id" text NOT NULL,
+        "FirstName" text NOT NULL,
+        "LastName" text NOT NULL,
+        "Specialization" text NOT NULL,
+        "Email" text NOT NULL,
+        "Phone" text NOT NULL,
+        "ProfileImage" text NOT NULL,
+        "Available" boolean NOT NULL,
+        "Bio" text NOT NULL,
+        "Experience" integer NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "UpdatedAt" timestamp with time zone,
+        CONSTRAINT "PK_Doctors" PRIMARY KEY ("Id")
 );
 
 CREATE TABLE "Services" (

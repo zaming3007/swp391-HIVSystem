@@ -1,9 +1,7 @@
-import axios from 'axios';
 import { ApiResponse, Appointment, AppointmentCreateDto, AppointmentUpdateDto, Doctor, Service, AvailableSlot, AppointmentType } from '../types';
 import { Appointment as AppointmentTypeFromAppointmentD } from '../types/appointment.d';
-
-// Base API URL
-const API_URL = 'https://appointmentapi-production.up.railway.app/api';
+import appointmentApi from './appointmentApi';
+import { store } from '../store';
 
 // Mock data cho trường hợp API không hoạt động
 const MOCK_SERVICES: Service[] = [
@@ -144,25 +142,7 @@ const generateMockTimeSlots = (date: string): string[] => {
 };
 
 // Flag để quyết định có sử dụng mock data hay không
-const USE_MOCK_DATA = true;
-
-// Tạo axios instance với interceptor để thêm token vào header
-const appointmentApi = axios.create({
-    baseURL: API_URL,
-});
-
-appointmentApi.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
+const USE_MOCK_DATA = false;
 
 // Service API functions
 export const getServices = async (): Promise<Service[]> => {
@@ -171,7 +151,7 @@ export const getServices = async (): Promise<Service[]> => {
         return MOCK_SERVICES;
     }
     try {
-        console.log("Fetching services from API:", API_URL + '/services');
+        console.log("Fetching services from API:", appointmentApi.defaults.baseURL + '/services');
         const response = await appointmentApi.get<ApiResponse<Service[]>>('/services');
         console.log("API response:", response.data);
         return response.data.data || [];
@@ -313,11 +293,30 @@ export const getDoctorSchedule = async (doctorId: string): Promise<any[]> => {
 
 // Appointment API functions
 export const getMyAppointments = async (): Promise<Appointment[]> => {
-    const userId = localStorage.getItem('userId');
+    // Lấy userId từ Redux store nếu có
+    // Sử dụng store từ redux để lấy thông tin user
+    let userId: string | null = null;
+
+    try {
+        // Kiểm tra nếu user đã đăng nhập trong Redux store
+        const state = store.getState();
+        userId = state.auth.user?.id;
+        console.log("Got user ID from Redux store:", userId);
+    } catch (error) {
+        console.error("Error accessing Redux store:", error);
+    }
+
+    // Fallback to localStorage if Redux state is not available
+    if (!userId) {
+        const localStorageUserId = localStorage.getItem('userId');
+        userId = localStorageUserId || null;
+        console.log("Fallback to localStorage user ID:", userId);
+    }
+
     console.log("Getting appointments for user ID:", userId);
 
     if (!userId) {
-        console.warn("No user ID found in localStorage");
+        console.warn("No user ID found in Redux or localStorage");
         return [];
     }
 
@@ -611,21 +610,74 @@ export const createAppointment = async (appointment: AppointmentCreateDto): Prom
         // Lấy thông tin người dùng từ localStorage
         const patientName = localStorage.getItem('userName') || "Bệnh nhân";
 
-        // Chuẩn bị query parameters
-        const queryParams = new URLSearchParams({
-            patientId: appointment.patientId,
-            patientName: patientName
-        }).toString();
+        console.log("Creating appointment with real API:");
+        console.log("- Appointment data:", appointment);
+        console.log("- API base URL:", appointmentApi.defaults.baseURL);
+        console.log("- Patient name from localStorage:", patientName);
 
+        // Convert appointmentType from string to number (0 for offline, 1 for online)
+        const appointmentData = {
+            ...appointment,
+            appointmentType: appointment.appointmentType === 'online' ? 1 : 0
+        };
+
+        console.log("- Modified appointment data for API:", appointmentData);
+
+        // Không sử dụng encodeURIComponent vì patientName sẽ được truyền trực tiếp trong body request
         const response = await appointmentApi.post<ApiResponse<Appointment>>(
-            `/appointments?${queryParams}`,
-            appointment
+            `/appointments`,
+            {
+                appointmentDto: appointmentData,
+                patientId: appointment.patientId,
+                patientName: patientName  // Truyền trực tiếp tên người dùng, không cần mã hóa
+            }
         );
 
+        console.log("API Response:", response);
+        console.log("- Status:", response.status);
+        console.log("- Response data:", response.data);
+
         return response.data.data || null;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating appointment:", error);
-        return null;
+        console.error("- Error name:", error.name);
+        console.error("- Error message:", error.message);
+
+        // Xử lý thông báo lỗi đặt lịch trùng
+        let errorMessage: string = 'Đã xảy ra lỗi khi đặt lịch';
+
+        // Log chi tiết về lỗi từ API response nếu có
+        if (error.response) {
+            console.error("- Response status:", error.response.status);
+            console.error("- Response headers:", error.response.headers);
+            console.error("- Response data:", JSON.stringify(error.response.data, null, 2));
+
+            // Trích xuất thông báo lỗi chi tiết nếu có
+            if (error.response.data) {
+                if (error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                    console.error("- Error message from API:", errorMessage);
+
+                    // Đưa ra thông báo cụ thể cho các lỗi phổ biến
+                    if (errorMessage.includes('không có lịch trống') ||
+                        errorMessage.includes('đã được đặt') ||
+                        errorMessage.includes('trùng lịch')) {
+                        throw new Error(`Bác sĩ không có lịch trống trong khung giờ này. Vui lòng chọn khung giờ hoặc ngày khác.`);
+                    }
+                }
+            }
+        }
+
+        // Log chi tiết cấu hình request
+        if (error.config) {
+            console.error("- Request URL:", error.config.url);
+            console.error("- Request method:", error.config.method);
+            console.error("- Request headers:", error.config.headers);
+            console.error("- Request data:", error.config.data);
+        }
+
+        // Ném lại lỗi để component UI có thể bắt và hiển thị
+        throw new Error(errorMessage || "Đã xảy ra lỗi khi đặt lịch");
     }
 };
 
@@ -691,13 +743,43 @@ export const getAvailableSlots = async (doctorId: string, date: string, serviceI
     }
 
     try {
+        console.log(`Fetching available slots for doctorId=${doctorId}, date=${date}`);
+
         const response = await appointmentApi.get<ApiResponse<AvailableSlot[]>>(
             `/appointments/available-slots?doctorId=${doctorId}&date=${date}`
         );
 
+        console.log("Available slots API response:", response.data);
+
         if (response.data.data && response.data.data.length > 0) {
-            return response.data.data[0].availableTimes || [];
+            // Lọc ra các khung giờ mà bác sĩ có thể khám
+            const availableTimes = response.data.data[0].availableTimes || [];
+            console.log(`Found ${availableTimes.length} available time slots`);
+
+            // Kiểm tra và lấy các lịch hẹn đã được đặt cho bác sĩ này vào ngày này
+            try {
+                const existingAppointmentsResponse = await appointmentApi.get<ApiResponse<Appointment[]>>(
+                    `/appointments/doctor/${doctorId}/date/${date}`
+                );
+
+                if (existingAppointmentsResponse.data.success && existingAppointmentsResponse.data.data) {
+                    const bookedTimes = existingAppointmentsResponse.data.data.map(app => app.startTime);
+                    console.log(`Found ${bookedTimes.length} already booked slots for this doctor and date:`, bookedTimes);
+
+                    // Lọc bỏ các khung giờ đã được đặt
+                    const filteredAvailableTimes = availableTimes.filter(time => !bookedTimes.includes(time));
+                    console.log(`After filtering booked slots, ${filteredAvailableTimes.length} slots remain available`);
+
+                    return filteredAvailableTimes;
+                }
+            } catch (checkError) {
+                console.warn("Error checking existing appointments, returning all available slots:", checkError);
+            }
+
+            return availableTimes;
         }
+
+        console.log("No available time slots found in API response");
         return [];
     } catch (error) {
         console.error("Error fetching available slots:", error);

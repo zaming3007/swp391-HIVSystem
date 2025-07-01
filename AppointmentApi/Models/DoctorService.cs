@@ -1,29 +1,28 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppointmentApi.Models
 {
-    [Table("TimeSlots")]
-    public class TimeSlot
+    [Table("DoctorServices")]
+    public class DoctorService
     {
         [Key]
-        public string Id { get; set; } = string.Empty;
+        [Column("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         
+        [Required]
         [Column("doctor_id")]
         public string DoctorId { get; set; } = string.Empty;
         
-        [Column("day_of_week")]
-        public int DayOfWeek { get; set; }
-        
-        [Column("start_time")]
-        public string StartTime { get; set; } = string.Empty;
-        
-        [Column("end_time")]
-        public string EndTime { get; set; } = string.Empty;
+        [Required]
+        [Column("service_id")]
+        public string ServiceId { get; set; } = string.Empty;
         
         // Navigation properties
         [ForeignKey("DoctorId")]
         public virtual Doctor? Doctor { get; set; }
+        
+        [ForeignKey("ServiceId")]
+        public virtual Service? Service { get; set; }
     }
 } 

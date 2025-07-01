@@ -1,11 +1,13 @@
-import api from './api';
+import authApi from './authApi';
+import appointmentApi from './appointmentApi';
 import { authService } from './authService';
 import * as appointmentService from './appointmentService';
-import { reminderService } from './reminderService';
-import { consultationService } from './consultationService';
+import * as consultationService from './consultationService';
+import * as reminderService from './reminderService';
 
 export {
-    api,
+    authApi,
+    appointmentApi,
     authService,
     appointmentService,
     reminderService,

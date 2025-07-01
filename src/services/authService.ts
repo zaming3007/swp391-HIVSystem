@@ -1,5 +1,5 @@
 import { LoginCredentials, RegisterData, User } from '../types';
-import api from './api';
+import authApi from './authApi';
 
 // Mock users for testing different roles
 const mockUsers: User[] = [
@@ -71,8 +71,8 @@ export const authService = {
         }
 
         try {
-            console.log('Making API request to /Auth/login...', { url: api.defaults.baseURL });
-            const response = await api.post<{ token: string; user: User }>('/Auth/login', credentials);
+            console.log('Making API request to /Auth/login...', { url: authApi.defaults.baseURL });
+            const response = await authApi.post<{ token: string; user: User }>('/Auth/login', credentials);
             console.log('Login API response:', response.data);
 
             // Save token, user, and role to localStorage
@@ -140,7 +140,7 @@ export const authService = {
 
         try {
             console.log('Making API request to /Auth/register...');
-            const response = await api.post<{ token: string; user: User }>('/Auth/register', userData);
+            const response = await authApi.post<{ token: string; user: User }>('/Auth/register', userData);
             console.log('Register API response:', response.data);
 
             // Save token, user, and role to localStorage
@@ -178,7 +178,7 @@ export const authService = {
         }
 
         try {
-            const response = await api.get<User>('/Auth/me');
+            const response = await authApi.get<User>('/Auth/me');
             // Update role in localStorage
             localStorage.setItem('userRole', response.data.role);
             return response.data;
@@ -209,7 +209,7 @@ export const authService = {
             }
         }
 
-        const response = await api.put<User>(`/users/${userId}`, profileData);
+        const response = await authApi.put<User>(`/users/${userId}`, profileData);
         // Update user data in localStorage
         const updatedUser = response.data;
         localStorage.setItem('user', JSON.stringify(updatedUser));
@@ -225,7 +225,7 @@ export const authService = {
             return { success: true };
         }
 
-        const response = await api.put<{ success: boolean }>(`/Auth/change-password/${userId}`, data);
+        const response = await authApi.put<{ success: boolean }>(`/Auth/change-password/${userId}`, data);
         return response.data;
     },
 
@@ -276,7 +276,7 @@ export const authService = {
             return { success: true };
         }
 
-        const response = await api.post<{ success: boolean }>('/Auth/password-reset-request', { email });
+        const response = await authApi.post<{ success: boolean }>('/Auth/password-reset-request', { email });
         return response.data;
     },
 
@@ -288,7 +288,7 @@ export const authService = {
             return { success: true };
         }
 
-        const response = await api.post<{ success: boolean }>('/Auth/reset-password', { token, newPassword });
+        const response = await authApi.post<{ success: boolean }>('/Auth/reset-password', { token, newPassword });
         return response.data;
     },
 
