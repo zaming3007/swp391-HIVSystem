@@ -21,6 +21,8 @@ import {
     Email as EmailIcon,
     LocationOn as LocationIcon,
     AccessTime as TimeIcon,
+    LocalHospital as HospitalIcon,
+    Lock as LockIcon,
 } from '@mui/icons-material';
 import mapImage from '../../images/map/mapttyte.png';
 
@@ -85,7 +87,7 @@ const ContactPage: React.FC = () => {
                     Liên Hệ Với Chúng Tôi
                 </Typography>
                 <Typography variant="subtitle1" align="center" color="text.secondary" paragraph>
-                    Chúng tôi luôn sẵn sàng lắng nghe và hỗ trợ bạn
+                    Chúng tôi luôn sẵn sàng hỗ trợ và tư vấn về các vấn đề liên quan đến HIV/AIDS
                 </Typography>
                 <Divider sx={{ my: 4 }} />
             </Box>
@@ -118,7 +120,7 @@ const ContactPage: React.FC = () => {
                                     Điện Thoại
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    (028) 3812 3456 | Hotline: 0987 654 321
+                                    (028) 3812 3456 | Đường dây nóng HIV: 1800 1919
                                 </Typography>
                             </Box>
                         </Box>
@@ -130,7 +132,7 @@ const ContactPage: React.FC = () => {
                                     Email
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    info@genderhealthcare.vn | support@genderhealthcare.vn
+                                    info@hivcare.vn | support@hivcare.vn
                                 </Typography>
                             </Box>
                         </Box>
@@ -150,11 +152,35 @@ const ContactPage: React.FC = () => {
                             </Box>
                         </Box>
 
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                            <HospitalIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
+                            <Box>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    Dịch Vụ Khẩn Cấp
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Dịch vụ PEP sau phơi nhiễm: Hotline 24/7: 0909 123 456
+                                </Typography>
+                            </Box>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                            <LockIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
+                            <Box>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    Cam Kết Bảo Mật
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Chúng tôi đảm bảo bảo mật tuyệt đối thông tin cá nhân và tình trạng sức khỏe của bạn
+                                </Typography>
+                            </Box>
+                        </Box>
+
                         <Typography variant="h6" component="h3" sx={{ mt: 4, mb: 2 }}>
                             Mạng Xã Hội
                         </Typography>
                         <Typography variant="body2" paragraph>
-                            Kết nối với chúng tôi trên các nền tảng mạng xã hội để cập nhật thông tin mới nhất.
+                            Kết nối với chúng tôi trên các nền tảng mạng xã hội để cập nhật thông tin mới nhất về HIV/AIDS.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
                             {/* Placeholder for social media icons */}
@@ -232,8 +258,11 @@ const ContactPage: React.FC = () => {
                                             disabled={formStatus.submitting}
                                         >
                                             <MenuItem value=""><em>Chọn chủ đề</em></MenuItem>
-                                            <MenuItem value="appointment">Đặt lịch hẹn</MenuItem>
-                                            <MenuItem value="info">Thông tin dịch vụ</MenuItem>
+                                            <MenuItem value="appointment">Đặt lịch hẹn khám và tư vấn</MenuItem>
+                                            <MenuItem value="testing">Xét nghiệm HIV</MenuItem>
+                                            <MenuItem value="treatment">Thông tin về điều trị ARV</MenuItem>
+                                            <MenuItem value="support">Hỗ trợ tâm lý</MenuItem>
+                                            <MenuItem value="prep">Thông tin về PrEP/PEP</MenuItem>
                                             <MenuItem value="feedback">Phản hồi và góp ý</MenuItem>
                                             <MenuItem value="other">Khác</MenuItem>
                                         </Select>
@@ -281,7 +310,7 @@ const ContactPage: React.FC = () => {
                     <Box
                         component="img"
                         src={mapImage}
-                        alt="Bản đồ đường đi đến trung tâm y tế"
+                        alt="Bản đồ đường đi đến trung tâm điều trị HIV/AIDS"
                         sx={{
                             width: '100%',
                             height: 'auto',

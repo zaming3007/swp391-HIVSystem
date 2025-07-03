@@ -9,7 +9,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import NoteIcon from '@mui/icons-material/Note';
 import { format, parseISO } from 'date-fns';
 import { RootState } from '../../store';
-import { Appointment } from '../../types';
+import { Appointment, AppointmentStatus, AppointmentType } from '../../types';
 import { getMyAppointments, cancelAppointment, resetMockAppointments } from '../../services/appointmentService';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
@@ -37,6 +37,9 @@ function TabPanel(props: TabPanelProps) {
         </div>
     );
 }
+
+// Định nghĩa kiểu cho status để xử lý cả chuỗi và số
+type StatusType = AppointmentStatus | string | number;
 
 const MyAppointmentsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -102,10 +105,14 @@ const MyAppointmentsPage: React.FC = () => {
                 const success = await cancelAppointment(appointmentId);
 
                 if (success) {
-                    // Update local state
-                    setAppointments(appointments.map(app =>
-                        app.id === appointmentId ? { ...app, status: 'Cancelled' } : app
-                    ));
+                    // Update local state - sử dụng "Cancelled" thay vì số 2
+                    setAppointments(prevAppointments =>
+                        prevAppointments.map(app =>
+                            app.id === appointmentId
+                                ? { ...app, status: "Cancelled" as any }
+                                : app
+                        )
+                    );
                 } else {
                     alert('Không thể hủy lịch hẹn. Vui lòng thử lại sau.');
                 }
@@ -116,43 +123,63 @@ const MyAppointmentsPage: React.FC = () => {
         }
     };
 
+    // Hàm kiểm tra trạng thái cho các trường hợp khác nhau
+    const isStatusEqual = (status: StatusType, value: StatusType): boolean => {
+        if (status === value) return true;
+        if (typeof status === 'number' && typeof value === 'string' && status.toString() === value) return true;
+        if (typeof status === 'string' && typeof value === 'number' && status === value.toString()) return true;
+
+        // Xử lý trường hợp đặc biệt cho các giá trị enum và chuỗi
+        if ((status === 0 || status === "0") && value === "Pending") return true;
+        if ((status === 1 || status === "1") && value === "Confirmed") return true;
+        if ((status === 2 || status === "2") && value === "Cancelled") return true;
+        if ((status === 3 || status === "3") && value === "Completed") return true;
+
+        return false;
+    };
+
     // Filter appointments by status - Đơn giản hóa logic lọc
     const upcomingAppointments = appointments.filter(app => {
         // Log để debug giá trị status
         console.log(`Filtering upcoming appointment ${app.id}, status: ${app.status}, type: ${typeof app.status}`);
 
         // Kiểm tra cả hai loại status - số và chuỗi
-        const status = app.status;
-        return status === 0 || status === "0" ||
-            status === 1 || status === "1" ||
-            status === "Pending" || status === "Confirmed";
+        const status = app.status as StatusType;
+        return isStatusEqual(status, 0) ||
+            isStatusEqual(status, 1) ||
+            isStatusEqual(status, "Pending") ||
+            isStatusEqual(status, "Confirmed");
     });
 
     const completedAppointments = appointments.filter(app => {
-        const status = app.status;
-        return status === 3 || status === "3" || status === "Completed";
+        const status = app.status as StatusType;
+        return isStatusEqual(status, 3) ||
+            isStatusEqual(status, "Completed") ||
+            isStatusEqual(status, "3");
     });
 
     const cancelledAppointments = appointments.filter(app => {
-        const status = app.status;
-        return status === 2 || status === "2" || status === "Cancelled";
+        const status = app.status as StatusType;
+        return isStatusEqual(status, 2) ||
+            isStatusEqual(status, "Cancelled") ||
+            isStatusEqual(status, "2");
     });
 
     // Get status label - Đơn giản hóa logic hiển thị trạng thái
-    const getStatusLabel = (status: any): string => {
-        if (status === 0 || status === "0" || status === "Pending") return "Đang chờ";
-        if (status === 1 || status === "1" || status === "Confirmed") return "Đã xác nhận";
-        if (status === 2 || status === "2" || status === "Cancelled") return "Đã hủy";
-        if (status === 3 || status === "3" || status === "Completed") return "Đã hoàn thành";
+    const getStatusLabel = (status: StatusType): string => {
+        if (isStatusEqual(status, 0) || isStatusEqual(status, "Pending") || isStatusEqual(status, "0")) return "Đang chờ";
+        if (isStatusEqual(status, 1) || isStatusEqual(status, "Confirmed") || isStatusEqual(status, "1")) return "Đã xác nhận";
+        if (isStatusEqual(status, 2) || isStatusEqual(status, "Cancelled") || isStatusEqual(status, "2")) return "Đã hủy";
+        if (isStatusEqual(status, 3) || isStatusEqual(status, "Completed") || isStatusEqual(status, "3")) return "Đã hoàn thành";
         return "Không xác định";
     };
 
     // Get status color - Đơn giản hóa logic lấy màu
-    const getStatusColor = (status: any): "warning" | "primary" | "error" | "success" | "default" => {
-        if (status === 0 || status === "0" || status === "Pending") return "warning";
-        if (status === 1 || status === "1" || status === "Confirmed") return "primary";
-        if (status === 2 || status === "2" || status === "Cancelled") return "error";
-        if (status === 3 || status === "3" || status === "Completed") return "success";
+    const getStatusColor = (status: StatusType): "warning" | "primary" | "error" | "success" | "default" => {
+        if (isStatusEqual(status, 0) || isStatusEqual(status, "Pending") || isStatusEqual(status, "0")) return "warning";
+        if (isStatusEqual(status, 1) || isStatusEqual(status, "Confirmed") || isStatusEqual(status, "1")) return "primary";
+        if (isStatusEqual(status, 2) || isStatusEqual(status, "Cancelled") || isStatusEqual(status, "2")) return "error";
+        if (isStatusEqual(status, 3) || isStatusEqual(status, "Completed") || isStatusEqual(status, "3")) return "success";
         return "default";
     };
 
@@ -162,7 +189,7 @@ const MyAppointmentsPage: React.FC = () => {
         const formattedDate = format(parseISO(appointment.date), 'dd/MM/yyyy');
 
         // Xử lý status theo dữ liệu API
-        let status = appointment.status;
+        let status = appointment.status as StatusType;
         console.log("Card rendering appointment:", appointment.id, "with status:", status, "and type:", typeof status);
 
         // Debug appointment để xem toàn bộ dữ liệu
@@ -172,10 +199,11 @@ const MyAppointmentsPage: React.FC = () => {
         let isOnline = false;
 
         // Kiểm tra xem appointmentType có phải là online không bằng nhiều cách
-        if (appointment.appointmentType === 'online' ||
-            appointment.appointmentType === 'Online' ||
-            appointment.appointmentType === 1 ||
-            appointment.appointmentType === '1') {
+        const appointmentType = appointment.appointmentType as string | number;
+        if (appointmentType === 'online' ||
+            appointmentType === 'Online' ||
+            appointmentType === 1 ||
+            appointmentType === '1') {
             isOnline = true;
         }
 
@@ -270,7 +298,7 @@ const MyAppointmentsPage: React.FC = () => {
                         )}
                     </Grid>
 
-                    {(status === 0 || status === "0" || status === "Pending" || status === "Confirmed") && (
+                    {(isStatusEqual(status, 0) || isStatusEqual(status, 1) || isStatusEqual(status, "Pending") || isStatusEqual(status, "Confirmed")) && (
                         <>
                             <Divider sx={{ my: 2 }} />
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
