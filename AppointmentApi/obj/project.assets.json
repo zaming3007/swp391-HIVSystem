@@ -8235,11 +8235,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AppointmentApi\\AppointmentApi.csproj",
+      "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj",
       "projectName": "AppointmentApi",
-      "projectPath": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AppointmentApi\\AppointmentApi.csproj",
+      "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AppointmentApi\\obj\\",
+      "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,197 +1,178 @@
-# Healthcare Platform
+# HIV Healthcare System
 
-This project is a healthcare platform with user authentication (login/registration) features.
+Hệ thống quản lý và hỗ trợ chăm sóc sức khỏe cho bệnh nhân HIV, cung cấp các công cụ để quản lý thuốc, đặt lịch hẹn và tư vấn trực tuyến.
 
-## Project Structure
+## Cấu Trúc Dự Án
 
-The project consists of two parts:
-1. Frontend React application (using TypeScript, Redux, and Material UI)
-2. Backend .NET API for authentication
+Dự án bao gồm ba phần chính:
+1. **Frontend**: Ứng dụng React sử dụng TypeScript, Redux và Material UI
+2. **AuthApi**: API .NET cho xác thực và quản lý người dùng
+3. **AppointmentApi**: API .NET cho quản lý lịch hẹn và dịch vụ
 
-## Setup Instructions
+## Hướng Dẫn Cài Đặt
 
-### Frontend Setup
+### Yêu Cầu Hệ Thống
+- Node.js 16+ và npm
+- .NET 8.0 SDK
+- PostgreSQL (hoặc sử dụng cấu hình database có sẵn)
 
-1. Navigate to the frontend directory:
+### Cài Đặt Frontend
+
+1. Đi đến thư mục gốc của dự án:
 ```bash
-cd SWR302-fe-homelanding
+cd HIV-HealthcareSystem
 ```
 
-2. Install dependencies:
+2. Cài đặt các dependency:
 ```bash
 npm install
 ```
 
-3. Run the development server:
+3. Tạo file môi trường:
+```bash
+cp src/env.sample .env
+```
+
+4. Cập nhật file `.env` với URL API backend:
+```
+VITE_API_URL="https://localhost:7090/api"
+```
+
+5. Chạy môi trường phát triển:
 ```bash
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173`.
+Frontend sẽ khả dụng tại `http://localhost:5175`.
 
-### Backend Setup
+### Cài Đặt Backend
 
-1. Navigate to the backend directory:
+#### AuthApi
+
+1. Đi đến thư mục AuthApi:
 ```bash
-cd SWR302-fe-homelanding/AuthApi
+cd HIV-HealthcareSystem/AuthApi
 ```
 
-2. Restore .NET packages:
+2. Khôi phục các package .NET:
 ```bash
 dotnet restore
 ```
 
-3. Run the API:
+3. Chạy API:
 ```bash
 dotnet run
 ```
 
-The API will be available at:
+AuthApi sẽ khả dụng tại:
 - HTTPS: `https://localhost:7090/api/Auth`
-- HTTP: `http://localhost:5090/api/Auth`
 - Swagger UI: `https://localhost:7090/swagger`
 
-## Features
+#### AppointmentApi
 
-- User registration with validation
-- User login
-- JWT authentication
-- Redux state management
-- Material UI components
-- Form validation
-- Backend .NET API
-- In-memory user storage (for demo purposes)
+1. Đi đến thư mục AppointmentApi:
+```bash
+cd HIV-HealthcareSystem/AppointmentApi
+```
 
-## Authentication Endpoints
+2. Khôi phục các package .NET:
+```bash
+dotnet restore
+```
 
-- POST `/api/Auth/login` - User login
-- POST `/api/Auth/register` - User registration
-- GET `/api/Auth/me` - Get current user info (requires authentication)
+3. Chạy API:
+```bash
+dotnet run
+```
 
-## Demo Account
+AppointmentApi sẽ khả dụng tại:
+- HTTPS: `https://localhost:7091/api`
+- Swagger UI: `https://localhost:7091/swagger`
 
-You can use the following demo account:
-- Email: `demo@example.com`
-- Password: `password`
+### Chạy Toàn Bộ Hệ Thống
 
-# HIV Care Services Frontend
+Để chạy cả frontend và backend cùng một lúc:
 
-A React-based front-end application for HIV Care Services, providing patient tools for medication management, appointment booking, and consultations.
+```bash
+npm run dev:all
+```
 
-## Features
+## Tính Năng
 
-- **Authentication & User Management**
-- **Appointment Booking**
-  - Schedule in-person or telemedicine appointments
-  - View appointment history
-  - Manage upcoming appointments
-- **Medication Reminders**
-  - Set up ARV medication reminders
-  - Track medication adherence
-- **Online Consultations**
-  - Ask questions to healthcare professionals
-  - View consultation history
-  - Get professional medical advice
+### Xác Thực & Quản Lý Người Dùng
+- Đăng ký người dùng với xác thực
+- Đăng nhập người dùng
+- Xác thực JWT
+- Quản lý thông tin cá nhân
 
-## Technologies
+### Đặt Lịch Hẹn
+- Đặt lịch hẹn trực tiếp hoặc qua telemedicine
+- Xem lịch sử lịch hẹn
+- Quản lý lịch hẹn sắp tới
 
+### Nhắc Nhở Thuốc
+- Thiết lập nhắc nhở thuốc ARV
+- Theo dõi việc tuân thủ uống thuốc
+
+### Tư Vấn Trực Tuyến
+- Đặt câu hỏi với chuyên gia y tế
+- Xem lịch sử tư vấn
+- Nhận tư vấn y tế chuyên nghiệp
+
+### Giáo Dục Sức Khỏe
+- Thông tin cơ bản về HIV
+- Hướng dẫn sống khỏe mạnh với HIV
+- Tài liệu giảm kỳ thị
+
+## Công Nghệ Sử Dụng
+
+### Frontend
 - React 18
 - TypeScript
 - Material UI
-- Redux Toolkit for state management
-- Axios for API requests
-- React Router for routing
-- Vite for development and building
+- Redux Toolkit cho quản lý state
+- Axios cho các request API
+- React Router cho routing
+- Vite cho phát triển và build
 
-## Getting Started
+### Backend
+- ASP.NET Core 8.0 Web API
+- Entity Framework Core
+- JWT Authentication
+- PostgreSQL
+- Swagger UI cho API documentation
 
-### Prerequisites
+## API Endpoints
 
-- Node.js 16+ and npm
+### Authentication API
+- POST `/api/Auth/login` - Đăng nhập người dùng
+- POST `/api/Auth/register` - Đăng ký người dùng
+- GET `/api/Auth/me` - Lấy thông tin người dùng hiện tại (yêu cầu xác thực)
 
-### Installation
+### Appointment API
+- GET `/api/appointments/user/{userId}` - Lấy tất cả lịch hẹn của người dùng
+- GET `/api/appointments/user/{userId}/status/{status}` - Lấy lịch hẹn theo trạng thái
+- POST `/api/appointments` - Tạo lịch hẹn mới
+- PUT `/api/appointments/{appointmentId}` - Cập nhật lịch hẹn
+- PUT `/api/appointments/{appointmentId}/cancel` - Hủy lịch hẹn
 
-1. Clone the repository
-   ```bash
-   git clone <repository-url>
-   cd SWR302-fe-homelanding
-   ```
+### Doctors API
+- GET `/api/doctors` - Lấy danh sách bác sĩ
+- GET `/api/doctors/{id}` - Lấy thông tin chi tiết bác sĩ
+- GET `/api/doctors/services/{serviceId}` - Lấy bác sĩ theo dịch vụ
 
-2. Install dependencies
-   ```bash
-   npm install
-   ```
+### Consultation API
+- GET `/api/consultations/patient/{userId}` - Lấy tất cả tư vấn của bệnh nhân
+- GET `/api/consultations/{consultationId}` - Lấy chi tiết tư vấn
+- POST `/api/consultations` - Tạo tư vấn mới
+- PUT `/api/consultations/{consultationId}/answer` - Trả lời tư vấn
 
-3. Create an environment file
-   ```bash
-   cp src/env.sample .env
-   ```
+## Tài Khoản Demo
 
-4. Update the `.env` file with your backend API URL:
-   ```
-   VITE_API_URL="https://localhost:7090/api"
-   ```
+Bạn có thể sử dụng tài khoản demo sau:
+- Email: `demo@example.com`
+- Mật khẩu: `password123`
 
-5. Start the development server
-   ```bash
-   npm run dev
-   ```
+## Giấy Phép
 
-### Building for Production
-
-```bash
-npm run build
-```
-
-The build output will be in the `dist` directory.
-
-## Connecting to the .NET Backend
-
-This frontend is designed to work with a .NET 8.0 Web API backend. The API services are configured in the `src/services` directory.
-
-### API Services
-
-All API interactions are handled through service modules:
-
-- `authService`: User authentication and management
-- `appointmentService`: Appointment booking and management
-- `reminderService`: Medication reminders and appointments
-- `consultationService`: Online consultations with healthcare professionals
-
-See `src/services/README.md` for detailed API documentation.
-
-### Backend Requirements
-
-The .NET backend should implement the following API endpoints:
-
-1. Authentication
-   - POST /api/auth/login
-   - POST /api/auth/register
-   - GET /api/auth/me
-
-2. Appointments
-   - GET /api/appointments/user/{userId}
-   - GET /api/appointments/user/{userId}/status/{status}
-   - POST /api/appointments
-   - PUT /api/appointments/{appointmentId}
-   - PUT /api/appointments/{appointmentId}/cancel
-
-3. Reminders
-   - GET /api/reminders/medications/{userId}
-   - POST /api/reminders/medications
-   - PUT /api/reminders/medications/{reminderId}
-   - DELETE /api/reminders/medications/{reminderId}
-   - GET /api/reminders/appointments/{userId}
-   - POST /api/reminders/appointments
-   - PUT /api/reminders/appointments/{reminderId}
-   - DELETE /api/reminders/appointments/{reminderId}
-
-4. Consultations
-   - GET /api/consultations/patient/{userId}
-   - GET /api/consultations/{consultationId}
-   - POST /api/consultations
-   - PUT /api/consultations/{consultationId}/answer
-
-## License
-
-This project is licensed under the MIT License.
+Dự án này được cấp phép theo giấy phép MIT.

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AuthApi\\AuthApi.csproj": {}
+    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {}
   },
   "projects": {
-    "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AuthApi\\AuthApi.csproj": {
+    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AuthApi\\AuthApi.csproj",
+        "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
         "projectName": "AuthApi",
-        "projectPath": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AuthApi\\AuthApi.csproj",
+        "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\SWR302-fe-homelanding\\SWR302-fe-homelanding\\AuthApi\\obj\\",
+        "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
