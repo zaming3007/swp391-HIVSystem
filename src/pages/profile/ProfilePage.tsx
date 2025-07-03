@@ -153,15 +153,70 @@ const ProfilePage: React.FC = () => {
         setError('');
 
         try {
+            // Chuẩn bị dữ liệu theo đúng format UpdateProfileRequest của API
+            // Loại bỏ email vì backend không mong đợi trường này trong cập nhật profile
+            // Đảm bảo các trường bắt buộc không bao giờ là null/undefined
+            const profileUpdateData = {
+                firstName: formData.firstName || '', // Đảm bảo không bao giờ null/undefined
+                lastName: formData.lastName || '',   // Đảm bảo không bao giờ null/undefined
+                phone: formData.phone || '',
+                gender: formData.gender || '',
+                dateOfBirth: formData.dateOfBirth || ''
+            };
+
+            console.log('Profile update data being sent:', JSON.stringify(profileUpdateData, null, 2));
+
             // Call the API to update the profile
-            const updatedUser = await authService.updateProfile(user?.id || '', formData);
+            const updatedUser = await authService.updateProfile(user?.id || '', profileUpdateData);
 
             // Update Redux store
             dispatch(updateUser(updatedUser));
 
             setSuccess('Thông tin cá nhân đã được cập nhật thành công');
             setEditMode(false);
+
+            // Refresh form data với dữ liệu mới
+            setFormData({
+                firstName: updatedUser.firstName || '',
+                lastName: updatedUser.lastName || '',
+                email: updatedUser.email || '',
+                phone: updatedUser.phone || '',
+                gender: updatedUser.gender || '',
+                dateOfBirth: updatedUser.dateOfBirth || '',
+            });
+
         } catch (err: any) {
+            console.error('Profile update error:', err);
+
+            // Lấy user hiện tại từ localStorage để đảm bảo UI cập nhật
+            const storedUserStr = localStorage.getItem('user');
+            if (storedUserStr) {
+                try {
+                    const storedUser = JSON.parse(storedUserStr);
+
+                    // Cập nhật form data từ localStorage
+                    setFormData({
+                        firstName: storedUser.firstName || '',
+                        lastName: storedUser.lastName || '',
+                        email: storedUser.email || '',
+                        phone: storedUser.phone || '',
+                        gender: storedUser.gender || '',
+                        dateOfBirth: storedUser.dateOfBirth || '',
+                    });
+
+                    // Cập nhật redux store
+                    dispatch(updateUser(storedUser));
+
+                    // Hiển thị thông báo lỗi kèm thông báo đã lưu cục bộ
+                    setError('Không thể cập nhật thông tin lên server nhưng đã lưu cục bộ');
+                    setEditMode(false);
+                    return;
+                } catch (e) {
+                    console.error('Error parsing stored user:', e);
+                }
+            }
+
+            // Nếu không thể cập nhật từ localStorage, hiển thị lỗi thông thường
             setError(err.message || 'Có lỗi xảy ra khi cập nhật thông tin');
         } finally {
             setSaving(false);
@@ -188,7 +243,7 @@ const ProfilePage: React.FC = () => {
         setPassword({ ...password, [name]: value });
     };
 
-    const handleChangePassword = () => {
+    const handleChangePassword = async () => {
         // Validate passwords
         if (!password.current || !password.new || !password.confirm) {
             setPasswordError('Vui lòng điền đầy đủ thông tin');
@@ -208,18 +263,36 @@ const ProfilePage: React.FC = () => {
         setPasswordError('');
         setPasswordSuccess('');
 
-        // Simulate API call
-        setTimeout(() => {
-            try {
-                // In a real app, we would send this data to an API
-                setPasswordSuccess('Mật khẩu đã được thay đổi thành công');
-                setTimeout(() => {
-                    handleClosePasswordDialog();
-                }, 1500);
-            } catch (err) {
-                setPasswordError('Có lỗi xảy ra khi thay đổi mật khẩu');
+        try {
+            // Gọi API để thay đổi mật khẩu
+            const userId = user?.id;
+            if (!userId) {
+                throw new Error('Không tìm thấy thông tin người dùng');
             }
-        }, 1000);
+
+            const response = await authService.changePassword(userId, {
+                currentPassword: password.current,
+                newPassword: password.new,
+                confirmPassword: password.confirm
+            });
+
+            // Hiển thị thông báo thành công
+            setPasswordSuccess(response.message || 'Mật khẩu đã được thay đổi thành công');
+
+            // Đóng dialog sau 1.5 giây
+            setTimeout(() => {
+                handleClosePasswordDialog();
+                // Reset password state
+                setPassword({
+                    current: '',
+                    new: '',
+                    confirm: '',
+                });
+            }, 1500);
+        } catch (err: any) {
+            // Hiển thị thông báo lỗi
+            setPasswordError(err.message || 'Có lỗi xảy ra khi thay đổi mật khẩu');
+        }
     };
 
     return (

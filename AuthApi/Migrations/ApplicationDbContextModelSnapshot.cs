@@ -505,6 +505,101 @@ namespace AuthApi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AuthApi.Models.Reminder", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AppointmentId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("DoctorId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("doctor_id");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("dosage");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_read");
+
+                    b.Property<DateTime?>("LastNotificationSent")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_notification_sent");
+
+                    b.Property<string>("MedicationName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("medication_name");
+
+                    b.Property<string>("Recurrence")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("recurrence");
+
+                    b.Property<string>("RecurrenceDays")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("recurrence_days");
+
+                    b.Property<string>("ReminderType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("reminder_type");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
+
+                    b.Property<TimeSpan>("Time")
+                        .HasColumnType("interval")
+                        .HasColumnName("time");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reminders", (string)null);
+                });
+
             modelBuilder.Entity("AuthApi.Models.Service", b =>
                 {
                     b.Property<string>("Id")
@@ -731,7 +826,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "1",
-                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(794),
+                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 629, DateTimeKind.Utc).AddTicks(8310),
                             DateOfBirth = "1990-01-01",
                             Email = "admin@example.com",
                             FirstName = "Admin",
@@ -745,7 +840,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "2",
-                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(2793),
+                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 630, DateTimeKind.Utc).AddTicks(100),
                             DateOfBirth = "1985-05-15",
                             Email = "doctor@example.com",
                             FirstName = "Doctor",
@@ -759,7 +854,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "3",
-                            CreatedAt = new DateTime(2025, 6, 29, 5, 49, 5, 160, DateTimeKind.Utc).AddTicks(2799),
+                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 630, DateTimeKind.Utc).AddTicks(105),
                             DateOfBirth = "1992-10-20",
                             Email = "staff@example.com",
                             FirstName = "Staff",
@@ -844,6 +939,17 @@ namespace AuthApi.Migrations
                 });
 
             modelBuilder.Entity("AuthApi.Models.MedicationReminder", b =>
+                {
+                    b.HasOne("AuthApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.Reminder", b =>
                 {
                     b.HasOne("AuthApi.Models.User", "User")
                         .WithMany()

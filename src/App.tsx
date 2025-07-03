@@ -27,6 +27,9 @@ import MyAppointmentsPage from './pages/appointment/MyAppointmentsPage';
 import ReminderPage from './pages/reminder/ReminderPage';
 import ConsultationPage from './pages/consultation/ConsultationPage';
 import ConsultationQAPage from './pages/consultation/ConsultationQAPage';
+import BasicHivInfoPage from './pages/education/BasicHivInfoPage';
+import LivingWithHivPage from './pages/education/LivingWithHivPage';
+import StigmaReductionPage from './pages/education/StigmaReductionPage';
 
 
 import AuthGuard from './components/auth/AuthGuard';
@@ -65,8 +68,35 @@ const RoleGuard: React.FC<RoleGuardProps> = ({
   return <>{children}</>;
 };
 
+class ErrorBoundary extends Component<{ children: ReactNode }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div>
+          <h2>Đã xảy ra lỗi.</h2>
+          <button onClick={() => this.setState({ hasError: false })}>
+            Thử lại
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const AppRoutes: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth as AuthState);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   return (
     <Routes>
@@ -78,13 +108,21 @@ const AppRoutes: React.FC = () => {
         <Route path="contact" element={<ContactPage />} />
         <Route path="appointment" element={<AppointmentPage />} />
         <Route path="appointment/my-appointments" element={<MyAppointmentsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="consultation" element={<ConsultationPage />} />
+        <Route path="consultation/:id" element={<ConsultationQAPage />} />
 
         <Route path="education">
-          <Route path="basic-hiv-info" element={<div>Thông tin cơ bản về HIV/AIDS</div>} />
-          <Route path="living-with-hiv" element={<div>Sống khỏe với HIV</div>} />
-          <Route path="stigma-reduction" element={<div>Giảm kỳ thị trong cộng đồng</div>} />
+          <Route path="basic-hiv-info" element={<BasicHivInfoPage />} />
+          <Route path="living-with-hiv" element={<LivingWithHivPage />} />
+          <Route path="stigma-reduction" element={<StigmaReductionPage />} />
         </Route>
         <Route path="blog" element={<div>Blog chia sẻ kinh nghiệm</div>} />
+      </Route>
+
+      {/* Protected Route for Reminder */}
+      <Route element={<AuthGuard />}>
+        <Route path="/reminder" element={<ReminderPage />} />
       </Route>
 
       <Route path="/auth" element={<AuthLayout />}>
@@ -116,7 +154,6 @@ const AppRoutes: React.FC = () => {
           </RoleGuard>
         }>
           <Route index element={<DashboardPage />} />
-          <Route path="users" element={<div>Quản lý người dùng</div>} />
           <Route path="appointments" element={<div>Quản lý lịch hẹn</div>} />
           <Route path="consultations" element={<div>Quản lý tư vấn trực tuyến</div>} />
           <Route path="services" element={<div>Quản lý dịch vụ</div>} />
@@ -146,8 +183,6 @@ const AppRoutes: React.FC = () => {
         }>
           <Route index element={<div>Dashboard Nhân viên</div>} />
           <Route path="patients" element={<div>Danh sách bệnh nhân</div>} />
-          <Route path="check-in" element={<div>Hỗ trợ check-in</div>} />
-          <Route path="appointments" element={<div>Lịch hẹn trong ngày</div>} />
         </Route>
       </Route>
 
@@ -156,62 +191,21 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-// Error Boundary để bắt các lỗi rendering
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
-}
-
-class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
-  state: ErrorBoundaryState = {
-    hasError: false,
-    error: null,
-    errorInfo: null
-  };
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught by ErrorBoundary:", error, errorInfo);
-    this.setState({ errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
-          <h1>Đã xảy ra lỗi</h1>
-          <p style={{ color: 'red' }}>{this.state.error?.message}</p>
-          <details style={{ whiteSpace: 'pre-wrap', marginTop: 20 }}>
-            <summary>Chi tiết lỗi</summary>
-            {this.state.errorInfo?.componentStack}
-          </details>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
 function App() {
+  useEffect(() => {
+    document.title = 'HIV Healthcare System';
+  }, []);
+
   return (
     <ErrorBoundary>
       <Provider store={store}>
         <ThemeProvider theme={theme}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <CssBaseline />
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              aria-label="Toast notifications"
-            />
             <Router>
               <AppRoutes />
             </Router>
+            <ToastContainer position="top-right" autoClose={5000} aria-label="Toast notifications" />
           </LocalizationProvider>
         </ThemeProvider>
       </Provider>

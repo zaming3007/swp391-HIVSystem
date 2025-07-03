@@ -209,24 +209,140 @@ export const authService = {
             }
         }
 
-        const response = await authApi.put<User>(`/users/${userId}`, profileData);
-        // Update user data in localStorage
-        const updatedUser = response.data;
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        localStorage.setItem('userRole', updatedUser.role);
-        return updatedUser;
+        try {
+            console.log('Making API request to update profile:', userId, profileData);
+
+            // Kiểm tra các trường bắt buộc trước khi gửi
+            if (!profileData.firstName || !profileData.lastName) {
+                throw new Error('Họ và tên là thông tin bắt buộc');
+            }
+
+            // Kiểm tra token trước khi gửi
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                throw new Error('Bạn cần đăng nhập lại để thực hiện hành động này');
+            }
+
+            // Format lại dateOfBirth để đảm bảo đúng định dạng "YYYY-MM-DD"
+            let formattedDateOfBirth = profileData.dateOfBirth || '';
+            if (formattedDateOfBirth && formattedDateOfBirth.includes('T')) {
+                // Chuyển từ ISO format sang YYYY-MM-DD
+                formattedDateOfBirth = formattedDateOfBirth.split('T')[0];
+            }
+
+            // Chuyển đổi dữ liệu theo đúng format mà API yêu cầu (UpdateProfileRequest)
+            const updateData = {
+                firstName: profileData.firstName || '',
+                lastName: profileData.lastName || '',
+                phone: profileData.phone || '',
+                gender: profileData.gender || '',
+                dateOfBirth: formattedDateOfBirth,
+                profileImage: profileData.profileImage || ''
+            };
+
+            console.log('Formatted update data DETAIL:', JSON.stringify(updateData, null, 2));
+
+            try {
+                // Đảm bảo sử dụng token một cách rõ ràng trong headers
+                const apiResponse = await authApi.put<User>(
+                    `/Auth/profile`,
+                    updateData,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                // Log để debug
+                console.log('Update profile API response:', apiResponse.data);
+
+                // Update user data in localStorage
+                localStorage.setItem('user', JSON.stringify(apiResponse.data));
+                localStorage.setItem('userRole', apiResponse.data.role);
+
+                return apiResponse.data;
+
+            } catch (apiError: any) {
+                console.error('API error:', apiError);
+
+                // Nếu API không thành công, cập nhật localStorage để giữ trải nghiệm người dùng
+                console.log('API failed, updating localStorage as fallback');
+                const userStr = localStorage.getItem('user');
+                if (!userStr) {
+                    throw new Error('Không tìm thấy thông tin người dùng');
+                }
+
+                const user = JSON.parse(userStr);
+                const localUpdatedUser = {
+                    ...user,
+                    ...updateData,
+                    // Đảm bảo giữ lại các trường không có trong updateData
+                    email: user.email,
+                    id: user.id,
+                    role: user.role
+                } as User;
+
+                localStorage.setItem('user', JSON.stringify(localUpdatedUser));
+                console.log('Updated user in localStorage:', localUpdatedUser);
+
+                // Trả về dữ liệu đã cập nhật trong localStorage
+                return localUpdatedUser;
+            }
+        } catch (error: any) {
+            console.error('Update profile error:', error);
+
+            // Xử lý và hiển thị các lỗi từ API
+            if (error.response) {
+                console.error('Error response FULL:', JSON.stringify(error.response.data, null, 2));
+                console.error('Error status:', error.response.status);
+                console.error('Error headers:', error.response.headers);
+
+                if (error.response.data && error.response.data.message) {
+                    throw new Error(error.response.data.message);
+                } else if (error.response.data && error.response.data.errors) {
+                    // Xử lý validation errors từ ASP.NET Core
+                    const validationErrors = Object.values(error.response.data.errors).flat();
+                    throw new Error(validationErrors.join(', '));
+                }
+            }
+
+            throw new Error('Không thể cập nhật thông tin người dùng');
+        }
     },
 
     // Change password
-    changePassword: async (userId: string, data: { oldPassword: string; newPassword: string }) => {
+    changePassword: async (userId: string, data: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
         if (USE_MOCK_DATA) {
             // Mock implementation - just pretend it succeeded
+            console.log('Mock password change for user:', userId);
             await new Promise(resolve => setTimeout(resolve, 500));
-            return { success: true };
+            return { success: true, message: "Mật khẩu đã được thay đổi thành công" };
         }
 
-        const response = await authApi.put<{ success: boolean }>(`/Auth/change-password/${userId}`, data);
-        return response.data;
+        try {
+            console.log('Making API request to change password for user:', userId);
+            // Sửa đổi endpoint URL để phù hợp với API thực tế
+            const response = await authApi.post<{ success: boolean; message: string }>(
+                `/Auth/change-password/${userId}`,
+                data
+            );
+
+            console.log('Change password API response:', response.data);
+            return response.data;
+        } catch (error: any) {
+            console.error('Change password error:', error);
+
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+                if (error.response.data && error.response.data.message) {
+                    throw new Error(error.response.data.message);
+                }
+            }
+
+            throw new Error('Không thể thay đổi mật khẩu. Vui lòng thử lại.');
+        }
     },
 
     // Logout

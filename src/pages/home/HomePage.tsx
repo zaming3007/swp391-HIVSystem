@@ -68,7 +68,7 @@ const HomePage: React.FC = () => {
                         <Box sx={{ flex: 1 }}>
                             <Box
                                 component="img"
-                                src="/diverse-group.jpg"
+                                src="/homepageImage.jpg"
                                 alt="Nhóm người đa dạng"
                                 sx={{
                                     width: '100%',

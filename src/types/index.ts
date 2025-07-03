@@ -130,6 +130,7 @@ export interface MedicalRecord {
 
 // Re-export các types từ app
 export * from './appointment.d';
+export * from './reminder.d';
 
 // Các loại khác sẽ được export thêm sau này
 export interface UserInfo {
@@ -139,6 +140,10 @@ export interface UserInfo {
     firstName?: string;
     lastName?: string;
     role?: string;
+    phone?: string;
+    gender?: string;
+    dateOfBirth?: string;
+    profileImage?: string;
 }
 
 // Redux store state

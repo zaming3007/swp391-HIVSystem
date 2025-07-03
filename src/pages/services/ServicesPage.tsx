@@ -99,10 +99,10 @@ const ServicesPage: React.FC = () => {
     return (
         <Container maxWidth="lg" sx={{ py: 6 }}>
             <Typography variant="h3" component="h1" gutterBottom>
-                Dịch Vụ Điều Trị & Chăm Sóc HIV
+                Dịch Vụ Y Tế Toàn Diện
             </Typography>
             <Typography variant="subtitle1" paragraph>
-                Chúng tôi cung cấp các dịch vụ y tế toàn diện cho việc phòng ngừa, xét nghiệm, điều trị và chăm sóc HIV nhằm nâng cao chất lượng cuộc sống cho người nhiễm HIV và ngăn ngừa lây truyền trong cộng đồng.
+                Chúng tôi cung cấp các dịch vụ y tế toàn diện bao gồm phòng ngừa, tư vấn, xét nghiệm, điều trị và chăm sóc sức khỏe để nâng cao chất lượng cuộc sống cho tất cả mọi người trong cộng đồng.
             </Typography>
 
             {/* Search bar */}
@@ -133,10 +133,10 @@ const ServicesPage: React.FC = () => {
                     scrollButtons="auto"
                 >
                     <Tab label="Tất Cả Dịch Vụ" {...a11yProps(0)} />
-                    <Tab label="Xét Nghiệm HIV" {...a11yProps(1)} />
-                    <Tab label="Điều Trị HIV" {...a11yProps(2)} />
-                    <Tab label="Chăm Sóc HIV" {...a11yProps(3)} />
-                    <Tab label="Dự Phòng HIV" {...a11yProps(4)} />
+                    <Tab label="Sức Khỏe Tổng Quát" {...a11yProps(1)} />
+                    <Tab label="Tư Vấn Điều Trị" {...a11yProps(2)} />
+                    <Tab label="Chăm Sóc Sức Khỏe" {...a11yProps(3)} />
+                    <Tab label="Dịch Vụ Dự Phòng" {...a11yProps(4)} />
                     <Tab label="Sức Khỏe Tâm Thần" {...a11yProps(5)} />
                 </Tabs>
             </Box>
@@ -160,14 +160,14 @@ const ServicesPage: React.FC = () => {
             {/* HIV Testing Tab */}
             <TabPanel value={tabValue} index={1}>
                 <Grid container spacing={4}>
-                    {filterByCategory('hiv-testing').map((service) => (
+                    {filterByCategory('general-health').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('hiv-testing').length === 0 && (
+                    {filterByCategory('general-health').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ xét nghiệm HIV nào phù hợp với "{searchTerm}"</Typography>
+                            <Typography variant="h6">Không tìm thấy dịch vụ sức khỏe tổng quát nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
@@ -176,14 +176,14 @@ const ServicesPage: React.FC = () => {
             {/* HIV Treatment Tab */}
             <TabPanel value={tabValue} index={2}>
                 <Grid container spacing={4}>
-                    {filterByCategory('hiv-treatment').map((service) => (
+                    {filterByCategory('treatment-counseling').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('hiv-treatment').length === 0 && (
+                    {filterByCategory('treatment-counseling').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ điều trị HIV nào phù hợp với "{searchTerm}"</Typography>
+                            <Typography variant="h6">Không tìm thấy dịch vụ tư vấn điều trị nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
@@ -192,14 +192,14 @@ const ServicesPage: React.FC = () => {
             {/* HIV Care Tab */}
             <TabPanel value={tabValue} index={3}>
                 <Grid container spacing={4}>
-                    {filterByCategory('hiv-care').map((service) => (
+                    {filterByCategory('healthcare').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('hiv-care').length === 0 && (
+                    {filterByCategory('healthcare').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ chăm sóc HIV nào phù hợp với "{searchTerm}"</Typography>
+                            <Typography variant="h6">Không tìm thấy dịch vụ chăm sóc sức khỏe nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
@@ -208,14 +208,14 @@ const ServicesPage: React.FC = () => {
             {/* HIV Prevention Tab */}
             <TabPanel value={tabValue} index={4}>
                 <Grid container spacing={4}>
-                    {filterByCategory('hiv-prevention').map((service) => (
+                    {filterByCategory('prevention').map((service) => (
                         <Grid item xs={12} sm={6} md={4} key={service.id}>
                             <ServiceCard service={service} />
                         </Grid>
                     ))}
-                    {filterByCategory('hiv-prevention').length === 0 && (
+                    {filterByCategory('prevention').length === 0 && (
                         <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
-                            <Typography variant="h6">Không tìm thấy dịch vụ dự phòng HIV nào phù hợp với "{searchTerm}"</Typography>
+                            <Typography variant="h6">Không tìm thấy dịch vụ dự phòng nào phù hợp với "{searchTerm}"</Typography>
                         </Box>
                     )}
                 </Grid>
@@ -273,16 +273,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
                 <Box>
                     <Box sx={{ mb: 1 }}>
                         <Chip
-                            label={service.category === 'hiv-testing' ? 'Xét nghiệm HIV' :
-                                service.category === 'hiv-treatment' ? 'Điều trị HIV' :
-                                    service.category === 'hiv-care' ? 'Chăm sóc HIV' :
-                                        service.category === 'hiv-prevention' ? 'Dự phòng HIV' :
-                                            service.category === 'mental-health' ? 'Sức khỏe tâm thần' : 'Khác'}
+                            label={service.category === 'general-health' ? 'Sức Khỏe Tổng Quát' :
+                                service.category === 'treatment-counseling' ? 'Tư Vấn Điều Trị' :
+                                    service.category === 'healthcare' ? 'Chăm Sóc Sức Khỏe' :
+                                        service.category === 'prevention' ? 'Dịch Vụ Dự Phòng' :
+                                            service.category === 'mental-health' ? 'Sức Khỏe Tâm Thần' : 'Khác'}
                             color={
-                                service.category === 'hiv-testing' ? 'info' :
-                                    service.category === 'hiv-treatment' ? 'primary' :
-                                        service.category === 'hiv-care' ? 'success' :
-                                            service.category === 'hiv-prevention' ? 'secondary' :
+                                service.category === 'general-health' ? 'info' :
+                                    service.category === 'treatment-counseling' ? 'primary' :
+                                        service.category === 'healthcare' ? 'success' :
+                                            service.category === 'prevention' ? 'secondary' :
                                                 service.category === 'mental-health' ? 'warning' : 'default'
                             }
                             size="small"
@@ -340,84 +340,84 @@ interface Service {
 const services: Service[] = [
     {
         id: '1',
-        name: 'Tư Vấn Liệu Pháp Hormone',
-        description: 'Tư vấn ban đầu hoặc theo dõi cho liệu pháp hormone.',
-        category: 'Gender-Affirming',
+        name: 'Khám Sức Khỏe Tổng Quát',
+        description: 'Dịch vụ khám sức khỏe toàn diện với các bác sĩ chuyên môn cao, giúp phát hiện sớm các vấn đề sức khỏe tiềm ẩn.',
+        category: 'general-health',
         price: 150,
         duration: 60,
-        image: '/dv1.jpg',
+        image: '/primaryhealthy.png',
     },
     {
         id: '2',
-        name: 'Trị Liệu Giới Tính',
-        description: 'Buổi trị liệu một-một tập trung vào bản dạng giới và quá trình chuyển đổi.',
-        category: 'Mental Health',
+        name: 'Tư Vấn Tâm Lý Chuyên Sâu',
+        description: 'Dịch vụ tư vấn tâm lý cá nhân với các chuyên gia tâm lý giàu kinh nghiệm, giúp cải thiện sức khỏe tinh thần.',
+        category: 'mental-health',
         price: 120,
         duration: 50,
-        image: '/dv2.jpg',
+        image: '/mental.png',
     },
     {
         id: '3',
-        name: 'Trị Liệu Giọng Nói và Giao Tiếp',
-        description: 'Trị liệu làm nữ hóa hoặc nam hóa giọng nói với chuyên gia ngôn ngữ trị liệu.',
-        category: 'Gender-Affirming',
+        name: 'Tư Vấn Dinh Dưỡng & Lối Sống',
+        description: 'Tư vấn về chế độ dinh dưỡng và lối sống lành mạnh, phù hợp với tình trạng sức khỏe cá nhân.',
+        category: 'healthcare',
         price: 100,
         duration: 45,
-        image: '/dv3.jpg',
+        image: '/counseling.svg',
     },
     {
         id: '4',
-        name: 'Khám Sức Khỏe Tổng Quát Hàng Năm',
-        description: 'Kiểm tra sức khỏe tổng quát hàng năm với đội ngũ y tế có hiểu biết về đa dạng giới.',
-        category: 'Primary Care',
+        name: 'Dịch Vụ Xét Nghiệm Tổng Quát',
+        description: 'Các xét nghiệm toàn diện giúp đánh giá tình trạng sức khỏe và phát hiện sớm các vấn đề tiềm ẩn.',
+        category: 'general-health',
         price: 200,
         duration: 60,
-        image: '/dv4.jpg',
+        image: '/homepageImage.jpg',
     },
     {
         id: '5',
-        name: 'Tư Vấn Tiền Phẫu Thuật',
-        description: 'Tư vấn và chuẩn bị cho các thủ thuật phẫu thuật khẳng định giới tính.',
-        category: 'Gender-Affirming',
+        name: 'Tư Vấn Liệu Pháp Hormone',
+        description: 'Tư vấn chuyên sâu về liệu pháp hormone, phù hợp với nhu cầu cá nhân và tình trạng sức khỏe.',
+        category: 'treatment-counseling',
         price: 180,
         duration: 90,
-        image: '/dv5.jpg',
+        image: '/genderaff.png',
     },
     {
         id: '6',
-        name: 'Tư Vấn Tâm Lý Cá Nhân',
-        description: 'Tư vấn sức khỏe tâm thần tổng quát với các nhà trị liệu chuyên về giới tính.',
-        category: 'Mental Health',
-        price: 110,
-        duration: 50,
-        image: '/dv6.jpg',
+        name: 'Liệu Pháp Tâm Lý Nhóm',
+        description: 'Các buổi trị liệu tâm lý theo nhóm, giúp chia sẻ kinh nghiệm và hỗ trợ lẫn nhau.',
+        category: 'mental-health',
+        price: 80,
+        duration: 120,
+        image: '/service-1.svg',
     },
     {
         id: '7',
-        name: 'Tư Vấn Sức Khỏe Tình Dục',
-        description: 'Tư vấn bảo mật tập trung vào nhu cầu sức khỏe tình dục.',
-        category: 'Primary Care',
+        name: 'Tư Vấn Sức Khỏe Sinh Sản',
+        description: 'Dịch vụ tư vấn về sức khỏe sinh sản, kế hoạch hóa gia đình và các vấn đề liên quan.',
+        category: 'healthcare',
         price: 130,
         duration: 45,
-        image: '/dv7.jpg',
+        image: '/service-2.svg',
     },
     {
         id: '8',
-        name: 'Buổi Nhóm Hỗ Trợ',
-        description: 'Trị liệu nhóm và hỗ trợ cho các cá nhân đa dạng giới.',
-        category: 'Mental Health',
-        price: 40,
-        duration: 120,
-        image: '/dv8.jpg',
+        name: 'Dịch Vụ Tiêm Phòng Vaccine',
+        description: 'Tiêm chủng và tư vấn về các loại vaccine cần thiết để phòng ngừa bệnh tật.',
+        category: 'prevention',
+        price: 60,
+        duration: 30,
+        image: '/service-3.svg',
     },
     {
         id: '9',
-        name: 'Chăm Sóc Sau Chuyển Đổi',
-        description: 'Dịch vụ chăm sóc sức khỏe liên tục cho cá nhân sau quá trình chuyển đổi.',
-        category: 'Gender-Affirming',
+        name: 'Theo Dõi & Quản Lý Bệnh Mãn Tính',
+        description: 'Dịch vụ theo dõi và quản lý các bệnh mãn tính, giúp kiểm soát tốt tình trạng sức khỏe.',
+        category: 'treatment-counseling',
         price: 120,
         duration: 45,
-        image: '/dv9.jpg',
+        image: '/hormone-therapy.svg',
     },
 ];
 

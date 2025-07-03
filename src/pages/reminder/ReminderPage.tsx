@@ -25,7 +25,13 @@ import {
     FormControlLabel,
     Switch,
     CircularProgress,
-    Alert
+    Alert,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Chip,
+    FormGroup
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -43,6 +49,10 @@ import {
 import { vi } from 'date-fns/locale';
 import { format, parse } from 'date-fns';
 import { reminderService, MedicationReminder, AppointmentReminder, ARVRegimen } from '../../services/reminderService';
+import { useTheme } from '@mui/material/styles';
+import { useSelector } from 'react-redux';
+import { AppState } from '../../store';
+import { RecurrenceOption } from '../../types';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -77,7 +87,25 @@ function a11yProps(index: number) {
     };
 }
 
+const RECURRENCE_OPTIONS: RecurrenceOption[] = [
+    { value: 'none', label: 'Không lặp lại' },
+    { value: 'daily', label: 'Hàng ngày' },
+    { value: 'weekly', label: 'Hàng tuần' },
+    { value: 'monthly', label: 'Hàng tháng' }
+];
+
+const WEEKDAYS = [
+    { value: 0, label: 'CN' },
+    { value: 1, label: 'T2' },
+    { value: 2, label: 'T3' },
+    { value: 3, label: 'T4' },
+    { value: 4, label: 'T5' },
+    { value: 5, label: 'T6' },
+    { value: 6, label: 'T7' }
+];
+
 const ReminderPage: React.FC = () => {
+    const theme = useTheme();
     const [tabValue, setTabValue] = useState(0);
     const [medicationReminders, setMedicationReminders] = useState<MedicationReminder[]>([]);
     const [appointments, setAppointments] = useState<AppointmentReminder[]>([]);

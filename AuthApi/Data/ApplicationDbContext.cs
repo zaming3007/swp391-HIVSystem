@@ -19,6 +19,7 @@ namespace AuthApi.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<DoctorService> DoctorServices { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Reminder> Reminders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +35,7 @@ namespace AuthApi.Data
             modelBuilder.Entity<Service>().ToTable("Services");
             modelBuilder.Entity<DoctorService>().ToTable("DoctorServices");
             modelBuilder.Entity<Appointment>().ToTable("Appointments");
+            modelBuilder.Entity<Reminder>().ToTable("Reminders");
 
             // Cấu hình các ràng buộc và mối quan hệ
             modelBuilder.Entity<User>()
@@ -89,6 +91,13 @@ namespace AuthApi.Data
                 .WithMany(s => s.Appointments)
                 .HasForeignKey(a => a.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            // Thiết lập khóa ngoại
+            modelBuilder.Entity<Reminder>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             // Seed dữ liệu mẫu
             SeedData(modelBuilder);

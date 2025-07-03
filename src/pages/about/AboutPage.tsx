@@ -35,7 +35,7 @@ const AboutPage: React.FC = () => {
                 <Grid item xs={12} md={6}>
                     <Box
                         component="img"
-                        src="/diverse-group.jpg"
+                        src="/homepageImage.jpg"
                         alt="Nhóm chuyên gia y tế đa dạng"
                         sx={{
                             width: '100%',

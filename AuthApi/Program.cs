@@ -52,6 +52,8 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+// Uncomment line below when ReminderService is implemented
+// builder.Services.AddScoped<IReminderService, ReminderService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -103,7 +105,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => 
+    {
+        if (c != null) // Thêm kiểm tra null
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "AuthApi v1");
+        }
+    });
 }
 
 // Apply migrations and seed data at startup

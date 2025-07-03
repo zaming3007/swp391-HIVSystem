@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
         >
             <Container maxWidth="sm">
                 <Typography variant="body1" align="center">
-                    © {new Date().getFullYear()} Gender Healthcare - Group 7 - SWR302
+                    © {new Date().getFullYear()} HIV Treatment and Medical Services System - SE1856
                 </Typography>
             </Container>
         </Box>

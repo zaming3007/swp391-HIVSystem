@@ -22,7 +22,6 @@ import {
     ListItemIcon
 } from '@mui/material';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import icongender from '../../images/icongender.png';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -71,10 +70,10 @@ const Header: React.FC = () => {
 
     // Menu thêm để tiết kiệm không gian
     const moreMenuItems = [
-        { name: 'Nhắc nhở thuốc', path: '/app/reminder' },
+        { name: 'Đội ngũ y tế', path: '/team', hasSubmenu: false },
+        { name: 'Liên hệ', path: '/contact' },
         { name: 'Tư vấn trực tuyến', path: '/app/consultations' },
-        { name: 'Kết quả xét nghiệm', path: '/app/test-results' },
-        { name: 'Đội ngũ y tế', path: '/team', hasSubmenu: true }
+        { name: 'Kết quả xét nghiệm', path: '/app/test-results' }
     ];
 
     // Kiểm tra đường dẫn hiện tại để xác định nút nào đang được active
@@ -207,7 +206,7 @@ const Header: React.FC = () => {
                             sx={{ display: 'flex', alignItems: 'center', p: 0 }}
                         >
                             <img
-                                src={icongender}
+                                src="/hivicon.png"
                                 alt="Biểu tượng Trung tâm Y tế"
                                 style={{ width: '2em', height: '2em', marginRight: '10px' }}
                             />
@@ -237,6 +236,26 @@ const Header: React.FC = () => {
                             }}
                         >
                             Trang chủ
+                        </Button>
+
+                        {/* Đặt lịch hẹn */}
+                        <Button
+                            component={RouterLink}
+                            to="/appointment"
+                            sx={{
+                                color: isActive('/appointment') ? 'primary.main' : 'text.secondary',
+                                fontWeight: isActive('/appointment') ? 'bold' : 'normal',
+                                borderBottom: isActive('/appointment') ? '2px solid' : 'none',
+                                borderRadius: 0,
+                                '&:hover': {
+                                    backgroundColor: 'transparent',
+                                    color: 'primary.main',
+                                },
+                                fontSize: '0.85rem',
+                                px: 1
+                            }}
+                        >
+                            Đặt lịch hẹn
                         </Button>
 
                         {/* Nút Dịch vụ với dropdown */}
@@ -363,14 +382,14 @@ const Header: React.FC = () => {
                             )}
                         </Popper>
 
-                        {/* Đặt lịch hẹn */}
+                        {/* Về chúng tôi */}
                         <Button
                             component={RouterLink}
-                            to="/app/appointments"
+                            to="/about"
                             sx={{
-                                color: isActive('/app/appointments') ? 'primary.main' : 'text.secondary',
-                                fontWeight: isActive('/app/appointments') ? 'bold' : 'normal',
-                                borderBottom: isActive('/app/appointments') ? '2px solid' : 'none',
+                                color: isActive('/about') ? 'primary.main' : 'text.secondary',
+                                fontWeight: isActive('/about') ? 'bold' : 'normal',
+                                borderBottom: isActive('/about') ? '2px solid' : 'none',
                                 borderRadius: 0,
                                 '&:hover': {
                                     backgroundColor: 'transparent',
@@ -380,7 +399,7 @@ const Header: React.FC = () => {
                                 px: 1
                             }}
                         >
-                            Đặt lịch hẹn
+                            Về chúng tôi
                         </Button>
 
                         {/* Menu thêm */}
@@ -418,24 +437,14 @@ const Header: React.FC = () => {
                             }}
                         >
                             {moreMenuItems.map((item) =>
-                                item.hasSubmenu ? (
-                                    <MenuItem
-                                        key={item.name}
-                                        onClick={handleTeamMenuToggle}
-                                    >
-                                        {item.name}
-                                        <KeyboardArrowDownIcon sx={{ ml: 1 }} />
-                                    </MenuItem>
-                                ) : (
-                                    <MenuItem
-                                        key={item.name}
-                                        component={RouterLink}
-                                        to={item.path}
-                                        onClick={handleMoreMenuClose}
-                                    >
-                                        {item.name}
-                                    </MenuItem>
-                                )
+                                <MenuItem
+                                    key={item.name}
+                                    component={RouterLink}
+                                    to={item.path}
+                                    onClick={handleMoreMenuClose}
+                                >
+                                    {item.name}
+                                </MenuItem>
                             )}
                         </Menu>
 
@@ -513,19 +522,28 @@ const Header: React.FC = () => {
                         <ListItem component={RouterLink} to="/">
                             <ListItemText primary="Trang chủ" />
                         </ListItem>
+                        <ListItem component={RouterLink} to="/appointment">
+                            <ListItemText primary="Đặt lịch hẹn" />
+                        </ListItem>
                         <ListItem component={RouterLink} to="/services">
                             <ListItemText primary="Dịch vụ" />
                         </ListItem>
                         <ListItem component={RouterLink} to="/education/basic-hiv-info">
                             <ListItemText primary="Tài liệu" />
                         </ListItem>
+                        <ListItem component={RouterLink} to="/team">
+                            <ListItemText primary="Đội ngũ y tế" />
+                        </ListItem>
+                        <ListItem component={RouterLink} to="/contact">
+                            <ListItemText primary="Liên hệ" />
+                        </ListItem>
+                        <ListItem component={RouterLink} to="/about">
+                            <ListItemText primary="Về chúng tôi" />
+                        </ListItem>
 
                         {/* Conditional Menu Items based on role */}
                         {user?.role === 'customer' && (
                             <>
-                                <ListItem component={RouterLink} to="/app/appointments">
-                                    <ListItemText primary="Đặt lịch hẹn" />
-                                </ListItem>
                                 <ListItem component={RouterLink} to="/app/reminder">
                                     <ListItemText primary="Nhắc nhở thuốc" />
                                 </ListItem>
@@ -579,10 +597,6 @@ const Header: React.FC = () => {
                                 </ListItem>
                             </>
                         )}
-
-                        <ListItem component={RouterLink} to="/team">
-                            <ListItemText primary="Đội ngũ y tế" />
-                        </ListItem>
                     </List>
                 </Box>
             </Drawer>

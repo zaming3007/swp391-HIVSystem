@@ -72,14 +72,14 @@ namespace AppointmentApi.Controllers
         public async Task<ActionResult<ApiResponse<List<Doctor>>>> GetByServiceId(string serviceId)
         {
             try
-            {
-                var doctors = await _doctorService.GetDoctorsByServiceIdAsync(serviceId);
-                return new ApiResponse<List<Doctor>> 
-                { 
-                    Success = true, 
-                    Message = $"Lấy danh sách bác sĩ có thể thực hiện dịch vụ {serviceId} thành công", 
-                    Data = doctors 
-                };
+        {
+            var doctors = await _doctorService.GetDoctorsByServiceIdAsync(serviceId);
+            return new ApiResponse<List<Doctor>> 
+            { 
+                Success = true, 
+                Message = $"Lấy danh sách bác sĩ có thể thực hiện dịch vụ {serviceId} thành công", 
+                Data = doctors 
+            };
             }
             catch (Exception ex)
             {
