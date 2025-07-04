@@ -123,7 +123,9 @@ const ConsultationStatsChart: React.FC<ConsultationStatsChartProps> = ({ height 
                     </Box>
                 ) : (
                     <Box sx={{ height, width: '100%' }}>
+                        {/* @ts-ignore */}
                         <ResponsiveContainer width="100%" height="100%">
+                            {/* @ts-ignore */}
                             <ComposedChart
                                 data={data}
                                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}

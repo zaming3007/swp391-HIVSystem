@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Base API configuration
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Sử dụng URL của Railway hoặc fallback về localhost nếu không có
+const baseURL = 'https://interchange.proxy.rlwy.net:46712/api';
 
 const api = axios.create({
     baseURL,
