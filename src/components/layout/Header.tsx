@@ -67,12 +67,12 @@ const Header: React.FC = () => {
     const resourceItems = [
         { name: 'Thông tin HIV/AIDS', path: '/education/basic-hiv-info', tabIndex: 0 },
         { name: 'Sống khỏe với HIV', path: '/education/living-with-hiv', tabIndex: 1 },
-        { name: 'Giảm kỳ thị', path: '/education/stigma-reduction', tabIndex: 2 },
-        { name: 'Blog chia sẻ', path: '/blog', tabIndex: 3 }
+        { name: 'Giảm kỳ thị', path: '/education/stigma-reduction', tabIndex: 2 }
     ];
 
     // Menu thêm để tiết kiệm không gian
     const moreMenuItems = [
+        { name: 'Về chúng tôi', path: '/about' },
         { name: 'Đội ngũ y tế', path: '/team', hasSubmenu: false },
         { name: 'Liên hệ', path: '/contact' },
         { name: 'Tư vấn trực tuyến', path: '/app/consultations' }
@@ -86,8 +86,11 @@ const Header: React.FC = () => {
         if (path === '/team') {
             return location.pathname === path || location.pathname.includes('/team');
         }
-        if (path === '/education' || path === '/blog') {
-            return location.pathname.includes('/education') || location.pathname.includes('/blog');
+        if (path === '/education') {
+            return location.pathname.includes('/education');
+        }
+        if (path === '/blog') {
+            return location.pathname === path || location.pathname.includes('/blog');
         }
         if (path === '/app/reminder') {
             return location.pathname === path;
@@ -384,14 +387,14 @@ const Header: React.FC = () => {
                             )}
                         </Popper>
 
-                        {/* Về chúng tôi */}
+                        {/* Thêm nút Blog chia sẻ vào menu chính */}
                         <Button
                             component={RouterLink}
-                            to="/about"
+                            to="/blog"
                             sx={{
-                                color: isActive('/about') ? 'primary.main' : 'text.secondary',
-                                fontWeight: isActive('/about') ? 'bold' : 'normal',
-                                borderBottom: isActive('/about') ? '2px solid' : 'none',
+                                color: isActive('/blog') ? 'primary.main' : 'text.secondary',
+                                fontWeight: isActive('/blog') ? 'bold' : 'normal',
+                                borderBottom: isActive('/blog') ? '2px solid' : 'none',
                                 borderRadius: 0,
                                 '&:hover': {
                                     backgroundColor: 'transparent',
@@ -401,7 +404,7 @@ const Header: React.FC = () => {
                                 px: 1
                             }}
                         >
-                            Về chúng tôi
+                            Blog chia sẻ
                         </Button>
 
                         {/* Menu thêm */}
@@ -532,6 +535,9 @@ const Header: React.FC = () => {
                         </ListItem>
                         <ListItem component={RouterLink} to="/education/basic-hiv-info">
                             <ListItemText primary="Tài liệu" />
+                        </ListItem>
+                        <ListItem component={RouterLink} to="/blog">
+                            <ListItemText primary="Blog chia sẻ" />
                         </ListItem>
                         <ListItem component={RouterLink} to="/team">
                             <ListItemText primary="Đội ngũ y tế" />

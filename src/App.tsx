@@ -31,7 +31,8 @@ import BasicHivInfoPage from './pages/education/BasicHivInfoPage';
 import LivingWithHivPage from './pages/education/LivingWithHivPage';
 import StigmaReductionPage from './pages/education/StigmaReductionPage';
 import TestResultsPage from './pages/medical/TestResultsPage';
-
+import BlogPage from './pages/blog/BlogPage';
+import BlogDetailPage from './pages/blog/BlogDetailPage';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -118,7 +119,9 @@ const AppRoutes: React.FC = () => {
           <Route path="living-with-hiv" element={<LivingWithHivPage />} />
           <Route path="stigma-reduction" element={<StigmaReductionPage />} />
         </Route>
-        <Route path="blog" element={<div>Blog chia sẻ kinh nghiệm</div>} />
+
+        <Route path="blog" element={<BlogPage />} />
+        <Route path="blog/:id" element={<BlogDetailPage />} />
       </Route>
 
       {/* Protected Route for Reminder */}
