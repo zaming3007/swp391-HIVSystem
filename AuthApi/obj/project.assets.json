@@ -3732,19 +3732,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Administrator\\.nuget\\packages\\": {}
+    "C:\\Users\\ROG\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
+      "projectUniqueName": "C:\\Users\\ROG\\Desktop\\SWPnew\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
       "projectName": "AuthApi",
-      "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
-      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\obj\\",
+      "projectPath": "C:\\Users\\ROG\\Desktop\\SWPnew\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
+      "packagesPath": "C:\\Users\\ROG\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ROG\\Desktop\\SWPnew\\swp391-HIVSystem\\AuthApi\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\ROG\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
@@ -3818,6 +3818,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[8.0.16, 8.0.16]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[8.0.16, 8.0.16]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[8.0.16, 8.0.16]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[8.0.16, 8.0.16]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
