@@ -17,6 +17,7 @@ import {
     Notifications as NotificationsIcon,
     ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
+import Chatbot from '../../components/Chatbot/Chatbot';
 
 const HomePage: React.FC = () => {
     return (
@@ -225,6 +226,9 @@ const HomePage: React.FC = () => {
                     Tạo Tài Khoản
                 </Button>
             </Container>
+
+            {/* Chatbot Component */}
+            <Chatbot />
         </Box>
     );
 };
