@@ -75,10 +75,36 @@ const MedicalRecords: React.FC<MedicalRecordsProps> = () => {
             <Typography variant="h6" gutterBottom>
                 Hồ sơ y tế
             </Typography>
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="body1" color="text.secondary">
-                    Chưa có hồ sơ y tế. Hồ sơ y tế sẽ được cập nhật sau khi bạn hoàn thành các buổi khám.
-                </Typography>
+            <Paper sx={{ p: 4 }}>
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                        Quản lý kết quả xét nghiệm và lịch sử khám bệnh của bạn.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<MedicalServicesIcon />}
+                        href="/app/test-results"
+                    >
+                        Xem kết quả xét nghiệm
+                    </Button>
+                </Box>
+                <Box sx={{ mt: 4, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                        Các kết quả xét nghiệm mới nhất:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 2 }}>
+                        <Typography component="li" variant="body2">
+                            CD4: Xem trong mục kết quả xét nghiệm
+                        </Typography>
+                        <Typography component="li" variant="body2">
+                            Tải lượng virus: Xem trong mục kết quả xét nghiệm
+                        </Typography>
+                        <Typography component="li" variant="body2">
+                            Phác đồ ARV hiện tại: Xem trong mục kết quả xét nghiệm
+                        </Typography>
+                    </Box>
+                </Box>
             </Paper>
         </Box>
     );

@@ -1,21 +1,33 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
     Container,
     Typography,
     Box,
     Grid,
-    Paper,
-    TextField,
-    Button,
-    Divider,
-    useTheme,
+    Tabs,
     Tab,
-    Tabs
+    Paper,
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
+    Button
 } from '@mui/material';
-import { QuestionAnswer, Send, History } from '@mui/icons-material';
+import {
+    QuestionAnswer,
+    History,
+    FilterList
+} from '@mui/icons-material';
+import { RootState } from '../../store';
+import AskQuestionForm from '../../components/consultation/AskQuestionForm';
 import QuestionList from '../../components/consultation/QuestionList';
 import QuestionDetail from '../../components/consultation/QuestionDetail';
-import AskQuestionForm from '../../components/consultation/AskQuestionForm';
+import { consultationService } from '../../services/consultationService';
+import { Consultation } from '../../types';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -23,7 +35,7 @@ interface TabPanelProps {
     value: number;
 }
 
-const TabPanel = (props: TabPanelProps) => {
+function TabPanel(props: TabPanelProps) {
     const { children, value, index, ...other } = props;
 
     return (
@@ -34,48 +46,126 @@ const TabPanel = (props: TabPanelProps) => {
             aria-labelledby={`consultation-tab-${index}`}
             {...other}
         >
-            {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+            {value === index && (
+                <Box sx={{ py: 3 }}>
+                    {children}
+                </Box>
+            )}
         </div>
     );
-};
+}
 
-const ConsultationQAPage = () => {
-    const theme = useTheme();
+const ConsultationQAPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
     const [tabValue, setTabValue] = useState(0);
     const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+    const [consultations, setConsultations] = useState<Consultation[]>([]);
+    const [selectedQuestion, setSelectedQuestion] = useState<Consultation | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedTopic, setSelectedTopic] = useState('all');
+    const [topics, setTopics] = useState<string[]>([]);
 
-    // Mock data - in a real app this would come from your backend
-    const mockQuestions = [
-        {
-            id: '1',
-            title: 'Câu hỏi về sức khỏe sinh sản',
-            content: 'Tôi muốn tìm hiểu thêm về các biện pháp tránh thai an toàn...',
-            status: 'answered' as const,
-            createdAt: '2024-01-15T10:30:00Z',
-            category: 'Sức khỏe sinh sản',
-            answers: [
-                {
-                    id: 'a1',
-                    content: 'Có nhiều phương pháp tránh thai hiện đại và an toàn...',
-                    createdAt: '2024-01-15T14:20:00Z',
-                    counselor: 'Bs. Nguyễn Văn A'
-                }
-            ]
-        },
-        {
-            id: '2',
-            title: 'Thắc mắc về kinh nguyệt không đều',
-            content: 'Gần đây chu kì của tôi không đều, tôi nên làm gì?',
-            status: 'pending' as const,
-            createdAt: '2024-01-18T09:15:00Z',
-            category: 'Kinh nguyệt'
+    // Kiểm tra đăng nhập
+    useEffect(() => {
+        if (!isAuthenticated) {
+            navigate('/auth/login?redirect=/app/consultations', { replace: true });
         }
-    ];
+    }, [isAuthenticated, navigate]);
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    // Tải danh sách chủ đề
+    useEffect(() => {
+        const loadTopics = async () => {
+            try {
+                const topicsData = await consultationService.getConsultationTopics();
+                setTopics(topicsData);
+            } catch (err) {
+                console.error('Error loading topics:', err);
+            }
+        };
+
+        loadTopics();
+    }, []);
+
+    // Tải danh sách câu hỏi
+    useEffect(() => {
+        const loadConsultations = async () => {
+            if (!user?.id) return;
+
+            try {
+                setLoading(true);
+                const data = await consultationService.getConsultations(user.id);
+                setConsultations(data);
+                setError(null);
+            } catch (err) {
+                console.error('Error loading consultations:', err);
+                setError('Không thể tải dữ liệu tư vấn. Vui lòng thử lại sau.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (isAuthenticated) {
+            loadConsultations();
+        }
+    }, [isAuthenticated, user?.id]);
+
+    // Tải chi tiết câu hỏi khi chọn
+    useEffect(() => {
+        const loadQuestionDetail = async () => {
+            if (!selectedQuestionId) {
+                setSelectedQuestion(null);
+                return;
+            }
+
+            try {
+                const question = await consultationService.getConsultation(selectedQuestionId);
+                setSelectedQuestion(question);
+            } catch (err) {
+                console.error('Error loading question detail:', err);
+                setError('Không thể tải chi tiết câu hỏi. Vui lòng thử lại sau.');
+            }
+        };
+
+        loadQuestionDetail();
+    }, [selectedQuestionId]);
+
+    const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabValue(newValue);
+    };
+
+    const handleQuestionSelect = (id: string) => {
+        setSelectedQuestionId(id);
+    };
+
+    const handleCloseDetail = () => {
         setSelectedQuestionId(null);
     };
+
+    const handleTopicFilter = (event: SelectChangeEvent) => {
+        setSelectedTopic(event.target.value);
+    };
+
+    // Lọc câu hỏi theo chủ đề
+    const filteredConsultations = selectedTopic === 'all'
+        ? consultations
+        : consultations.filter(consultation =>
+            (consultation.topic?.toLowerCase() || consultation.category?.toLowerCase())
+                .includes(selectedTopic.toLowerCase())
+        );
+
+    if (!isAuthenticated) {
+        return (
+            <Container maxWidth="md" sx={{ py: 8 }}>
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant="h5" color="text.secondary">
+                        Vui lòng đăng nhập để sử dụng dịch vụ tư vấn
+                    </Typography>
+                </Paper>
+            </Container>
+        );
+    }
 
     return (
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -104,16 +194,22 @@ const ConsultationQAPage = () => {
                 </Tabs>
             </Box>
 
+            {error && (
+                <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+                    {error}
+                </Alert>
+            )}
+
             <TabPanel value={tabValue} index={0}>
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={selectedQuestionId ? 6 : 12}>
                         <AskQuestionForm />
                     </Grid>
-                    {selectedQuestionId && (
+                    {selectedQuestionId && selectedQuestion && (
                         <Grid item xs={12} md={6}>
                             <QuestionDetail
-                                question={mockQuestions.find(q => q.id === selectedQuestionId)!}
-                                onClose={() => setSelectedQuestionId(null)}
+                                question={selectedQuestion}
+                                onClose={handleCloseDetail}
                             />
                         </Grid>
                     )}
@@ -121,19 +217,43 @@ const ConsultationQAPage = () => {
             </TabPanel>
 
             <TabPanel value={tabValue} index={1}>
+                <Box sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+                    <FilterList sx={{ mr: 1 }} />
+                    <Typography variant="body1" sx={{ mr: 2 }}>
+                        Lọc theo chủ đề:
+                    </Typography>
+                    <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
+                        <InputLabel id="topic-filter-label">Chủ đề</InputLabel>
+                        <Select
+                            labelId="topic-filter-label"
+                            value={selectedTopic}
+                            onChange={handleTopicFilter}
+                            label="Chủ đề"
+                        >
+                            <MenuItem value="all">Tất cả</MenuItem>
+                            {topics.map(topic => (
+                                <MenuItem key={topic} value={topic}>
+                                    {topic}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Box>
+
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={selectedQuestionId ? 6 : 12}>
+                    <Grid item xs={12} md={selectedQuestionId ? 5 : 12}>
                         <QuestionList
-                            questions={mockQuestions}
+                            questions={filteredConsultations}
                             selectedQuestionId={selectedQuestionId}
-                            onQuestionSelect={setSelectedQuestionId}
+                            onQuestionSelect={handleQuestionSelect}
+                            loading={loading}
                         />
                     </Grid>
-                    {selectedQuestionId && (
-                        <Grid item xs={12} md={6}>
+                    {selectedQuestionId && selectedQuestion && (
+                        <Grid item xs={12} md={7}>
                             <QuestionDetail
-                                question={mockQuestions.find(q => q.id === selectedQuestionId)!}
-                                onClose={() => setSelectedQuestionId(null)}
+                                question={selectedQuestion}
+                                onClose={handleCloseDetail}
                             />
                         </Grid>
                     )}

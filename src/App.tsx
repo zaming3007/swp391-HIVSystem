@@ -30,6 +30,7 @@ import ConsultationQAPage from './pages/consultation/ConsultationQAPage';
 import BasicHivInfoPage from './pages/education/BasicHivInfoPage';
 import LivingWithHivPage from './pages/education/LivingWithHivPage';
 import StigmaReductionPage from './pages/education/StigmaReductionPage';
+import TestResultsPage from './pages/medical/TestResultsPage';
 
 
 import AuthGuard from './components/auth/AuthGuard';
@@ -142,7 +143,7 @@ const AppRoutes: React.FC = () => {
           <Route path="appointments" element={<MyAppointmentsPage />} />
           <Route path="consultations" element={<ConsultationPage />} />
           <Route path="reminder" element={<ReminderPage />} />
-          <Route path="test-results" element={<div>Kết quả xét nghiệm & Lịch sử khám</div>} />
+          <Route path="test-results" element={<TestResultsPage />} />
           <Route path="medical-history" element={<div>Lịch sử khám và điều trị</div>} />
 
           <Route path="qa" element={<ConsultationQAPage />} />
@@ -153,10 +154,12 @@ const AppRoutes: React.FC = () => {
             <AdminLayout />
           </RoleGuard>
         }>
-          <Route index element={<DashboardPage />} />
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="appointments" element={<div>Quản lý lịch hẹn</div>} />
           <Route path="consultations" element={<div>Quản lý tư vấn trực tuyến</div>} />
           <Route path="services" element={<div>Quản lý dịch vụ</div>} />
+          <Route path="users" element={<div>Quản lý người dùng</div>} />
           <Route path="doctors" element={<div>Quản lý thông tin bác sĩ</div>} />
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
           <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />

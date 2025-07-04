@@ -40,7 +40,7 @@ namespace AuthApi.Models
         public string Role { get; set; } = "customer";
         
         [Column("profile_image")]
-        public string ProfileImage { get; set; }
+        public string? ProfileImage { get; set; }
         
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

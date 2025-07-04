@@ -1,5 +1,5 @@
 # HIV Healthcare System
-
+                                             
 Hệ thống quản lý và hỗ trợ chăm sóc sức khỏe cho bệnh nhân HIV, cung cấp các công cụ để quản lý thuốc, đặt lịch hẹn và tư vấn trực tuyến.
 
 ## Cấu Trúc Dự Án
@@ -168,7 +168,7 @@ npm run dev:all
 - PUT `/api/consultations/{consultationId}/answer` - Trả lời tư vấn
 
 ## Tài Khoản Demo
-
+role: 'admin' | 'doctor' | 'customer' | 'staff';
 Bạn có thể sử dụng tài khoản demo sau:
 - Email: `demo@example.com`
 - Mật khẩu: `password123`

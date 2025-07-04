@@ -25,6 +25,9 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleIcon from '@mui/icons-material/People';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import AuthStatus from '../auth/AuthStatus';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -72,8 +75,7 @@ const Header: React.FC = () => {
     const moreMenuItems = [
         { name: 'Đội ngũ y tế', path: '/team', hasSubmenu: false },
         { name: 'Liên hệ', path: '/contact' },
-        { name: 'Tư vấn trực tuyến', path: '/app/consultations' },
-        { name: 'Kết quả xét nghiệm', path: '/app/test-results' }
+        { name: 'Tư vấn trực tuyến', path: '/app/consultations' }
     ];
 
     // Kiểm tra đường dẫn hiện tại để xác định nút nào đang được active
@@ -586,13 +588,22 @@ const Header: React.FC = () => {
 
                         {user?.role === 'admin' && (
                             <>
-                                <ListItem component={RouterLink} to="/admin">
-                                    <ListItemText primary="Dashboard" />
+                                <ListItem component={RouterLink} to="/admin/dashboard">
+                                    <ListItemIcon>
+                                        <DashboardIcon color="primary" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Dashboard & Báo cáo" />
                                 </ListItem>
                                 <ListItem component={RouterLink} to="/admin/users">
+                                    <ListItemIcon>
+                                        <PeopleIcon color="primary" />
+                                    </ListItemIcon>
                                     <ListItemText primary="Quản lý người dùng" />
                                 </ListItem>
                                 <ListItem component={RouterLink} to="/admin/services">
+                                    <ListItemIcon>
+                                        <MedicalServicesIcon color="primary" />
+                                    </ListItemIcon>
                                     <ListItemText primary="Quản lý dịch vụ" />
                                 </ListItem>
                             </>

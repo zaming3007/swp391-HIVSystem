@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import React from 'react';
+import { Outlet, Link as RouterLink } from 'react-router-dom';
 import {
     Box,
     Drawer,
@@ -10,127 +10,186 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
-    IconButton,
     Divider,
-    useTheme
+    useTheme,
+    useMediaQuery
 } from '@mui/material';
 import {
-    Menu as MenuIcon,
     Dashboard as DashboardIcon,
     People as PeopleIcon,
     EventNote as EventNoteIcon,
     MedicalServices as MedicalServicesIcon,
     Message as MessageIcon,
     Settings as SettingsIcon,
-    ChevronLeft as ChevronLeftIcon,
-    Logout as LogoutIcon
+    Logout as LogoutIcon,
+    Assessment as AssessmentIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
 
 const AdminLayout: React.FC = () => {
     const theme = useTheme();
-    const [open, setOpen] = useState(true);
-
-    const handleDrawerToggle = () => {
-        setOpen(!open);
-    };
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     return (
         <Box sx={{ display: 'flex' }}>
             <AppBar
                 position="fixed"
                 sx={{
-                    width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
-                    ml: { sm: `${open ? drawerWidth : 0}px` },
-                    transition: theme.transitions.create(['margin', 'width'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                    }),
+                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    width: '100%',
+                    bgcolor: '#7E57C2'
                 }}
             >
                 <Toolbar>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="start"
-                        onClick={handleDrawerToggle}
-                        sx={{ mr: 2 }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
                     <Typography variant="h6" noWrap component="div">
-                        Gender Healthcare Admin
+                        Quản trị hệ thống HIV Healthcare
                     </Typography>
                 </Toolbar>
             </AppBar>
             <Drawer
+                variant={isMobile ? "temporary" : "permanent"}
+                open={!isMobile}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
-                    '& .MuiDrawer-paper': {
+                    [`& .MuiDrawer-paper`]: {
                         width: drawerWidth,
                         boxSizing: 'border-box',
+                        borderRight: '1px solid #e0e0e0',
+                        boxShadow: 'none'
                     },
                 }}
-                variant="persistent"
-                anchor="left"
-                open={open}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-                    <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        Admin Panel
+                <Toolbar />
+                <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+                        Bảng điều khiển
                     </Typography>
-                    <IconButton onClick={handleDrawerToggle}>
-                        <ChevronLeftIcon />
-                    </IconButton>
                 </Box>
-                <Divider />
-                <List>
-                    <ListItem button>
-                        <ListItemIcon>
+                <List sx={{ py: 0 }}>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/dashboard"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <DashboardIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Dashboard" />
+                        <ListItemText primary="Dashboard & Báo cáo" />
                     </ListItem>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/users"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <PeopleIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Users" />
+                        <ListItemText primary="Quản lý người dùng" />
                     </ListItem>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/appointments"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <EventNoteIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Appointments" />
+                        <ListItemText primary="Quản lý lịch hẹn" />
                     </ListItem>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/services"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <MedicalServicesIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Services" />
+                        <ListItemText primary="Quản lý dịch vụ" />
                     </ListItem>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/consultations"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <MessageIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Consultations" />
+                        <ListItemText primary="Quản lý tư vấn" />
+                    </ListItem>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/reports"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
+                            <AssessmentIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Báo cáo thống kê" />
                     </ListItem>
                 </List>
                 <Divider />
                 <List>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/settings"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <SettingsIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Settings" />
+                        <ListItemText primary="Cài đặt hệ thống" />
                     </ListItem>
-                    <ListItem button>
-                        <ListItemIcon>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/auth/login"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
                             <LogoutIcon />
                         </ListItemIcon>
-                        <ListItemText primary="Logout" />
+                        <ListItemText primary="Đăng xuất" />
                     </ListItem>
                 </List>
             </Drawer>
@@ -138,17 +197,16 @@ const AdminLayout: React.FC = () => {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 3,
-                    width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
-                    ml: { sm: `${open ? drawerWidth : 0}px` },
-                    transition: theme.transitions.create(['margin', 'width'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                    }),
-                    mt: '64px',
+                    bgcolor: '#f5f5f5',
+                    p: 0,
+                    width: { xs: '100%', sm: `calc(100% - ${drawerWidth}px)` },
+                    minHeight: '100vh'
                 }}
             >
-                <Outlet />
+                <Toolbar />
+                <Box sx={{ p: 3 }}>
+                    <Outlet />
+                </Box>
             </Box>
         </Box>
     );

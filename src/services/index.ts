@@ -4,6 +4,7 @@ import { authService } from './authService';
 import * as appointmentService from './appointmentService';
 import * as consultationService from './consultationService';
 import * as reminderService from './reminderService';
+import * as medicalTestService from './medicalTestService';
 
 export {
     authApi,
@@ -11,5 +12,6 @@ export {
     authService,
     appointmentService,
     reminderService,
-    consultationService
+    consultationService,
+    medicalTestService
 }; 

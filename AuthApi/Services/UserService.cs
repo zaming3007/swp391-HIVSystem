@@ -167,7 +167,7 @@ namespace AuthApi.Services
                 Phone = user.Phone,
                 Gender = user.Gender,
                 DateOfBirth = user.DateOfBirth,
-                ProfileImage = user.ProfileImage
+                ProfileImage = user.ProfileImage ?? ""
             };
         }
     }

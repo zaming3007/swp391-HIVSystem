@@ -19,7 +19,8 @@ import {
     AccountCircle as AccountCircleIcon,
     CalendarToday as CalendarIcon,
     MedicalServices as MedicalServicesIcon,
-    Notifications as NotificationsIcon
+    Notifications as NotificationsIcon,
+    Bloodtype as BloodtypeIcon
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -153,6 +154,12 @@ const AuthStatus: React.FC = () => {
                         <MedicalServicesIcon fontSize="small" />
                     </ListItemIcon>
                     Hồ sơ y tế
+                </MenuItem>
+                <MenuItem onClick={() => { navigate('/app/test-results'); handleClose(); }}>
+                    <ListItemIcon>
+                        <BloodtypeIcon fontSize="small" color="primary" />
+                    </ListItemIcon>
+                    Kết quả xét nghiệm
                 </MenuItem>
                 <MenuItem onClick={() => { navigate('/app/reminder'); handleClose(); }}>
                     <ListItemIcon>

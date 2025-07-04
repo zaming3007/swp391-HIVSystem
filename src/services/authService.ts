@@ -75,11 +75,17 @@ export const authService = {
             const response = await authApi.post<{ token: string; user: User }>('/Auth/login', credentials);
             console.log('Login API response:', response.data);
 
+            // Ensure profileImage is never null
+            const user = {
+                ...response.data.user,
+                profileImage: response.data.user.profileImage || ''
+            };
+
             // Save token, user, and role to localStorage
             localStorage.setItem('authToken', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            localStorage.setItem('userRole', response.data.user.role);
-            return response.data;
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('userRole', user.role);
+            return { token: response.data.token, user };
         } catch (error: any) {
             console.error('Login error:', error);
 

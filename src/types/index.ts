@@ -8,7 +8,7 @@ export interface User {
     gender?: string;
     dateOfBirth?: string;
     role: 'admin' | 'doctor' | 'customer' | 'staff';
-    profileImage?: string;
+    profileImage?: string | null;
 }
 
 // Authentication Types
@@ -131,6 +131,7 @@ export interface MedicalRecord {
 // Re-export các types từ app
 export * from './appointment.d';
 export * from './reminder.d';
+export * from './medicalTest.d';
 
 // Các loại khác sẽ được export thêm sau này
 export interface UserInfo {
@@ -143,7 +144,7 @@ export interface UserInfo {
     phone?: string;
     gender?: string;
     dateOfBirth?: string;
-    profileImage?: string;
+    profileImage?: string | null;
 }
 
 // Redux store state

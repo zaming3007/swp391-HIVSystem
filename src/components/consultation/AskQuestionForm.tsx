@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
     Paper,
     Typography,
@@ -12,25 +13,37 @@ import {
     SelectChangeEvent,
     Alert,
     Collapse,
-    IconButton
+    IconButton,
+    CircularProgress
 } from '@mui/material';
 import { Close as CloseIcon, Send as SendIcon } from '@mui/icons-material';
+import { consultationService } from '../../services/consultationService';
+import { RootState } from '../../store';
 
-const categories = [
-    'Sức khỏe sinh sản',
-    'Kinh nguyệt',
-    'Tâm lý',
-    'Dinh dưỡng',
-    'Khác'
-];
-
-const AskQuestionForm = () => {
+const AskQuestionForm: React.FC = () => {
+    const { user } = useSelector((state: RootState) => state.auth);
     const [formData, setFormData] = useState({
         title: '',
-        category: '',
-        content: ''
+        topic: '',
+        question: ''
     });
     const [showSuccess, setShowSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [topics, setTopics] = useState<string[]>([]);
+
+    useEffect(() => {
+        const loadTopics = async () => {
+            try {
+                const topicsData = await consultationService.getConsultationTopics();
+                setTopics(topicsData);
+            } catch (err) {
+                console.error('Error loading topics:', err);
+            }
+        };
+
+        loadTopics();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -40,24 +53,58 @@ const AskQuestionForm = () => {
         }));
     };
 
-    const handleCategoryChange = (e: SelectChangeEvent) => {
+    const handleTopicChange = (e: SelectChangeEvent) => {
         setFormData(prev => ({
             ...prev,
-            category: e.target.value
+            topic: e.target.value
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, this would send the data to your backend
-        console.log('Submitting question:', formData);
-        setShowSuccess(true);
-        setFormData({
-            title: '',
-            category: '',
-            content: ''
-        });
-        setTimeout(() => setShowSuccess(false), 5000);
+
+        // Validate form
+        if (!formData.topic || !formData.question.trim()) {
+            setError('Vui lòng điền đầy đủ thông tin');
+            return;
+        }
+
+        if (formData.question.trim().length < 20) {
+            setError('Câu hỏi của bạn nên có ít nhất 20 ký tự');
+            return;
+        }
+
+        if (!user?.id) {
+            setError('Vui lòng đăng nhập để gửi câu hỏi');
+            return;
+        }
+
+        setError(null);
+        setLoading(true);
+
+        try {
+            // Gửi câu hỏi qua service
+            await consultationService.createConsultation({
+                patientId: user.id,
+                patientName: `${user.firstName} ${user.lastName}`,
+                topic: formData.topic,
+                question: formData.question
+            });
+
+            // Reset form và hiển thị thông báo thành công
+            setFormData({
+                title: '',
+                topic: '',
+                question: ''
+            });
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 5000);
+        } catch (err) {
+            console.error('Error submitting question:', err);
+            setError('Có lỗi xảy ra khi gửi câu hỏi. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -65,6 +112,21 @@ const AskQuestionForm = () => {
             <Typography variant="h6" gutterBottom color="primary">
                 Đặt câu hỏi mới
             </Typography>
+
+            <Typography variant="body2" color="text.secondary" paragraph>
+                Đặt câu hỏi của bạn và nhận câu trả lời từ đội ngũ chuyên gia y tế của chúng tôi.
+                Câu hỏi của bạn sẽ được trả lời trong vòng 24-48 giờ.
+            </Typography>
+
+            {error && (
+                <Alert
+                    severity="error"
+                    sx={{ mb: 2 }}
+                    onClose={() => setError(null)}
+                >
+                    {error}
+                </Alert>
+            )}
 
             <Collapse in={showSuccess}>
                 <Alert
@@ -86,29 +148,19 @@ const AskQuestionForm = () => {
             </Collapse>
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-                <TextField
-                    fullWidth
-                    label="Tiêu đề câu hỏi"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    sx={{ mb: 2 }}
-                    placeholder="VD: Tôi muốn tìm hiểu về..."
-                />
-
                 <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel id="category-label">Chủ đề</InputLabel>
+                    <InputLabel id="topic-label">Chủ đề</InputLabel>
                     <Select
-                        labelId="category-label"
-                        value={formData.category}
+                        labelId="topic-label"
+                        name="topic"
+                        value={formData.topic}
                         label="Chủ đề"
-                        onChange={handleCategoryChange}
+                        onChange={handleTopicChange}
                         required
                     >
-                        {categories.map((category) => (
-                            <MenuItem key={category} value={category}>
-                                {category}
+                        {topics.map((topic) => (
+                            <MenuItem key={topic} value={topic}>
+                                {topic}
                             </MenuItem>
                         ))}
                     </Select>
@@ -116,15 +168,16 @@ const AskQuestionForm = () => {
 
                 <TextField
                     fullWidth
-                    label="Nội dung câu hỏi"
-                    name="content"
-                    value={formData.content}
+                    label="Câu hỏi của bạn"
+                    name="question"
+                    value={formData.question}
                     onChange={handleChange}
                     required
                     multiline
                     rows={4}
                     sx={{ mb: 3 }}
                     placeholder="Mô tả chi tiết câu hỏi của bạn..."
+                    helperText={`${formData.question.length}/20 ký tự tối thiểu`}
                 />
 
                 <Button
@@ -132,10 +185,11 @@ const AskQuestionForm = () => {
                     variant="contained"
                     color="primary"
                     size="large"
-                    endIcon={<SendIcon />}
+                    endIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
                     fullWidth
+                    disabled={loading}
                 >
-                    Gửi câu hỏi
+                    {loading ? 'Đang gửi...' : 'Gửi câu hỏi'}
                 </Button>
             </Box>
         </Paper>
