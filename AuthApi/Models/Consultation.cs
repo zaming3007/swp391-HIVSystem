@@ -11,29 +11,38 @@ namespace AuthApi.Models
         [Key]
         [Column("id")]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-        
+
+        [Required]
         [Column("patient_id")]
-        [Required]
         public string PatientId { get; set; }
-        
+
+        [Required]
         [Column("title")]
-        [Required]
         public string Title { get; set; }
-        
-        [Column("question")]
+
         [Required]
+        [Column("question")]
         public string Question { get; set; }
-        
+
+        [Required]
         [Column("category")]
         public string Category { get; set; }
-        
+
+        [Required]
         [Column("status")]
         public string Status { get; set; } = "pending"; // pending, answered
-        
+
+        [Required]
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        
-        // Relationship with Answers
+
+        [Column("updated_at")]
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation properties
+        [ForeignKey("PatientId")]
+        public virtual User Patient { get; set; }
+
         public virtual ICollection<Answer> Answers { get; set; } = new List<Answer>();
     }
 } 

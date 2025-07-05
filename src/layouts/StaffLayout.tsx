@@ -24,7 +24,8 @@ import {
     MedicalServices as MedicalServicesIcon,
     ChevronLeft as ChevronLeftIcon,
     Logout as LogoutIcon,
-    SettingsBackupRestore as CheckInIcon
+    SettingsBackupRestore as CheckInIcon,
+    QuestionAnswer as QuestionAnswerIcon
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
@@ -134,6 +135,12 @@ const StaffLayout: React.FC = () => {
                             <PeopleIcon />
                         </ListItemIcon>
                         <ListItemText primary="Danh sách bệnh nhân" />
+                    </ListItem>
+                    <ListItem button component="a" href="/staff/consultations">
+                        <ListItemIcon>
+                            <QuestionAnswerIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Quản lý tư vấn" />
                     </ListItem>
                     <ListItem button component="a" href="/staff/check-in">
                         <ListItemIcon>

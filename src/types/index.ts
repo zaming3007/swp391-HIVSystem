@@ -4,11 +4,13 @@ export interface User {
     firstName: string;
     lastName: string;
     email: string;
-    phone?: string;
-    gender?: string;
-    dateOfBirth?: string;
+    phone: string;
+    gender: string;
+    dateOfBirth: string;
     role: 'admin' | 'doctor' | 'customer' | 'staff';
     profileImage?: string | null;
+    createdAt?: string;
+    updatedAt?: string | null;
 }
 
 // Authentication Types
@@ -136,15 +138,16 @@ export * from './medicalTest.d';
 // Các loại khác sẽ được export thêm sau này
 export interface UserInfo {
     id: string;
-    username: string;
     email: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-    phone?: string;
-    gender?: string;
-    dateOfBirth?: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    phone: string;
+    gender: string;
+    dateOfBirth: string;
     profileImage?: string | null;
+    createdAt?: string;
+    updatedAt?: string | null;
 }
 
 // Redux store state

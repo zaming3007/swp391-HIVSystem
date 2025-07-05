@@ -73,7 +73,16 @@ namespace AuthApi.Controllers
         {
             try
             {
+                // Try to get userId from JWT token claim first
                 var userId = User.FindFirst("sub")?.Value;
+                
+                // If userId is null or empty, try to get it from request body
+                if (string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(request.UserId))
+                {
+                    userId = request.UserId;
+                    Console.WriteLine($"Using userId from request body: {userId}");
+                }
+                
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(new { message = "User not authenticated" });

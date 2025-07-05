@@ -129,6 +129,21 @@ namespace AuthApi.Services
                     throw new Exception("User not found");
                 }
 
+                // Kiểm tra email mới có trùng với người dùng khác không (nếu có thay đổi email)
+                if (!string.IsNullOrEmpty(request.Email) && request.Email != user.Email)
+                {
+                    // Kiểm tra xem email mới đã được sử dụng chưa
+                    var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.Id != userId);
+                    if (existingUser != null)
+                    {
+                        throw new Exception("Email này đã được sử dụng bởi tài khoản khác");
+                    }
+                    
+                    // Cập nhật email
+                    Console.WriteLine($"Updating email from {user.Email} to {request.Email}");
+                    user.Email = request.Email;
+                }
+
                 // Update user properties
                 user.FirstName = request.FirstName;
                 user.LastName = request.LastName;
