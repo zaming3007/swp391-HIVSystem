@@ -126,6 +126,7 @@ const ProfilePage: React.FC = () => {
     });
     const [passwordError, setPasswordError] = useState('');
     const [passwordSuccess, setPasswordSuccess] = useState('');
+    const [logoutRequired, setLogoutRequired] = useState(false);
 
     const [formData, setFormData] = useState({
         firstName: user?.firstName || '',
@@ -180,11 +181,11 @@ const ProfilePage: React.FC = () => {
 
         try {
             // Chuẩn bị dữ liệu theo đúng format UpdateProfileRequest của API
-            // Loại bỏ email vì backend không mong đợi trường này trong cập nhật profile
             // Đảm bảo các trường bắt buộc không bao giờ là null/undefined
             const profileUpdateData = {
-                firstName: formData.firstName || '', // Đảm bảo không bao giờ null/undefined
-                lastName: formData.lastName || '',   // Đảm bảo không bao giờ null/undefined
+                firstName: formData.firstName || '',
+                lastName: formData.lastName || '',
+                email: formData.email || '', // Thêm email vào dữ liệu cập nhật
                 phone: formData.phone || '',
                 gender: formData.gender || '',
                 dateOfBirth: formData.dateOfBirth || ''
@@ -214,35 +215,20 @@ const ProfilePage: React.FC = () => {
         } catch (err: any) {
             console.error('Profile update error:', err);
 
-            // Lấy user hiện tại từ localStorage để đảm bảo UI cập nhật
-            const storedUserStr = localStorage.getItem('user');
-            if (storedUserStr) {
-                try {
-                    const storedUser = JSON.parse(storedUserStr);
+            // Kiểm tra lỗi cụ thể cho trường hợp phiên đăng nhập hết hạn
+            if (err.message && (
+                err.message.includes('Phiên đăng nhập đã hết hạn') ||
+                err.message.includes('Lỗi xác thực') ||
+                err.message.includes('User not authenticated')
+            )) {
+                setError(`${err.message} Vui lòng đăng nhập lại và thử lại sau.`);
 
-                    // Cập nhật form data từ localStorage
-                    setFormData({
-                        firstName: storedUser.firstName || '',
-                        lastName: storedUser.lastName || '',
-                        email: storedUser.email || '',
-                        phone: storedUser.phone || '',
-                        gender: storedUser.gender || '',
-                        dateOfBirth: storedUser.dateOfBirth || '',
-                    });
-
-                    // Cập nhật redux store
-                    dispatch(updateUser(storedUser));
-
-                    // Hiển thị thông báo lỗi kèm thông báo đã lưu cục bộ
-                    setError('Không thể cập nhật thông tin lên server nhưng đã lưu cục bộ');
-                    setEditMode(false);
-                    return;
-                } catch (e) {
-                    console.error('Error parsing stored user:', e);
-                }
+                // Hiển thị nút đăng nhập lại
+                setLogoutRequired(true);
+                return;
             }
 
-            // Nếu không thể cập nhật từ localStorage, hiển thị lỗi thông thường
+            // Xử lý các lỗi khác
             setError(err.message || 'Có lỗi xảy ra khi cập nhật thông tin');
         } finally {
             setSaving(false);
@@ -318,7 +304,25 @@ const ProfilePage: React.FC = () => {
         } catch (err: any) {
             // Hiển thị thông báo lỗi
             setPasswordError(err.message || 'Có lỗi xảy ra khi thay đổi mật khẩu');
+
+            // Xử lý lỗi cụ thể từ API nếu có
+            if (err.response && err.response.data) {
+                if (err.response.data.message) {
+                    setPasswordError(err.response.data.message);
+                } else if (err.response.data.errors) {
+                    const validationErrors = Object.values(err.response.data.errors).flat();
+                    setPasswordError(validationErrors.join(', '));
+                }
+            }
         }
+    };
+
+    const handleLogout = () => {
+        // Đăng xuất người dùng
+        authService.logout();
+
+        // Chuyển hướng đến trang đăng nhập
+        window.location.href = '/auth/login';
     };
 
     return (
@@ -370,9 +374,21 @@ const ProfilePage: React.FC = () => {
                                 onClick={handleEditToggle}
                                 disabled={saving}
                                 color={editMode ? 'success' : 'primary'}
+                                sx={{ mb: logoutRequired ? 2 : 0 }}
                             >
                                 {editMode ? 'Hủy chỉnh sửa' : 'Chỉnh sửa thông tin'}
                             </Button>
+
+                            {logoutRequired && (
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    color="error"
+                                    onClick={handleLogout}
+                                >
+                                    Đăng nhập lại
+                                </Button>
+                            )}
                         </Box>
                     </Paper>
                 </Grid>

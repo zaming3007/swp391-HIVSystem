@@ -13,6 +13,7 @@ namespace AuthApi.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Consultation> Consultations { get; set; }
         public DbSet<Answer> Answers { get; set; }
+        public DbSet<ConsultationTopic> ConsultationTopics { get; set; }
         public DbSet<MedicationReminder> MedicationReminders { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<TimeSlot> TimeSlots { get; set; }
@@ -29,6 +30,7 @@ namespace AuthApi.Data
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Consultation>().ToTable("Consultations");
             modelBuilder.Entity<Answer>().ToTable("Answers");
+            modelBuilder.Entity<ConsultationTopic>().ToTable("ConsultationTopics");
             modelBuilder.Entity<MedicationReminder>().ToTable("MedicationReminders");
             modelBuilder.Entity<Doctor>().ToTable("Doctors");
             modelBuilder.Entity<TimeSlot>().ToTable("TimeSlots");

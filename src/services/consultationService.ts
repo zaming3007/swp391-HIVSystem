@@ -10,7 +10,7 @@ import {
 } from './mockData/consultationMockData';
 
 // Cờ để quyết định sử dụng mockData hay API thật
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false; // Chuyển thành false để sử dụng API thực
 
 // API functions for consultations
 export const getConsultations = async (userId: string): Promise<Consultation[]> => {
@@ -58,7 +58,17 @@ export const createConsultation = async (consultationData: {
     }
 
     try {
-        const response = await authApi.post('/consultations', consultationData);
+        // Đảm bảo gửi dữ liệu theo định dạng backend yêu cầu
+        const payload = {
+            patientId: consultationData.patientId,
+            title: consultationData.topic,
+            question: consultationData.question,
+            category: consultationData.topic
+        };
+
+        console.log('Creating consultation with payload:', payload);
+        const response = await authApi.post('/consultations', payload);
+        console.log('Consultation created successfully:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error submitting question:', error);
@@ -74,8 +84,31 @@ export const getPendingConsultations = async (): Promise<Consultation[]> => {
         return getMockPendingConsultations();
     }
 
-    const response = await authApi.get<Consultation[]>('/consultations/pending');
-    return response.data;
+    try {
+        const response = await authApi.get<Consultation[]>('/consultations/pending');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching pending consultations:', error);
+        return [];
+    }
+};
+
+// Admin/Doctor: Get answered consultations
+export const getAnsweredConsultations = async (): Promise<Consultation[]> => {
+    if (USE_MOCK_DATA) {
+        // Giả lập delay mạng
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // Lọc các câu hỏi đã trả lời từ mock data
+        return getConsultationsByUserId('all').filter(c => c.status === 'answered');
+    }
+
+    try {
+        const response = await authApi.get<Consultation[]>('/consultations/answered');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching answered consultations:', error);
+        return [];
+    }
 };
 
 // Admin/Doctor: Answer a consultation
@@ -91,10 +124,12 @@ export const answerConsultation = async (
     }
 
     try {
-        const response = await authApi.put<Consultation>(`/consultations/${consultationId}/answer`, {
-            response: answer,
+        console.log(`Answering consultation ${consultationId} by user ${responderId}`);
+        const response = await authApi.post<Consultation>(`/consultations/${consultationId}/answer`, {
+            content: answer,
             responderId
         });
+        console.log('Answer submitted successfully:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error answering consultation:', error);
@@ -109,11 +144,13 @@ export const getConsultationTopics = async (): Promise<string[]> => {
     }
 
     try {
-        const response = await authApi.get<string[]>('/consultations/topics');
-        return response.data;
+        const response = await authApi.get<{ id: string, name: string }[]>('/consultations/topics');
+        // Chỉ trả về tên các chủ đề
+        return response.data.map(topic => topic.name);
     } catch (error) {
         console.error('Error fetching consultation topics:', error);
-        return [];
+        // Trả về một số chủ đề mặc định trong trường hợp API gặp lỗi
+        return ['ARV', 'CD4', 'Tải lượng virus', 'Tác dụng phụ', 'Dinh dưỡng', 'Khác'];
     }
 };
 
@@ -137,8 +174,13 @@ export const getFAQs = async () => {
         ];
     }
 
-    const response = await authApi.get<{ question: string; answer: string }[]>('/consultations/faqs');
-    return response.data;
+    try {
+        const response = await authApi.get<{ question: string; answer: string }[]>('/consultations/faqs');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching FAQs:', error);
+        return [];
+    }
 };
 
 // Export compatibility object for backward compatibility
@@ -147,6 +189,7 @@ export const consultationService = {
     getConsultation,
     createConsultation,
     getPendingConsultations,
+    getAnsweredConsultations,
     answerConsultation,
     getConsultationTopics,
     getFAQs

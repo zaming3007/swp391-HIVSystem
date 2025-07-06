@@ -21,6 +21,7 @@ import TeamPage from './pages/team/TeamPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/admin/DashboardPage';
+import ConsultationsPage from './pages/admin/ConsultationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import AppointmentPage from './pages/appointment/AppointmentPage';
 import MyAppointmentsPage from './pages/appointment/MyAppointmentsPage';
@@ -160,7 +161,7 @@ const AppRoutes: React.FC = () => {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="appointments" element={<div>Quản lý lịch hẹn</div>} />
-          <Route path="consultations" element={<div>Quản lý tư vấn trực tuyến</div>} />
+          <Route path="consultations" element={<ConsultationsPage />} />
           <Route path="services" element={<div>Quản lý dịch vụ</div>} />
           <Route path="users" element={<div>Quản lý người dùng</div>} />
           <Route path="doctors" element={<div>Quản lý thông tin bác sĩ</div>} />
@@ -177,7 +178,7 @@ const AppRoutes: React.FC = () => {
           <Route index element={<div>Dashboard Bác sĩ</div>} />
           <Route path="patients" element={<div>Quản lý bệnh nhân</div>} />
           <Route path="appointments" element={<div>Lịch hẹn khám</div>} />
-          <Route path="consultations" element={<div>Tư vấn trực tuyến</div>} />
+          <Route path="consultations" element={<ConsultationsPage />} />
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
           <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
         </Route>
@@ -189,6 +190,7 @@ const AppRoutes: React.FC = () => {
         }>
           <Route index element={<div>Dashboard Nhân viên</div>} />
           <Route path="patients" element={<div>Danh sách bệnh nhân</div>} />
+          <Route path="consultations" element={<ConsultationsPage />} />
         </Route>
       </Route>
 

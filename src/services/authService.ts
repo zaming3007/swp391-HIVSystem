@@ -9,7 +9,10 @@ const mockUsers: User[] = [
         lastName: 'User',
         email: 'admin@example.com',
         role: 'admin',
-        profileImage: '/admin-avatar.jpg'
+        profileImage: '/admin-avatar.jpg',
+        phone: '0123456789',
+        gender: 'Male',
+        dateOfBirth: '1990-01-01'
     },
     {
         id: '2',
@@ -17,7 +20,10 @@ const mockUsers: User[] = [
         lastName: 'User',
         email: 'doctor@example.com',
         role: 'doctor',
-        profileImage: '/doctor-avatar.jpg'
+        profileImage: '/doctor-avatar.jpg',
+        phone: '0987654321',
+        gender: 'Female',
+        dateOfBirth: '1985-05-15'
     },
     {
         id: '3',
@@ -25,7 +31,10 @@ const mockUsers: User[] = [
         lastName: 'User',
         email: 'staff@example.com',
         role: 'staff',
-        profileImage: '/staff-avatar.jpg'
+        profileImage: '/staff-avatar.jpg',
+        phone: '0123498765',
+        gender: 'Male',
+        dateOfBirth: '1992-10-20'
     },
     {
         id: '4',
@@ -33,7 +42,10 @@ const mockUsers: User[] = [
         lastName: 'User',
         email: 'customer@example.com',
         role: 'customer',
-        profileImage: '/customer-avatar.jpg'
+        profileImage: '/customer-avatar.jpg',
+        phone: '0987612345',
+        gender: 'Female',
+        dateOfBirth: '1995-03-25'
     }
 ];
 
@@ -131,6 +143,9 @@ export const authService = {
                 lastName: userData.lastName,
                 email: userData.email,
                 role: 'customer',
+                phone: '',
+                gender: '',
+                dateOfBirth: ''
             };
 
             // Generate a mock token
@@ -229,7 +244,7 @@ export const authService = {
                 throw new Error('Bạn cần đăng nhập lại để thực hiện hành động này');
             }
 
-            // Format lại dateOfBirth để đảm bảo đúng định dạng "YYYY-MM-DD"
+            // Format lại dateOfBirth để đảm bảo đúng định dạng "YYYY-MM-DD" theo schema Users trong database
             let formattedDateOfBirth = profileData.dateOfBirth || '';
             if (formattedDateOfBirth && formattedDateOfBirth.includes('T')) {
                 // Chuyển từ ISO format sang YYYY-MM-DD
@@ -237,9 +252,11 @@ export const authService = {
             }
 
             // Chuyển đổi dữ liệu theo đúng format mà API yêu cầu (UpdateProfileRequest)
+            // và đảm bảo đúng với cấu trúc bảng Users trong database
             const updateData = {
                 firstName: profileData.firstName || '',
                 lastName: profileData.lastName || '',
+                email: profileData.email || '',
                 phone: profileData.phone || '',
                 gender: profileData.gender || '',
                 dateOfBirth: formattedDateOfBirth,
@@ -249,10 +266,13 @@ export const authService = {
             console.log('Formatted update data DETAIL:', JSON.stringify(updateData, null, 2));
 
             try {
-                // Đảm bảo sử dụng token một cách rõ ràng trong headers
+                // Gửi userId rõ ràng trong request body để khắc phục vấn đề xác thực
                 const apiResponse = await authApi.put<User>(
                     `/Auth/profile`,
-                    updateData,
+                    {
+                        ...updateData,
+                        userId: userId // Thêm userId vào request body
+                    },
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -273,28 +293,31 @@ export const authService = {
             } catch (apiError: any) {
                 console.error('API error:', apiError);
 
-                // Nếu API không thành công, cập nhật localStorage để giữ trải nghiệm người dùng
-                console.log('API failed, updating localStorage as fallback');
-                const userStr = localStorage.getItem('user');
-                if (!userStr) {
-                    throw new Error('Không tìm thấy thông tin người dùng');
+                // Kiểm tra nếu lỗi là 401 Unauthorized
+                if (apiError.response && apiError.response.status === 401) {
+                    console.log('Unauthorized error detected, attempting to refresh session');
+
+                    // Lưu thông tin người dùng hiện tại vào localStorage để tránh mất dữ liệu
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        try {
+                            const user = JSON.parse(userStr);
+                            const localUpdatedUser = {
+                                ...user,
+                                ...updateData
+                            };
+                            localStorage.setItem('user', JSON.stringify(localUpdatedUser));
+
+                            // Thông báo người dùng phiên đăng nhập đã hết hạn
+                            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để cập nhật thông tin.');
+                        } catch (e) {
+                            throw new Error('Lỗi xác thực: Vui lòng đăng nhập lại để tiếp tục.');
+                        }
+                    }
                 }
 
-                const user = JSON.parse(userStr);
-                const localUpdatedUser = {
-                    ...user,
-                    ...updateData,
-                    // Đảm bảo giữ lại các trường không có trong updateData
-                    email: user.email,
-                    id: user.id,
-                    role: user.role
-                } as User;
-
-                localStorage.setItem('user', JSON.stringify(localUpdatedUser));
-                console.log('Updated user in localStorage:', localUpdatedUser);
-
-                // Trả về dữ liệu đã cập nhật trong localStorage
-                return localUpdatedUser;
+                // Nếu không phải lỗi 401, rethrow lỗi gốc
+                throw apiError;
             }
         } catch (error: any) {
             console.error('Update profile error:', error);
@@ -314,7 +337,7 @@ export const authService = {
                 }
             }
 
-            throw new Error('Không thể cập nhật thông tin người dùng');
+            throw error; // Trả về lỗi gốc thay vì tạo lỗi mới
         }
     },
 
@@ -329,10 +352,29 @@ export const authService = {
 
         try {
             console.log('Making API request to change password for user:', userId);
+
+            // Kiểm tra token trước khi gửi
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                throw new Error('Bạn cần đăng nhập lại để thực hiện hành động này');
+            }
+
             // Sửa đổi endpoint URL để phù hợp với API thực tế
+            // Endpoint đúng sẽ là /Auth/change-password hoặc tương tự
             const response = await authApi.post<{ success: boolean; message: string }>(
-                `/Auth/change-password/${userId}`,
-                data
+                `/Auth/change-password`,
+                {
+                    userId,
+                    currentPassword: data.currentPassword,
+                    newPassword: data.newPassword,
+                    confirmPassword: data.confirmPassword
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
 
             console.log('Change password API response:', response.data);
@@ -344,6 +386,10 @@ export const authService = {
                 console.error('Error response:', error.response.data);
                 if (error.response.data && error.response.data.message) {
                     throw new Error(error.response.data.message);
+                } else if (error.response.data && error.response.data.errors) {
+                    // Xử lý validation errors từ ASP.NET Core
+                    const validationErrors = Object.values(error.response.data.errors).flat();
+                    throw new Error(validationErrors.join(', '));
                 }
             }
 
