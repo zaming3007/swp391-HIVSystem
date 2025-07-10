@@ -19,6 +19,7 @@ import {
     LockOutlined as LockOutlinedIcon,
     Visibility as VisibilityIcon,
     VisibilityOff as VisibilityOffIcon,
+    ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import type { RootState } from '../../store';
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
@@ -92,6 +93,15 @@ const LoginPage: React.FC = () => {
                 width: '100%',
             }}
         >
+            <Button
+                component={RouterLink}
+                to="/"
+                variant="outlined"
+                sx={{ alignSelf: 'flex-start', mb: 2 }}
+                startIcon={<ArrowBackIcon />}
+            >
+                quay lại
+            </Button>
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
                 <LockOutlinedIcon />
             </Avatar>

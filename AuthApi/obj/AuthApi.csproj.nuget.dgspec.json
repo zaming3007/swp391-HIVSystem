@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {}
+    "D:\\SwWp391-Hiv47\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj": {}
   },
   "projects": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {
+    "D:\\SwWp391-Hiv47\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
+        "projectUniqueName": "D:\\SwWp391-Hiv47\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
         "projectName": "AuthApi",
-        "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
-        "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\obj\\",
+        "projectPath": "D:\\SwWp391-Hiv47\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
+        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+        "outputPath": "D:\\SwWp391-Hiv47\\swp391-HIVSystem\\AuthApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -32,13 +32,7 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.300"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -96,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

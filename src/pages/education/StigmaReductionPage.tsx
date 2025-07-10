@@ -24,6 +24,8 @@ import {
     ArrowForward as ArrowForwardIcon,
     CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
+import doc7Img from '../../images/document/image7.jpg';
+import doc8Img from '../../images/document/image8.jpg';
 
 const articles = [
     {
@@ -52,7 +54,7 @@ const articles = [
         <h3>Hiểu lầm: Nếu cả hai người đều nhiễm HIV, họ không cần thực hiện tình dục an toàn</h3>
         <p><strong>Sự thật:</strong> Ngay cả khi cả hai đều nhiễm HIV, vẫn cần thực hiện tình dục an toàn để tránh tái nhiễm với các chủng HIV khác có thể kháng thuốc, và để ngăn ngừa các bệnh lây truyền qua đường tình dục khác.</p>
         `,
-        imageUrl: "/service-3.svg",
+        imageUrl: doc7Img,
         author: "ThS. Hoàng Thị G",
         publishDate: "2023-11-10",
         tags: ["Hiểu lầm", "Kỳ thị", "Giáo dục"]
@@ -124,7 +126,7 @@ const articles = [
             <li>Thúc đẩy sự đa dạng và hòa nhập trong các nội dung truyền thông</li>
         </ul>
         `,
-        imageUrl: "/counseling.svg",
+        imageUrl: doc8Img,
         author: "TS. Trần Văn H",
         publishDate: "2023-12-05",
         tags: ["Chiến lược", "Cộng đồng", "Kỳ thị"]

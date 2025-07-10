@@ -23,8 +23,12 @@ import {
     AccessTime as TimeIcon,
     LocalHospital as HospitalIcon,
     Lock as LockIcon,
+    Facebook as FacebookIcon,
+    Twitter as TwitterIcon,
 } from '@mui/icons-material';
 import mapImage from '../../images/map/mapttyte.png';
+// Bạn cần có file zalo.svg hoặc zalo.png trong src/assets hoặc src/images
+import ZaloIcon from "../../images/icons/zalo.jpg";
 
 const ContactPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -183,10 +187,34 @@ const ContactPage: React.FC = () => {
                             Kết nối với chúng tôi trên các nền tảng mạng xã hội để cập nhật thông tin mới nhất về HIV/AIDS.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
-                            {/* Placeholder for social media icons */}
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
+                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+                                <FacebookIcon sx={{ fontSize: 40, color: '#4267B2', bgcolor: 'white', borderRadius: '50%', p: 1 }} />
+                            </a>
+                            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+                                <TwitterIcon sx={{ fontSize: 40, color: '#1DA1F2', bgcolor: 'white', borderRadius: '50%', p: 1 }} />
+                            </a>
+                            <a href="https://zalo.me" target="_blank" rel="noopener noreferrer">
+                                <Box
+                                    component="img"
+                                    src={ZaloIcon}
+                                    alt="Zalo"
+                                    sx={{
+                                        width: 40,
+                                        height: 40,
+                                        bgcolor: 'white',
+                                        borderRadius: '50%',
+                                        p: 1,
+                                        boxShadow: 2,
+                                        objectFit: 'cover',
+                                        transition: 'transform 0.2s',
+                                        '&:hover': {
+                                            transform: 'scale(1.1)',
+                                            boxShadow: 4,
+                                        },
+                                        display: 'block',
+                                    }}
+                                />
+                            </a>
                         </Box>
                     </Paper>
                 </Grid>
