@@ -26,6 +26,7 @@ import {
     PersonAdd as PersonAddIcon,
     Visibility as VisibilityIcon,
     VisibilityOff as VisibilityOffIcon,
+    ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { registerStart, registerSuccess, registerFailure } from '../../store/slices/authSlice';
@@ -166,6 +167,15 @@ const RegisterPage: React.FC = () => {
                 pb: 3,
             }}
         >
+            <Button
+                component={RouterLink}
+                to="/"
+                variant="outlined"
+                sx={{ alignSelf: 'flex-start', mb: 2 }}
+                startIcon={<ArrowBackIcon />}
+            >
+                quay lại
+            </Button>
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
                 <PersonAddIcon />
             </Avatar>
