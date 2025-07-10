@@ -19,6 +19,7 @@ import {
     Psychology as PsychologyIcon,
     Science as ScienceIcon,
 } from '@mui/icons-material';
+import doctorImg from '../../images/team-medical/doctor1.jpg';
 
 const AboutPage: React.FC = () => {
     return (
@@ -38,7 +39,7 @@ const AboutPage: React.FC = () => {
                 <Grid item xs={12} md={6}>
                     <Box
                         component="img"
-                        src="/homepageImage.jpg"
+                        src={doctorImg}
                         alt="Đội ngũ y tế chuyên về HIV/AIDS"
                         sx={{
                             width: '100%',

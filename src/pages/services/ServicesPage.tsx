@@ -22,6 +22,18 @@ import {
     ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
+import service1Img from '../../images/services/image1.jpg';
+import service2Img from '../../images/services/image2.jpg';
+import service3Img from '../../images/services/image3.jpg';
+import service4Img from '../../images/services/image4.jpg';
+import service5Img from '../../images/services/image5.jpg';
+import service6Img from '../../images/services/image6.jpg';
+import service7Img from '../../images/services/image7.jpg';
+import service8Img from '../../images/services/image8.jpg';
+import service9Img from '../../images/services/image9.jpg';
+import service10Img from '../../images/services/image10.jpg';
+import service11Img from '../../images/services/image11.jpg';
+import service12Img from '../../images/services/image12.jpg';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -338,114 +350,18 @@ interface Service {
 
 // Sample data
 const services: Service[] = [
-    {
-        id: '1',
-        name: 'Xét Nghiệm HIV Nhanh',
-        description: 'Dịch vụ xét nghiệm HIV nhanh, bảo mật với kết quả trong vòng 20 phút. Bao gồm tư vấn trước và sau xét nghiệm.',
-        category: 'hiv-testing',
-        price: 100,
-        duration: 30,
-        image: '/primaryhealthy.png',
-    },
-    {
-        id: '2',
-        name: 'Tư Vấn Tâm Lý Cho Người Nhiễm HIV',
-        description: 'Dịch vụ tư vấn tâm lý chuyên sâu giúp đối phó với các thách thức tâm lý khi sống chung với HIV, do các chuyên gia tâm lý có kinh nghiệm thực hiện.',
-        category: 'mental-health',
-        price: 150,
-        duration: 60,
-        image: '/mental.png',
-    },
-    {
-        id: '3',
-        name: 'Tư Vấn Dinh Dưỡng Cho Người Nhiễm HIV',
-        description: 'Tư vấn về chế độ dinh dưỡng phù hợp cho người sống chung với HIV, giúp tăng cường hệ miễn dịch và hỗ trợ điều trị ARV hiệu quả.',
-        category: 'hiv-care',
-        price: 120,
-        duration: 45,
-        image: '/counseling.svg',
-    },
-    {
-        id: '4',
-        name: 'Xét Nghiệm CD4 và Tải Lượng Virus',
-        description: 'Xét nghiệm chuyên sâu đánh giá số lượng tế bào CD4 và tải lượng virus HIV trong máu, giúp theo dõi hiệu quả điều trị.',
-        category: 'hiv-testing',
-        price: 250,
-        duration: 60,
-        image: '/homepageImage.jpg',
-    },
-    {
-        id: '5',
-        name: 'Điều Trị ARV & Theo Dõi',
-        description: 'Dịch vụ điều trị thuốc kháng retrovirus (ARV) và theo dõi định kỳ, giúp kiểm soát virus HIV và nâng cao chất lượng cuộc sống.',
-        category: 'hiv-treatment',
-        price: 200,
-        duration: 90,
-        image: '/genderaff.png',
-    },
-    {
-        id: '6',
-        name: 'Nhóm Hỗ Trợ Đồng Đẳng',
-        description: 'Các buổi sinh hoạt nhóm hỗ trợ đồng đẳng, nơi người sống chung với HIV có thể chia sẻ kinh nghiệm và hỗ trợ lẫn nhau.',
-        category: 'mental-health',
-        price: 50,
-        duration: 120,
-        image: '/service-1.svg',
-    },
-    {
-        id: '7',
-        name: 'Tư Vấn Dự Phòng Lây Truyền HIV',
-        description: 'Dịch vụ tư vấn về các biện pháp dự phòng lây truyền HIV, bao gồm sử dụng bao cao su, PrEP, và PEP.',
-        category: 'hiv-prevention',
-        price: 100,
-        duration: 45,
-        image: '/service-2.svg',
-    },
-    {
-        id: '8',
-        name: 'Điều Trị Dự Phòng Trước Phơi Nhiễm (PrEP)',
-        description: 'Dịch vụ cung cấp và theo dõi điều trị PrEP cho người có nguy cơ cao nhiễm HIV, giúp giảm nguy cơ lây nhiễm.',
-        category: 'hiv-prevention',
-        price: 150,
-        duration: 60,
-        image: '/service-3.svg',
-    },
-    {
-        id: '9',
-        name: 'Điều Trị Các Bệnh Nhiễm Trùng Cơ Hội',
-        description: 'Dịch vụ chẩn đoán và điều trị các bệnh nhiễm trùng cơ hội thường gặp ở người nhiễm HIV như lao, viêm phổi PCP, nhiễm nấm.',
-        category: 'hiv-treatment',
-        price: 180,
-        duration: 60,
-        image: '/hormone-therapy.svg',
-    },
-    {
-        id: '10',
-        name: 'Tư Vấn Tiết Lộ Tình Trạng HIV',
-        description: 'Hỗ trợ tư vấn về cách tiết lộ tình trạng HIV với bạn tình, gia đình và người thân, giúp giảm kỳ thị và nhận được sự hỗ trợ.',
-        category: 'mental-health',
-        price: 120,
-        duration: 60,
-        image: '/mental.png',
-    },
-    {
-        id: '11',
-        name: 'Hỗ Trợ Tuân Thủ Điều Trị',
-        description: 'Dịch vụ hỗ trợ tuân thủ điều trị ARV, bao gồm nhắc nhở uống thuốc, theo dõi tác dụng phụ và tư vấn vượt qua khó khăn.',
-        category: 'hiv-care',
-        price: 80,
-        duration: 30,
-        image: '/service-1.svg',
-    },
-    {
-        id: '12',
-        name: 'Điều Trị Dự Phòng Sau Phơi Nhiễm (PEP)',
-        description: 'Dịch vụ cấp cứu cung cấp thuốc PEP trong vòng 72 giờ sau khi có nguy cơ phơi nhiễm HIV, giúp giảm nguy cơ lây nhiễm.',
-        category: 'hiv-prevention',
-        price: 200,
-        duration: 45,
-        image: '/service-2.svg',
-    },
+    { id: '1', name: 'Xét Nghiệm HIV Nhanh', description: 'Dịch vụ xét nghiệm HIV nhanh...', category: 'hiv-testing', price: 100, duration: 30, image: service1Img },
+    { id: '2', name: 'Tư Vấn Tâm Lý Cho Người Nhiễm HIV', description: 'Dịch vụ tư vấn tâm lý...', category: 'mental-health', price: 150, duration: 60, image: service2Img },
+    { id: '3', name: 'Tư Vấn Dinh Dưỡng Cho Người Nhiễm HIV', description: 'Tư vấn về chế độ dinh dưỡng...', category: 'hiv-care', price: 120, duration: 45, image: service3Img },
+    { id: '4', name: 'Xét Nghiệm CD4 và Tải Lượng Virus', description: 'Xét nghiệm chuyên sâu...', category: 'hiv-testing', price: 250, duration: 60, image: service4Img },
+    { id: '5', name: 'Điều Trị ARV & Theo Dõi', description: 'Dịch vụ điều trị thuốc kháng retrovirus...', category: 'hiv-treatment', price: 200, duration: 90, image: service5Img },
+    { id: '6', name: 'Nhóm Hỗ Trợ Đồng Đẳng', description: 'Các buổi sinh hoạt nhóm hỗ trợ...', category: 'mental-health', price: 50, duration: 120, image: service6Img },
+    { id: '7', name: 'Tư Vấn Dự Phòng Lây Truyền HIV', description: 'Dịch vụ tư vấn về các biện pháp dự phòng...', category: 'hiv-prevention', price: 100, duration: 45, image: service7Img },
+    { id: '8', name: 'Điều Trị Dự Phòng Trước Phơi Nhiễm (PrEP)', description: 'Dịch vụ cung cấp và theo dõi điều trị PrEP...', category: 'hiv-prevention', price: 150, duration: 60, image: service8Img },
+    { id: '9', name: 'Điều Trị Các Bệnh Nhiễm Trùng Cơ Hội', description: 'Dịch vụ chẩn đoán và điều trị các bệnh nhiễm trùng...', category: 'hiv-treatment', price: 180, duration: 60, image: service9Img },
+    { id: '10', name: 'Tư Vấn Tiết Lộ Tình Trạng HIV', description: 'Hỗ trợ tư vấn về cách tiết lộ tình trạng HIV...', category: 'mental-health', price: 120, duration: 60, image: service10Img },
+    { id: '11', name: 'Hỗ Trợ Tuân Thủ Điều Trị', description: 'Dịch vụ hỗ trợ tuân thủ điều trị ARV...', category: 'hiv-care', price: 80, duration: 30, image: service11Img },
+    { id: '12', name: 'Điều Trị Dự Phòng Sau Phơi Nhiễm (PEP)', description: 'Dịch vụ cấp cứu cung cấp thuốc PEP...', category: 'hiv-prevention', price: 200, duration: 45, image: service12Img },
 ];
 
 export default ServicesPage; 

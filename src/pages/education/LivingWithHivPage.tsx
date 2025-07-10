@@ -27,6 +27,12 @@ import {
     CheckCircle as CheckCircleIcon,
     ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
+import doc1Img from '../../images/document/image1.jpg';
+import doc2Img from '../../images/document/image2.jpg';
+import doc3Img from '../../images/document/image3.jpg';
+import doc4Img from '../../images/document/image4.jpg';
+import doc5Img from '../../images/document/image5.jpg';
+import doc6Img from '../../images/document/image6.jpg';
 
 const articles = [
     {
@@ -72,7 +78,7 @@ const articles = [
         <h3>Thời điểm bắt đầu điều trị ARV</h3>
         <p>Theo hướng dẫn hiện nay, việc điều trị ARV được khuyến nghị cho tất cả mọi người được chẩn đoán nhiễm HIV, bất kể tình trạng miễn dịch hay giai đoạn lâm sàng. Việc bắt đầu điều trị càng sớm càng tốt giúp bảo vệ hệ miễn dịch, ngăn ngừa các biến chứng liên quan đến HIV, và giảm nguy cơ lây truyền.</p>
         `,
-        imageUrl: "/service-1.svg",
+        imageUrl: doc5Img,
         author: "BS. Phạm Thị D",
         publishDate: "2023-08-05",
         tags: ["Điều trị ARV", "Tuân thủ điều trị", "Sức khỏe"]
@@ -133,7 +139,7 @@ const articles = [
             <li>Tránh caffeine, rượu và màn hình điện tử trước khi đi ngủ</li>
         </ul>
         `,
-        imageUrl: "/counseling.svg",
+        imageUrl: doc6Img,
         author: "TS. Nguyễn Văn E",
         publishDate: "2023-09-15",
         tags: ["Dinh dưỡng", "Tập luyện", "Sức khỏe tổng thể"]
@@ -184,7 +190,7 @@ const articles = [
             <li><strong>Triệt sản:</strong> Lựa chọn vĩnh viễn cho những người không muốn có thêm con</li>
         </ul>
         `,
-        imageUrl: "/service-2.svg",
+        imageUrl: doc4Img,
         author: "BS. CK2. Lê Thị F",
         publishDate: "2023-10-20",
         tags: ["Kế hoạch hóa gia đình", "Mang thai", "Sinh sản"]

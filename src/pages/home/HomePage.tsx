@@ -18,6 +18,12 @@ import {
     ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
 import Chatbot from '../../components/Chatbot/Chatbot';
+import diverseGroupImg from '../../images/homePage/diverse-group.jpg';
+import heroImg from '../../images/homePage/image1.jpg';
+import service1Img from '../../images/homePage/image2.jpg';
+import service2Img from '../../images/homePage/image3.png';
+import psychologicalSupport1Img from '../../images/services/psychological-support-1.jpg';
+import psychologicalSupport2Img from '../../images/services/psychological-support-2.jpg';
 
 const HomePage: React.FC = () => {
     return (
@@ -69,8 +75,8 @@ const HomePage: React.FC = () => {
                         <Box sx={{ flex: 1 }}>
                             <Box
                                 component="img"
-                                src="/homepageImage.jpg"
-                                alt="Nhóm người đa dạng"
+                                src={heroImg}
+                                alt="Hero section"
                                 sx={{
                                     width: '100%',
                                     borderRadius: 2,
@@ -238,19 +244,19 @@ const services = [
     {
         title: 'Điều Trị ARV',
         description: 'Điều trị bằng thuốc kháng retrovirus (ARV) với các phác đồ phù hợp cho từng cá nhân, được theo dõi bởi các chuyên gia y tế.',
-        image: '/primaryhealthy.png',
+        image: service1Img,
         link: '/services#arv-treatment',
     },
     {
         title: 'Tư Vấn & Xét Nghiệm',
         description: 'Dịch vụ tư vấn và xét nghiệm nhanh, bảo mật với CD4, tải lượng virus và các xét nghiệm liên quan khác.',
-        image: '/counseling.svg',
+        image: service2Img,
         link: '/services#testing',
     },
     {
         title: 'Hỗ Trợ Tâm Lý',
         description: 'Dịch vụ tư vấn tâm lý chuyên sâu giúp vượt qua các rào cản tâm lý và xã hội khi sống chung với HIV.',
-        image: '/mental.png',
+        image: heroImg,
         link: '/services#mental-support',
     },
 ];

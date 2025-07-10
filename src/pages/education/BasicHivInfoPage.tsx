@@ -23,6 +23,9 @@ import {
     ArrowForward as ArrowForwardIcon,
     CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
+import doc1Img from '../../images/document/image1.jpg';
+import doc2Img from '../../images/document/image2.jpg';
+import doc3Img from '../../images/document/image3.jpg';
 
 const articles = [
     {
@@ -61,7 +64,7 @@ const articles = [
             <li>Điều trị dự phòng trước phơi nhiễm (PrEP) và sau phơi nhiễm (PEP) trong trường hợp cần thiết</li>
         </ul>
         `,
-        imageUrl: "/hivicon.png",
+        imageUrl: doc3Img,
         author: "TS. Nguyễn Văn A",
         publishDate: "2023-05-15",
         tags: ["Kiến thức cơ bản", "HIV/AIDS", "Phòng ngừa"]
@@ -108,7 +111,7 @@ const articles = [
         <h3>Tính bảo mật của xét nghiệm HIV</h3>
         <p>Xét nghiệm HIV được thực hiện với sự bảo mật cao. Kết quả xét nghiệm được giữ kín và chỉ được chia sẻ với bạn và nhân viên y tế trực tiếp chăm sóc cho bạn. Bạn cũng có thể lựa chọn xét nghiệm ẩn danh tại một số cơ sở.</p>
         `,
-        imageUrl: "/service-2.svg",
+        imageUrl: doc1Img,
         author: "BS. Trần Thị B",
         publishDate: "2023-06-20",
         tags: ["Xét nghiệm", "Chẩn đoán", "Phòng ngừa"]
@@ -164,7 +167,7 @@ const articles = [
             <li><strong>Xét nghiệm thường xuyên:</strong> Biết tình trạng HIV của bạn và bạn tình là bước quan trọng trong việc ngăn ngừa lây truyền</li>
         </ul>
         `,
-        imageUrl: "/service-3.svg",
+        imageUrl: doc2Img,
         author: "PGS.TS. Lê Văn C",
         publishDate: "2023-07-10",
         tags: ["PrEP", "PEP", "U=U", "Phòng ngừa"]

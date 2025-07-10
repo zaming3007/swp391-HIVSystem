@@ -11,6 +11,16 @@ import {
     Tabs,
     Tab,
 } from '@mui/material';
+import doctor1Img from '../../images/team-medical/doctor1.jpg';
+import doctor2Img from '../../images/team-medical/doctor2.jpg';
+import doctor3Img from '../../images/team-medical/doctor3.jpg';
+import doctor4Img from '../../images/team-medical/doctor4.jpg';
+import doctor5Img from '../../images/team-medical/doctor5.jpg';
+import doctor6Img from '../../images/team-medical/doctor6.jpg';
+import doctor7Img from '../../images/team-medical/doctor7.jpg';
+import doctor8Img from '../../images/team-medical/doctor8.jpg';
+import doctor9Img from '../../images/team-medical/doctor9.jpg';
+import doctor10Img from '../../images/team-medical/doctor10.jpg';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -231,7 +241,7 @@ const teamMembers: TeamMember[] = [
         name: 'TS. BS. Nguyễn Văn A',
         title: 'Giám đốc Y khoa',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=1',
+        image: doctor1Img,
         description: 'Bác sĩ nội tiết với hơn 15 năm kinh nghiệm trong lĩnh vực y học giới tính và liệu pháp hormone.',
         specialties: ['Nội tiết học', 'Liệu pháp hormone', 'Y học giới tính']
     },
@@ -240,7 +250,7 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. BS. Trần Thị B',
         title: 'Bác sĩ Chuyên khoa Nội tiết',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=5',
+        image: doctor2Img,
         description: 'Chuyên gia về liệu pháp hormone cho người chuyển giới, với nhiều nghiên cứu được công bố quốc tế.',
         specialties: ['Liệu pháp hormone', 'Chăm sóc sức khỏe chuyển giới']
     },
@@ -249,7 +259,7 @@ const teamMembers: TeamMember[] = [
         name: 'TS. Lê Văn C',
         title: 'Trưởng khoa Tâm lý',
         department: 'mental-health',
-        image: 'https://i.pravatar.cc/300?img=8',
+        image: doctor3Img,
         description: 'Nhà tâm lý học lâm sàng với chuyên môn về giới tính, bản dạng giới và sức khỏe tâm thần LGBTQ+.',
         specialties: ['Tâm lý học lâm sàng', 'Tư vấn bản dạng giới', 'Trị liệu tâm lý']
     },
@@ -258,7 +268,7 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. Phạm Thị D',
         title: 'Chuyên viên Tâm lý',
         department: 'mental-health',
-        image: 'https://i.pravatar.cc/300?img=9',
+        image: doctor4Img,
         description: 'Nhà trị liệu tâm lý chuyên về hỗ trợ người chuyển giới và người phi nhị nguyên giới trong quá trình chuyển đổi.',
         specialties: ['Trị liệu tâm lý', 'Tư vấn giới tính', 'Hỗ trợ chuyển đổi']
     },
@@ -267,7 +277,7 @@ const teamMembers: TeamMember[] = [
         name: 'BS. Hoàng Văn E',
         title: 'Bác sĩ Da liễu',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=3',
+        image: doctor5Img,
         description: 'Chuyên gia về chăm sóc da cho người đang sử dụng liệu pháp hormone và các vấn đề da liễu liên quan đến giới tính.',
         specialties: ['Da liễu', 'Chăm sóc da cho người dùng hormone']
     },
@@ -276,7 +286,7 @@ const teamMembers: TeamMember[] = [
         name: 'CN. Vũ Thị F',
         title: 'Quản lý Điều dưỡng',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=10',
+        image: doctor6Img,
         description: 'Điều dưỡng viên với chuyên môn về chăm sóc sau phẫu thuật khẳng định giới tính và hỗ trợ bệnh nhân.',
         specialties: ['Điều dưỡng', 'Chăm sóc hậu phẫu']
     },
@@ -285,26 +295,36 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. Đỗ Văn G',
         title: 'Giám đốc Điều hành',
         department: 'administrative',
-        image: 'https://i.pravatar.cc/300?img=4',
+        image: doctor7Img,
         description: 'Quản lý điều hành với hơn 10 năm kinh nghiệm trong lĩnh vực quản lý y tế và dịch vụ chăm sóc sức khỏe.',
     },
     {
         id: 8,
-        name: 'CN. Ngô Thị H',
-        title: 'Điều phối viên Bệnh nhân',
-        department: 'administrative',
-        image: 'https://i.pravatar.cc/300?img=7',
-        description: 'Chuyên gia liên lạc và hỗ trợ bệnh nhân, đảm bảo trải nghiệm tốt nhất cho mọi người đến với trung tâm.',
+        name: 'ThS. Nguyễn Thị K',
+        title: 'Chuyên viên Tư vấn Tâm lý',
+        department: 'mental-health',
+        image: doctor8Img,
+        description: 'Chuyên gia tư vấn tâm lý với nhiều năm kinh nghiệm hỗ trợ cộng đồng LGBTQ+ và người chuyển giới.',
+        specialties: ['Tư vấn tâm lý', 'Hỗ trợ cộng đồng', 'Trị liệu nhóm']
     },
     {
         id: 9,
-        name: 'TS. Trịnh Văn I',
-        title: 'Chuyên gia Ngôn ngữ trị liệu',
+        name: 'BS. Lê Văn M',
+        title: 'Bác sĩ Nội khoa',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=6',
-        description: 'Chuyên gia về luyện giọng nói và giao tiếp cho người chuyển giới, với nhiều năm kinh nghiệm lâm sàng.',
-        specialties: ['Ngôn ngữ trị liệu', 'Luyện giọng nói', 'Kỹ năng giao tiếp']
-    }
+        image: doctor9Img,
+        description: 'Bác sĩ nội khoa chuyên về chăm sóc sức khỏe tổng quát và phòng ngừa bệnh cho người đa dạng giới.',
+        specialties: ['Nội khoa', 'Phòng ngừa bệnh', 'Chăm sóc sức khỏe tổng quát']
+    },
+    {
+        id: 10,
+        name: 'CN. Trần Thị N',
+        title: 'Điều dưỡng viên',
+        department: 'medical',
+        image: doctor10Img,
+        description: 'Điều dưỡng viên tận tâm, hỗ trợ chăm sóc bệnh nhân trong và sau quá trình điều trị.',
+        specialties: ['Điều dưỡng', 'Chăm sóc bệnh nhân', 'Hỗ trợ điều trị']
+    },
 ];
 
 export default TeamPage; 

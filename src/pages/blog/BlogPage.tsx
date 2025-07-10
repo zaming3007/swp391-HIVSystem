@@ -20,6 +20,10 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CommentIcon from '@mui/icons-material/Comment';
 import { getAllPublishedPosts, searchPosts } from '../../services/mockData/blogMockData';
 import { BlogPost } from '../../types/blog';
+import blog1Img from '../../images/bog-share/blog1.jpg';
+import blog2Img from '../../images/bog-share/blog2.jpg';
+import blog3Img from '../../images/bog-share/blog3.jpg';
+import blog4Img from '../../images/bog-share/blog4.jpg';
 
 const BlogPage: React.FC = () => {
     const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -120,19 +124,11 @@ const BlogPage: React.FC = () => {
                                 >
                                     <CardActionArea onClick={() => handlePostClick(post.id)}>
                                         <CardMedia
-                                            component="div"
-                                            sx={{
-                                                height: 140,
-                                                bgcolor: 'primary.light',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                            }}
-                                        >
-                                            <Typography variant="h5" color="white">
-                                                {post.title.split(' ').slice(0, 2).join(' ')}
-                                            </Typography>
-                                        </CardMedia>
+                                            component="img"
+                                            height={140}
+                                            image={post.id === '3' ? blog3Img : post.id === '4' ? blog4Img : post.id === '1' ? blog1Img : blog2Img}
+                                            alt={post.title}
+                                        />
                                         <CardContent sx={{ flexGrow: 1 }}>
                                             <Typography gutterBottom variant="h6" component="h2" noWrap>
                                                 {post.title}
