@@ -22,7 +22,8 @@ import {
     Message as MessageIcon,
     Settings as SettingsIcon,
     Logout as LogoutIcon,
-    Assessment as AssessmentIcon
+    Assessment as AssessmentIcon,
+    Article as BlogIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -157,6 +158,21 @@ const AdminLayout: React.FC = () => {
                             <AssessmentIcon />
                         </ListItemIcon>
                         <ListItemText primary="Báo cáo thống kê" />
+                    </ListItem>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to="/admin/blogs"
+                        sx={{
+                            py: 1.5,
+                            '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                            '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 40, color: '#7E57C2' }}>
+                            <BlogIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Quản lý bài viết" />
                     </ListItem>
                 </List>
                 <Divider />

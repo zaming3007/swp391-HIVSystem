@@ -34,6 +34,8 @@ import StigmaReductionPage from './pages/education/StigmaReductionPage';
 import TestResultsPage from './pages/medical/TestResultsPage';
 import BlogPage from './pages/blog/BlogPage';
 import BlogDetailPage from './pages/blog/BlogDetailPage';
+import BlogManagementPage from './pages/admin/BlogManagementPage';
+import BlogFormPage from './pages/admin/BlogFormPage';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -168,6 +170,9 @@ const AppRoutes: React.FC = () => {
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
           <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
           <Route path="reports" element={<div>Báo cáo thống kê</div>} />
+          <Route path="blogs" element={<BlogManagementPage />} />
+          <Route path="blogs/create" element={<BlogFormPage />} />
+          <Route path="blogs/edit/:id" element={<BlogFormPage />} />
         </Route>
 
         <Route path="/doctor" element={
@@ -191,6 +196,9 @@ const AppRoutes: React.FC = () => {
           <Route index element={<div>Dashboard Nhân viên</div>} />
           <Route path="patients" element={<div>Danh sách bệnh nhân</div>} />
           <Route path="consultations" element={<ConsultationsPage />} />
+          <Route path="blogs" element={<BlogManagementPage />} />
+          <Route path="blogs/create" element={<BlogFormPage />} />
+          <Route path="blogs/edit/:id" element={<BlogFormPage />} />
         </Route>
       </Route>
 

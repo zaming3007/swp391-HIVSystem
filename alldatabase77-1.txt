@@ -2,7 +2,7 @@
 -- PostgreSQL database cluster dump
 --
 
--- Started on 2025-07-04 14:18:10
+-- Started on 2025-07-07 15:10:34
 
 SET default_transaction_read_only = off;
 
@@ -44,7 +44,7 @@ ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION
 -- Dumped from database version 16.8 (Debian 16.8-1.pgdg120+1)
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-07-04 14:18:11
+-- Started on 2025-07-07 15:10:34
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -58,7 +58,7 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- Completed on 2025-07-04 14:18:16
+-- Completed on 2025-07-07 15:10:36
 
 --
 -- PostgreSQL database dump complete
@@ -77,7 +77,7 @@ SET row_security = off;
 -- Dumped from database version 16.8 (Debian 16.8-1.pgdg120+1)
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-07-04 14:18:16
+-- Started on 2025-07-07 15:10:36
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -91,7 +91,7 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- Completed on 2025-07-04 14:18:23
+-- Completed on 2025-07-07 15:10:38
 
 --
 -- PostgreSQL database dump complete
@@ -108,7 +108,7 @@ SET row_security = off;
 -- Dumped from database version 16.8 (Debian 16.8-1.pgdg120+1)
 -- Dumped by pg_dump version 17.5
 
--- Started on 2025-07-04 14:18:23
+-- Started on 2025-07-07 15:10:38
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -123,7 +123,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 3434 (class 1262 OID 16559)
+-- TOC entry 3446 (class 1262 OID 16559)
 -- Name: railway; Type: DATABASE; Schema: -; Owner: postgres
 --
 
@@ -151,7 +151,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 218 (class 1259 OID 16592)
+-- TOC entry 225 (class 1259 OID 16769)
 -- Name: Answers; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -161,14 +161,15 @@ CREATE TABLE public."Answers" (
     responder_id text NOT NULL,
     responder_name text NOT NULL,
     content text NOT NULL,
-    created_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone
 );
 
 
 ALTER TABLE public."Answers" OWNER TO postgres;
 
 --
--- TOC entry 222 (class 1259 OID 16632)
+-- TOC entry 220 (class 1259 OID 16632)
 -- Name: Appointments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -195,7 +196,23 @@ CREATE TABLE public."Appointments" (
 ALTER TABLE public."Appointments" OWNER TO postgres;
 
 --
--- TOC entry 217 (class 1259 OID 16573)
+-- TOC entry 223 (class 1259 OID 16749)
+-- Name: ConsultationTopics; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public."ConsultationTopics" (
+    id text NOT NULL,
+    name text NOT NULL,
+    description text,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone
+);
+
+
+ALTER TABLE public."ConsultationTopics" OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1259 OID 16757)
 -- Name: Consultations; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -205,15 +222,17 @@ CREATE TABLE public."Consultations" (
     title text NOT NULL,
     question text NOT NULL,
     category text NOT NULL,
+    topic text,
     status text NOT NULL,
-    created_at timestamp with time zone NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone
 );
 
 
 ALTER TABLE public."Consultations" OWNER TO postgres;
 
 --
--- TOC entry 223 (class 1259 OID 16654)
+-- TOC entry 221 (class 1259 OID 16654)
 -- Name: DoctorServices; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -227,7 +246,7 @@ CREATE TABLE public."DoctorServices" (
 ALTER TABLE public."DoctorServices" OWNER TO postgres;
 
 --
--- TOC entry 219 (class 1259 OID 16606)
+-- TOC entry 217 (class 1259 OID 16606)
 -- Name: Doctors; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -250,7 +269,7 @@ CREATE TABLE public."Doctors" (
 ALTER TABLE public."Doctors" OWNER TO postgres;
 
 --
--- TOC entry 224 (class 1259 OID 16736)
+-- TOC entry 222 (class 1259 OID 16736)
 -- Name: Reminders; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -280,7 +299,7 @@ CREATE TABLE public."Reminders" (
 ALTER TABLE public."Reminders" OWNER TO postgres;
 
 --
--- TOC entry 220 (class 1259 OID 16613)
+-- TOC entry 218 (class 1259 OID 16613)
 -- Name: Services; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -300,7 +319,7 @@ CREATE TABLE public."Services" (
 ALTER TABLE public."Services" OWNER TO postgres;
 
 --
--- TOC entry 221 (class 1259 OID 16620)
+-- TOC entry 219 (class 1259 OID 16620)
 -- Name: TimeSlots; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -352,20 +371,19 @@ CREATE TABLE public."__EFMigrationsHistory" (
 ALTER TABLE public."__EFMigrationsHistory" OWNER TO postgres;
 
 --
--- TOC entry 3422 (class 0 OID 16592)
--- Dependencies: 218
+-- TOC entry 3440 (class 0 OID 16769)
+-- Dependencies: 225
 -- Data for Name: Answers; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."Answers" (id, consultation_id, responder_id, responder_name, content, created_at) FROM stdin;
-1	2	2	Doctor User	Chế độ ăn giàu protein, vitamin và khoáng chất sẽ giúp tăng cường hệ miễn dịch. Nên ăn nhiều rau xanh, trái cây, thịt nạc và cá. Hãy đảm bảo uống đủ nước và hạn chế đồ ăn nhiều dầu mỡ và đường.	2024-12-26 00:00:00+00
-2	3	2	Doctor User	Tình trạng mất ngủ có thể là tác dụng phụ của một số loại thuốc ARV. Tôi khuyên bạn nên uống thuốc vào buổi sáng thay vì buổi tối. Nếu tình trạng vẫn tiếp tục, hãy đặt lịch hẹn để chúng ta có thể đánh giá và điều chỉnh phác đồ nếu cần.	2024-12-28 00:00:00+00
+COPY public."Answers" (id, consultation_id, responder_id, responder_name, content, created_at, updated_at) FROM stdin;
+9157832a-2820-4de0-9b26-d8461ef6693c	9a656ad0-9468-4491-832b-8daccdf1791f	6a9a659f-fc05-4fec-8d53-1b79e304f28c	Chi thao	Không sao	2025-07-05 04:49:14.808617+00	\N
 \.
 
 
 --
--- TOC entry 3426 (class 0 OID 16632)
--- Dependencies: 222
+-- TOC entry 3435 (class 0 OID 16632)
+-- Dependencies: 220
 -- Data for Name: Appointments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -395,25 +413,43 @@ da8ba66f-640d-4267-9eba-9cb46125549b	7d7b0d47-2cb5-49f2-8342-d79c94a4b114	phan t
 09308426-54b1-4866-b57c-ae85a21dbaa0	d9392208-6dac-45a2-8447-692382e48a28	mnih gia	1	Minh Nguyễn	5	Xét nghiệm HIV nhanh	2025-07-05 00:00:00+00	15:00	15:30	0	OK con dê	2025-07-04 06:11:58.671118+00	\N	1	https://meet.google.com/abc-def-ghi
 9ee8af56-0c2b-47b7-b46e-d12f9db1aab2	d9392208-6dac-45a2-8447-692382e48a28	mnih gia	2	Hoa Trần	9	Hỗ trợ tâm lý cho người nhiễm HIV	2025-07-30 00:00:00+00	14:30	15:30	0		2025-07-04 06:13:02.107185+00	\N	0	\N
 4a554d49-2d9e-46a4-b06b-3f0c31a2adfd	29ad8424-9f0b-4fc7-af45-0568cd102385	Phan Tien	1	Minh Nguyễn	7	Điều trị ARV định kỳ	2025-07-05 00:00:00+00	08:30	09:15	0		2025-07-04 06:37:51.567402+00	\N	0	\N
+be40da4d-f93e-4103-84ac-ee19d685148d	33e2385a-c62b-4186-bb6a-6262c405319b	nigga huy	2	Hoa Trần	12	Xét nghiệm tải lượng virus HIV	2025-07-05 00:00:00+00	08:00	08:30	0	dcdb kn 	2025-07-04 08:17:46.819919+00	\N	0	\N
+3153ca48-47ba-4e9d-9e1b-6e43acab8076	33e2385a-c62b-4186-bb6a-6262c405319b	nigga huy	2	Hoa Trần	3	Khám da liễu	2025-07-05 00:00:00+00	08:30	09:00	0	ijk	2025-07-04 08:18:52.168852+00	\N	0	\N
 \.
 
 
 --
--- TOC entry 3421 (class 0 OID 16573)
--- Dependencies: 217
+-- TOC entry 3438 (class 0 OID 16749)
+-- Dependencies: 223
+-- Data for Name: ConsultationTopics; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public."ConsultationTopics" (id, name, description, created_at, updated_at) FROM stdin;
+1	ARV	Thuốc kháng virus và phác đồ điều trị	2025-07-05 04:31:57.330375+00	\N
+2	CD4	Xét nghiệm CD4 và ý nghĩa	2025-07-05 04:31:57.330375+00	\N
+3	Tải lượng virus	Xét nghiệm tải lượng virus và ý nghĩa	2025-07-05 04:31:57.330375+00	\N
+4	Tác dụng phụ	Tác dụng phụ của thuốc ARV và cách xử lý	2025-07-05 04:31:57.330375+00	\N
+5	Dinh dưỡng	Chế độ dinh dưỡng cho người sống chung với HIV	2025-07-05 04:31:57.330375+00	\N
+6	Sức khỏe tinh thần	Sức khỏe tinh thần và tâm lý	2025-07-05 04:31:57.330375+00	\N
+7	Phòng ngừa	Phòng ngừa lây nhiễm và tái nhiễm	2025-07-05 04:31:57.330375+00	\N
+8	Khác	Các chủ đề khác	2025-07-05 04:31:57.330375+00	\N
+\.
+
+
+--
+-- TOC entry 3439 (class 0 OID 16757)
+-- Dependencies: 224
 -- Data for Name: Consultations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public."Consultations" (id, patient_id, title, question, category, status, created_at) FROM stdin;
-1	4	Câu hỏi về liệu trình điều trị	Tôi muốn biết thêm về các tác dụng phụ của phác đồ điều trị ARV hiện tại?	Điều trị	pending	2024-12-22 00:00:00+00
-2	4	Tư vấn về dinh dưỡng	Tôi nên ăn gì để tăng cường hệ miễn dịch khi đang điều trị?	Dinh dưỡng	answered	2024-12-25 00:00:00+00
-3	4	Câu hỏi về tác dụng phụ thuốc	Gần đây tôi bị mất ngủ sau khi uống thuốc, tôi nên làm gì?	Điều trị	answered	2024-12-27 00:00:00+00
+COPY public."Consultations" (id, patient_id, title, question, category, topic, status, created_at, updated_at) FROM stdin;
+9a656ad0-9468-4491-832b-8daccdf1791f	e98adbe5-0722-494b-8763-69c4d75f2801	Tác dụng phụ của thuốc	TẠI SAO TÔI UỐNG THUỐC NHIỀU MÀ CHƯA THIÊN GIẢM	Tác dụng phụ của thuốc	\N	answered	2025-07-05 04:37:27.655159+00	2025-07-05 04:49:14.808618+00
 \.
 
 
 --
--- TOC entry 3427 (class 0 OID 16654)
--- Dependencies: 223
+-- TOC entry 3436 (class 0 OID 16654)
+-- Dependencies: 221
 -- Data for Name: DoctorServices; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -422,8 +458,8 @@ COPY public."DoctorServices" (id, doctor_id, service_id) FROM stdin;
 
 
 --
--- TOC entry 3423 (class 0 OID 16606)
--- Dependencies: 219
+-- TOC entry 3432 (class 0 OID 16606)
+-- Dependencies: 217
 -- Data for Name: Doctors; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -435,8 +471,8 @@ COPY public."Doctors" (id, first_name, last_name, specialization, email, phone, 
 
 
 --
--- TOC entry 3428 (class 0 OID 16736)
--- Dependencies: 224
+-- TOC entry 3437 (class 0 OID 16736)
+-- Dependencies: 222
 -- Data for Name: Reminders; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -445,8 +481,8 @@ COPY public."Reminders" (id, user_id, title, description, reminder_type, start_d
 
 
 --
--- TOC entry 3424 (class 0 OID 16613)
--- Dependencies: 220
+-- TOC entry 3433 (class 0 OID 16613)
+-- Dependencies: 218
 -- Data for Name: Services; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -470,8 +506,8 @@ COPY public."Services" (id, name, description, duration, price, category, image_
 
 
 --
--- TOC entry 3425 (class 0 OID 16620)
--- Dependencies: 221
+-- TOC entry 3434 (class 0 OID 16620)
+-- Dependencies: 219
 -- Data for Name: TimeSlots; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -500,15 +536,15 @@ COPY public."TimeSlots" (id, doctor_id, day_of_week, start_time, end_time) FROM 
 
 
 --
--- TOC entry 3420 (class 0 OID 16565)
+-- TOC entry 3431 (class 0 OID 16565)
 -- Dependencies: 216
 -- Data for Name: Users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public."Users" (id, first_name, last_name, email, password_hash, phone, gender, date_of_birth, role, profile_image, created_at, updated_at) FROM stdin;
-4	Customer	User	customer@example.com	$2a$11$ij4jecQmQGXMbP1qdQYz4.YaXiMvz2dGXRKNVKGMsPNWMeGsEfTdm	0987612345	Female	1995-03-25	customer	/customer-avatar.jpg	2025-01-01 00:00:00+00	\N
-ea8c0703-1cf2-4273-9adf-57ec6b9fca58	cao 	cao 	caosang@gmail.com	$2a$11$1cX1FPgXkUUd1uVCfesVWe/hGVf/LEGsnsQGyjWqLqTIaqK7U9HH6	0847427112	other	2023-01-29	customer		2025-06-29 06:05:08.578214+00	\N
-e98adbe5-0722-494b-8763-69c4d75f2801	giabao	giabao	giabao@gmail.com	$2a$11$6pyAD.AvnIsgbawCi/heSutShsaruJ7X.woK65NE7IsK4yKNW8R4u	086542323	male	2025-05-29	customer		2025-06-29 06:24:06.459979+00	\N
+6a9a659f-fc05-4fec-8d53-1b79e304f28c	Chi	thao	thaothao@gmail.com	$2a$11$OGmslnmsq1f6FgIUPlnWbOV3L75/YfKVfpLhUmfcflMpTXyPR/wWa	0977427412	female	2023-05-11	staff	\N	2025-07-01 06:44:30.227+00	\N
+4	Customer	User	customer@example.com	$2a$11$vs4y1P6qz/ZEs19o0jaUmu.ZwftqhsQhVBEKJwllU91WBZbkh3ANa	0987612345	Female	1995-03-25	customer	/customer-avatar.jpg	2025-01-01 00:00:00+00	2025-07-04 07:46:34.52144+00
+ea8c0703-1cf2-4273-9adf-57ec6b9fca58	cao 	cao 	caosang@gmail.com	$2a$11$iEJ.j6XA70Y5vCuqoUUDyusEeoFnMz1NeJySQqn.B67odOYY4oiHS	0847427112	other	2023-01-29	doctor		2025-06-29 06:05:08.578214+00	2025-07-04 07:46:52.82981+00
 4f0ad591-34ec-4ecc-8095-e97197f4d1b4	gia	minh	giamin23@gmail.com	$2a$11$TCmZQjO4ZCq.TRl4KbhZh.svzk/lraPQK6medvv0Yv1.zR.LHq8/q	0865400435	male	2025-06-09	customer		2025-06-30 07:17:08.24207+00	\N
 6ee7af0e-910f-41d9-866b-a4bf213c4b96	baok	baok	baokbaok@gmail.com	$2a$11$cFPFqKdmLDH7kfmqohK1vuLEE0P0C/248OMVwGULIMY8vKRj20ftu	0865400435	male	2025-06-10	customer		2025-06-30 07:19:05.250365+00	\N
 3566cc68-ee14-4c6b-88d6-5b84288baa70	hoahoa	hoahoa	hoahoa@gmail.com	$2a$11$vWmNdrBjvl3rAc9.spYM9uMJhcByQQvAOB/F6sIXJtGRtR34jZUhu	0865400435	female	2025-06-04	customer		2025-06-30 15:44:47.654286+00	\N
@@ -516,22 +552,23 @@ d8a8f586-dd20-47ae-a28b-c8b1c1af2358	aaaa	bbbbb	ccccc@gmail.com	$2a$11$3CWi0gI97
 d9392208-6dac-45a2-8447-692382e48a28	mnih	gia	pminh2004@gmail.com	$2a$11$4ags8oPI1uE3xrJjhjcyH.I0GPZ15.XILW5dwhyyVwtLziThsEh9a	0865400435	male	2025-06-05	customer		2025-06-30 18:48:04.352745+00	\N
 126567f5-7cf3-441a-8524-69341cb9bac3	giaminh	giaminh	giaminhgiaminh@gmail.com	$2a$11$4/dAIFQ1K7bbGvdCuSkwQOqrm7LimhLxCfoDfbIi5F2dqy8Uyc89S	0865400435	male	2025-07-09	customer		2025-07-01 06:06:29.511832+00	\N
 d437a92c-1df5-41a7-afe0-720a3c406e9b	Minh	Phan Tran Gia	pminhzdzd@gmail.com	$2a$11$pFGTjEOb848hfOifZ61MNe797lLT4OR/KlhQeQbSD5tWi50KQTXgW	0852375232	male	2025-03-06	customer		2025-07-01 06:21:05.42997+00	\N
-6a9a659f-fc05-4fec-8d53-1b79e304f28c	Chi	thao	thaothao@gmail.com	$2a$11$OGmslnmsq1f6FgIUPlnWbOV3L75/YfKVfpLhUmfcflMpTXyPR/wWa	0977427412	female	2023-05-11	customer		2025-07-01 06:44:30.227725+00	\N
-1	Admin	User	admin@example.com	$2a$11$ij4jecQmQGXMbP1qdQYz4.YaXiMvz2dGXRKNVKGMsPNWMeGsEfTdm	0123456789	Male	1990-01-01	admin	/admin-avatar.jpg	2025-07-01 10:39:20.629831+00	\N
-2	Doctor	User	doctor@example.com	$2a$11$ij4jecQmQGXMbP1qdQYz4.YaXiMvz2dGXRKNVKGMsPNWMeGsEfTdm	0987654321	Female	1985-05-15	doctor	/doctor-avatar.jpg	2025-07-01 10:39:20.63001+00	\N
-3	Staff	User	staff@example.com	$2a$11$ij4jecQmQGXMbP1qdQYz4.YaXiMvz2dGXRKNVKGMsPNWMeGsEfTdm	0123498765	Male	1992-10-20	staff	/staff-avatar.jpg	2025-07-01 10:39:20.63001+00	\N
+33e2385a-c62b-4186-bb6a-6262c405319b	nigga	huy	huynqse183717@fpt.edu.vn	$2a$11$iKW5yy3ezP0waq55Aoh87uvaxIdfoovCNbdaBrYdJzPNJRA/1K4AS	0937615818	male	2002-06-12	customer		2025-07-04 08:15:24.868206+00	\N
 236c3e7e-916d-4f27-944e-48fff83f21a7	gia	minh	milaodai@gmail.com	$2a$11$LArR55M9Aa1mBfNiObXaSujqF.mG3VkN63A3lMY7B5LgvBoqhlObG	0847664439	male	2025-05-14	admin	\N	2025-07-03 15:04:38.942+00	\N
 072ab935-73bd-4d10-8470-09629ad48472	hoa2	hoa2	hoa2hoa2@gmail.com	$2a$11$eBl9PVYTrYUR4zS5MOvMpOahjsmBkjUbOg2RGvNe.OjHYC0iqBzdK		male	2025-02-07	customer		2025-07-04 03:29:01.606842+00	\N
 fe863052-d232-42e3-9492-8d2411cbb199	lai	duc	laiduc@gmail.com	$2a$11$z/Cfxep9l5N0WJ/256//oOG0LLe0dnW2stnyhEhhiqMQ/28rDIEL.	0842141221	male	2022-01-04	customer		2025-07-04 06:08:34.92732+00	\N
 7d7b0d47-2cb5-49f2-8342-d79c94a4b114	phan	thanh	phanthanh@gmail.com	$2a$11$N21UrP6JeVDqlR14EZEML.z98hgBVPLByGei4BuLtYZ68Bine92sm	0859235232	female	2025-06-26	staff	\N	2025-07-04 04:05:31.824+00	\N
 bea0576b-5b40-40fb-8c7e-2aed455544ac	minhminh1	minhminh	minhminhminhminh@gmail.com	$2a$11$UBFlJbErmNURAwEKcmWrV.gDeZTX77y/.iubPQnprOQQ1GEqQ4AOe	0865400435	female	2025-07-10	customer	\N	2025-07-04 06:13:49.935+00	\N
 29ad8424-9f0b-4fc7-af45-0568cd102385	Phan	Tien	phantrongtienlh@gmail.com	$2a$11$.3wGfPrXcgMiwU9XlvOmUOY0L.ZOhhoaNICYJATkduQhIoPVdkSPm		male	2004-07-23	customer		2025-07-04 06:34:54.423975+00	\N
-70a1a12f-1ba8-47a1-bcca-1672fcc6de69	nigga	đã đến	nigga123@gmail.com	$2a$11$kApr1alhAS8Kov1hTiklpu7KIY3SiJJSyOzZXLXRZASILLHCVp7fS	0987678678	male	2005-01-31	customer		2025-07-04 06:43:50.431413+00	\N
+e5a57b16-e544-444a-8b17-ddf482caee90	admin	dz	admin@gmail.com	$2a$11$JjHwy5KBMat81lSPF4pAI.3kihjCLGmOUxsvEjm43Ztb5RvaM8ylq	0123456789	male	2025-07-05	admin	\N	2025-07-05 04:52:50.851+00	\N
+605b29dc-1e90-4667-85b7-04058db21da7	staff	dz	staff@gmail.com	$2a$11$SWN2rQw.uuzE9IabJCBOTerEHZoMseCWDgg.eQTab0y.N2Q9IHUC2	012345678	male	2025-07-03	staff	\N	2025-07-05 04:57:28.858+00	\N
+4f8aefdc-81dd-4169-953d-57e75585aaad	doctor	dz	doctor@gmail.com	$2a$11$7bOTuLldeMv/8OYRL5mob.693ClIhwBV0XetcX22AvaKww8Y9m/pm	012345678	male	2025-07-09	doctor	\N	2025-07-05 04:57:57.571+00	\N
+e98adbe5-0722-494b-8763-69c4d75f2801	giabao1	giabao111	giabao123@gmail.com	$2a$11$6pyAD.AvnIsgbawCi/heSutShsaruJ7X.woK65NE7IsK4yKNW8R4u	0865423231	female	2025-05-28	customer		2025-06-29 06:24:06.459979+00	2025-07-05 04:15:22.641911+00
+fd56ccba-7ee1-42ae-aba9-b962fd20d3d6	minhminhminhminh	minhminh	minhminh@gmail.com	$2a$11$C0clSF9N4p1pfyxLEneLr.jCuAQlKPHZYBSSSY9gGhQxdIiBySqDK	12345678	male	2025-08-01	customer		2025-07-05 07:03:36.7268+00	\N
 \.
 
 
 --
--- TOC entry 3419 (class 0 OID 16560)
+-- TOC entry 3430 (class 0 OID 16560)
 -- Dependencies: 215
 -- Data for Name: __EFMigrationsHistory; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -547,16 +584,34 @@ COPY public."__EFMigrationsHistory" ("MigrationId", "ProductVersion") FROM stdin
 
 
 --
--- TOC entry 3248 (class 2606 OID 16688)
--- Name: Answers PK_Answers; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- TOC entry 3274 (class 2606 OID 16775)
+-- Name: Answers Answers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public."Answers"
-    ADD CONSTRAINT "PK_Answers" PRIMARY KEY (id);
+    ADD CONSTRAINT "Answers_pkey" PRIMARY KEY (id);
 
 
 --
--- TOC entry 3260 (class 2606 OID 16686)
+-- TOC entry 3268 (class 2606 OID 16755)
+-- Name: ConsultationTopics ConsultationTopics_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."ConsultationTopics"
+    ADD CONSTRAINT "ConsultationTopics_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3270 (class 2606 OID 16763)
+-- Name: Consultations Consultations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Consultations"
+    ADD CONSTRAINT "Consultations_pkey" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 3259 (class 2606 OID 16686)
 -- Name: Appointments PK_Appointments; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -565,16 +620,7 @@ ALTER TABLE ONLY public."Appointments"
 
 
 --
--- TOC entry 3245 (class 2606 OID 16684)
--- Name: Consultations PK_Consultations; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public."Consultations"
-    ADD CONSTRAINT "PK_Consultations" PRIMARY KEY (id);
-
-
---
--- TOC entry 3264 (class 2606 OID 16694)
+-- TOC entry 3263 (class 2606 OID 16694)
 -- Name: DoctorServices PK_DoctorServices; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -583,7 +629,7 @@ ALTER TABLE ONLY public."DoctorServices"
 
 
 --
--- TOC entry 3250 (class 2606 OID 16682)
+-- TOC entry 3249 (class 2606 OID 16682)
 -- Name: Doctors PK_Doctors; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -592,7 +638,7 @@ ALTER TABLE ONLY public."Doctors"
 
 
 --
--- TOC entry 3267 (class 2606 OID 16742)
+-- TOC entry 3266 (class 2606 OID 16742)
 -- Name: Reminders PK_Reminders; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -601,7 +647,7 @@ ALTER TABLE ONLY public."Reminders"
 
 
 --
--- TOC entry 3252 (class 2606 OID 16680)
+-- TOC entry 3251 (class 2606 OID 16680)
 -- Name: Services PK_Services; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -610,7 +656,7 @@ ALTER TABLE ONLY public."Services"
 
 
 --
--- TOC entry 3255 (class 2606 OID 16690)
+-- TOC entry 3254 (class 2606 OID 16690)
 -- Name: TimeSlots PK_TimeSlots; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -619,7 +665,7 @@ ALTER TABLE ONLY public."TimeSlots"
 
 
 --
--- TOC entry 3243 (class 2606 OID 16678)
+-- TOC entry 3247 (class 2606 OID 16678)
 -- Name: Users PK_Users; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -628,7 +674,7 @@ ALTER TABLE ONLY public."Users"
 
 
 --
--- TOC entry 3240 (class 2606 OID 16564)
+-- TOC entry 3244 (class 2606 OID 16564)
 -- Name: __EFMigrationsHistory PK___EFMigrationsHistory; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -637,7 +683,7 @@ ALTER TABLE ONLY public."__EFMigrationsHistory"
 
 
 --
--- TOC entry 3246 (class 1259 OID 16604)
+-- TOC entry 3275 (class 1259 OID 16788)
 -- Name: IX_Answers_consultation_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -645,7 +691,15 @@ CREATE INDEX "IX_Answers_consultation_id" ON public."Answers" USING btree (consu
 
 
 --
--- TOC entry 3256 (class 1259 OID 16671)
+-- TOC entry 3276 (class 1259 OID 16789)
+-- Name: IX_Answers_responder_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_Answers_responder_id" ON public."Answers" USING btree (responder_id);
+
+
+--
+-- TOC entry 3255 (class 1259 OID 16671)
 -- Name: IX_Appointments_doctor_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -653,7 +707,7 @@ CREATE INDEX "IX_Appointments_doctor_id" ON public."Appointments" USING btree (d
 
 
 --
--- TOC entry 3257 (class 1259 OID 16672)
+-- TOC entry 3256 (class 1259 OID 16672)
 -- Name: IX_Appointments_patient_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -661,7 +715,7 @@ CREATE INDEX "IX_Appointments_patient_id" ON public."Appointments" USING btree (
 
 
 --
--- TOC entry 3258 (class 1259 OID 16673)
+-- TOC entry 3257 (class 1259 OID 16673)
 -- Name: IX_Appointments_service_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -669,7 +723,23 @@ CREATE INDEX "IX_Appointments_service_id" ON public."Appointments" USING btree (
 
 
 --
--- TOC entry 3261 (class 1259 OID 16674)
+-- TOC entry 3271 (class 1259 OID 16786)
+-- Name: IX_Consultations_patient_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_Consultations_patient_id" ON public."Consultations" USING btree (patient_id);
+
+
+--
+-- TOC entry 3272 (class 1259 OID 16787)
+-- Name: IX_Consultations_status; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX "IX_Consultations_status" ON public."Consultations" USING btree (status);
+
+
+--
+-- TOC entry 3260 (class 1259 OID 16674)
 -- Name: IX_DoctorServices_doctor_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -677,7 +747,7 @@ CREATE INDEX "IX_DoctorServices_doctor_id" ON public."DoctorServices" USING btre
 
 
 --
--- TOC entry 3262 (class 1259 OID 16675)
+-- TOC entry 3261 (class 1259 OID 16675)
 -- Name: IX_DoctorServices_service_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -685,7 +755,7 @@ CREATE INDEX "IX_DoctorServices_service_id" ON public."DoctorServices" USING btr
 
 
 --
--- TOC entry 3265 (class 1259 OID 16748)
+-- TOC entry 3264 (class 1259 OID 16748)
 -- Name: IX_Reminders_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -693,7 +763,7 @@ CREATE INDEX "IX_Reminders_user_id" ON public."Reminders" USING btree (user_id);
 
 
 --
--- TOC entry 3253 (class 1259 OID 16676)
+-- TOC entry 3252 (class 1259 OID 16676)
 -- Name: IX_TimeSlots_doctor_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -701,7 +771,7 @@ CREATE INDEX "IX_TimeSlots_doctor_id" ON public."TimeSlots" USING btree (doctor_
 
 
 --
--- TOC entry 3241 (class 1259 OID 16572)
+-- TOC entry 3245 (class 1259 OID 16572)
 -- Name: IX_Users_email; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -709,7 +779,7 @@ CREATE UNIQUE INDEX "IX_Users_email" ON public."Users" USING btree (email);
 
 
 --
--- TOC entry 3268 (class 2606 OID 16695)
+-- TOC entry 3285 (class 2606 OID 16776)
 -- Name: Answers FK_Answers_Consultations_consultation_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -718,7 +788,16 @@ ALTER TABLE ONLY public."Answers"
 
 
 --
--- TOC entry 3270 (class 2606 OID 16700)
+-- TOC entry 3286 (class 2606 OID 16781)
+-- Name: Answers FK_Answers_Users_responder_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Answers"
+    ADD CONSTRAINT "FK_Answers_Users_responder_id" FOREIGN KEY (responder_id) REFERENCES public."Users"(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3278 (class 2606 OID 16700)
 -- Name: Appointments FK_Appointments_Doctors_doctor_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -727,7 +806,7 @@ ALTER TABLE ONLY public."Appointments"
 
 
 --
--- TOC entry 3271 (class 2606 OID 16705)
+-- TOC entry 3279 (class 2606 OID 16705)
 -- Name: Appointments FK_Appointments_Services_service_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -736,7 +815,7 @@ ALTER TABLE ONLY public."Appointments"
 
 
 --
--- TOC entry 3272 (class 2606 OID 16710)
+-- TOC entry 3280 (class 2606 OID 16710)
 -- Name: Appointments FK_Appointments_Users_patient_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -745,7 +824,16 @@ ALTER TABLE ONLY public."Appointments"
 
 
 --
--- TOC entry 3273 (class 2606 OID 16715)
+-- TOC entry 3284 (class 2606 OID 16764)
+-- Name: Consultations FK_Consultations_Users_patient_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public."Consultations"
+    ADD CONSTRAINT "FK_Consultations_Users_patient_id" FOREIGN KEY (patient_id) REFERENCES public."Users"(id) ON DELETE CASCADE;
+
+
+--
+-- TOC entry 3281 (class 2606 OID 16715)
 -- Name: DoctorServices FK_DoctorServices_Doctors_doctor_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -754,7 +842,7 @@ ALTER TABLE ONLY public."DoctorServices"
 
 
 --
--- TOC entry 3274 (class 2606 OID 16720)
+-- TOC entry 3282 (class 2606 OID 16720)
 -- Name: DoctorServices FK_DoctorServices_Services_service_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -763,7 +851,7 @@ ALTER TABLE ONLY public."DoctorServices"
 
 
 --
--- TOC entry 3275 (class 2606 OID 16743)
+-- TOC entry 3283 (class 2606 OID 16743)
 -- Name: Reminders FK_Reminders_Users_user_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -772,7 +860,7 @@ ALTER TABLE ONLY public."Reminders"
 
 
 --
--- TOC entry 3269 (class 2606 OID 16730)
+-- TOC entry 3277 (class 2606 OID 16730)
 -- Name: TimeSlots FK_TimeSlots_Doctors_doctor_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -780,13 +868,13 @@ ALTER TABLE ONLY public."TimeSlots"
     ADD CONSTRAINT "FK_TimeSlots_Doctors_doctor_id" FOREIGN KEY (doctor_id) REFERENCES public."Doctors"(id) ON DELETE CASCADE;
 
 
--- Completed on 2025-07-04 14:18:29
+-- Completed on 2025-07-07 15:10:41
 
 --
 -- PostgreSQL database dump complete
 --
 
--- Completed on 2025-07-04 14:18:30
+-- Completed on 2025-07-07 15:10:41
 
 --
 -- PostgreSQL database cluster dump complete

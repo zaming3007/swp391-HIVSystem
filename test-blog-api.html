@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Blog API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+        }
+
+        .result {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        input,
+        select {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test Blog API</h1>
+
+    <div class="container">
+        <!-- Test Authentication -->
+        <div class="card">
+            <h2>1. Đăng nhập</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="admin@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Mật khẩu:</label>
+                <input type="password" id="password" value="admin123">
+            </div>
+            <button onclick="login()">Đăng nhập</button>
+            <div id="login-result" class="result"></div>
+        </div>
+
+        <!-- Test Get Blog Posts -->
+        <div class="card">
+            <h2>2. Lấy danh sách bài viết</h2>
+            <div class="form-group">
+                <label for="status">Trạng thái:</label>
+                <select id="status">
+                    <option value="">Tất cả</option>
+                    <option value="published">Đã xuất bản</option>
+                    <option value="draft">Bản nháp</option>
+                </select>
+            </div>
+            <button onclick="getBlogPosts()">Lấy danh sách</button>
+            <div id="get-posts-result" class="result"></div>
+        </div>
+
+        <!-- Test Create Blog Post -->
+        <div class="card">
+            <h2>3. Tạo bài viết mới</h2>
+            <div class="form-group">
+                <label for="title">Tiêu đề:</label>
+                <input type="text" id="title" value="Bài viết test API">
+            </div>
+            <div class="form-group">
+                <label for="summary">Tóm tắt:</label>
+                <textarea id="summary">Đây là bài viết test API</textarea>
+            </div>
+            <div class="form-group">
+                <label for="content">Nội dung:</label>
+                <textarea
+                    id="content"><p>Đây là nội dung bài viết test API</p><p>Đoạn thứ hai của bài viết</p></textarea>
+            </div>
+            <div class="form-group">
+                <label for="post-status">Trạng thái:</label>
+                <select id="post-status">
+                    <option value="draft">Bản nháp</option>
+                    <option value="published">Xuất bản</option>
+                </select>
+            </div>
+            <button onclick="createBlogPost()">Tạo bài viết</button>
+            <div id="create-post-result" class="result"></div>
+        </div>
+
+        <!-- Test Update Blog Post -->
+        <div class="card">
+            <h2>4. Cập nhật bài viết</h2>
+            <div class="form-group">
+                <label for="post-id">ID bài viết:</label>
+                <input type="text" id="post-id">
+            </div>
+            <div class="form-group">
+                <label for="update-title">Tiêu đề:</label>
+                <input type="text" id="update-title" value="Bài viết test API (đã cập nhật)">
+            </div>
+            <div class="form-group">
+                <label for="update-summary">Tóm tắt:</label>
+                <textarea id="update-summary">Đây là bài viết test API đã được cập nhật</textarea>
+            </div>
+            <div class="form-group">
+                <label for="update-content">Nội dung:</label>
+                <textarea id="update-content"><p>Đây là nội dung bài viết test API đã được cập nhật</p></textarea>
+            </div>
+            <div class="form-group">
+                <label for="update-status">Trạng thái:</label>
+                <select id="update-status">
+                    <option value="draft">Bản nháp</option>
+                    <option value="published">Xuất bản</option>
+                </select>
+            </div>
+            <button onclick="updateBlogPost()">Cập nhật bài viết</button>
+            <div id="update-post-result" class="result"></div>
+        </div>
+
+        <!-- Test Delete Blog Post -->
+        <div class="card">
+            <h2>5. Xóa bài viết</h2>
+            <div class="form-group">
+                <label for="delete-id">ID bài viết:</label>
+                <input type="text" id="delete-id">
+            </div>
+            <button onclick="deleteBlogPost()">Xóa bài viết</button>
+            <div id="delete-post-result" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://interchange.proxy.rlwy.net:46712/api';
+        let token = localStorage.getItem('authToken');
+
+        // Format JSON response for display
+        function formatResponse(data) {
+            return JSON.stringify(data, null, 2);
+        }
+
+        // Display error
+        function displayError(element, error) {
+            const errorMessage = error.response ?
+                `Error ${error.response.status}: ${JSON.stringify(error.response.data)}` :
+                `Error: ${error.message}`;
+            element.textContent = errorMessage;
+            element.style.color = 'red';
+        }
+
+        // Login function
+        async function login() {
+            const resultElement = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                resultElement.textContent = 'Đang đăng nhập...';
+                resultElement.style.color = 'black';
+
+                const response = await fetch(`${API_URL}/Auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('authToken', token);
+                    resultElement.textContent = `Đăng nhập thành công!\nToken: ${token.substring(0, 20)}...`;
+                    resultElement.style.color = 'green';
+                } else {
+                    throw new Error(data.message || 'Đăng nhập thất bại');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                resultElement.textContent = `Lỗi: ${error.message}`;
+                resultElement.style.color = 'red';
+            }
+        }
+
+        // Get blog posts function
+        async function getBlogPosts() {
+            const resultElement = document.getElementById('get-posts-result');
+            const status = document.getElementById('status').value;
+
+            try {
+                resultElement.textContent = 'Đang tải dữ liệu...';
+
+                let url = `${API_URL}/Blog`;
+                if (status) {
+                    url += `?status=${status}`;
+                }
+
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers
+                });
+
+                const data = await response.json();
+                resultElement.textContent = formatResponse(data);
+                resultElement.style.color = 'black';
+            } catch (error) {
+                console.error('Get posts error:', error);
+                displayError(resultElement, error);
+            }
+        }
+
+        // Create blog post function
+        async function createBlogPost() {
+            const resultElement = document.getElementById('create-post-result');
+
+            if (!token) {
+                resultElement.textContent = 'Bạn cần đăng nhập trước!';
+                resultElement.style.color = 'red';
+                return;
+            }
+
+            const title = document.getElementById('title').value;
+            const summary = document.getElementById('summary').value;
+            const content = document.getElementById('content').value;
+            const status = document.getElementById('post-status').value;
+
+            try {
+                resultElement.textContent = 'Đang tạo bài viết...';
+
+                const response = await fetch(`${API_URL}/Blog`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        summary,
+                        content,
+                        status,
+                        coverImage: ''
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw { response: { status: response.status, data: errorData } };
+                }
+
+                const data = await response.json();
+                resultElement.textContent = formatResponse(data);
+                resultElement.style.color = 'green';
+
+                // Auto-fill the post ID for update/delete
+                document.getElementById('post-id').value = data.id;
+                document.getElementById('delete-id').value = data.id;
+                document.getElementById('update-title').value = data.title;
+                document.getElementById('update-summary').value = data.summary;
+                document.getElementById('update-content').value = data.content;
+                document.getElementById('update-status').value = data.status;
+            } catch (error) {
+                console.error('Create post error:', error);
+                displayError(resultElement, error);
+            }
+        }
+
+        // Update blog post function
+        async function updateBlogPost() {
+            const resultElement = document.getElementById('update-post-result');
+
+            if (!token) {
+                resultElement.textContent = 'Bạn cần đăng nhập trước!';
+                resultElement.style.color = 'red';
+                return;
+            }
+
+            const id = document.getElementById('post-id').value;
+            if (!id) {
+                resultElement.textContent = 'Vui lòng nhập ID bài viết!';
+                resultElement.style.color = 'red';
+                return;
+            }
+
+            const title = document.getElementById('update-title').value;
+            const summary = document.getElementById('update-summary').value;
+            const content = document.getElementById('update-content').value;
+            const status = document.getElementById('update-status').value;
+
+            try {
+                resultElement.textContent = 'Đang cập nhật bài viết...';
+
+                const response = await fetch(`${API_URL}/Blog/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        id,
+                        title,
+                        summary,
+                        content,
+                        status,
+                        coverImage: ''
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw { response: { status: response.status, data: errorData } };
+                }
+
+                const data = await response.json();
+                resultElement.textContent = formatResponse(data);
+                resultElement.style.color = 'green';
+            } catch (error) {
+                console.error('Update post error:', error);
+                displayError(resultElement, error);
+            }
+        }
+
+        // Delete blog post function
+        async function deleteBlogPost() {
+            const resultElement = document.getElementById('delete-post-result');
+
+            if (!token) {
+                resultElement.textContent = 'Bạn cần đăng nhập trước!';
+                resultElement.style.color = 'red';
+                return;
+            }
+
+            const id = document.getElementById('delete-id').value;
+            if (!id) {
+                resultElement.textContent = 'Vui lòng nhập ID bài viết!';
+                resultElement.style.color = 'red';
+                return;
+            }
+
+            try {
+                resultElement.textContent = 'Đang xóa bài viết...';
+
+                const response = await fetch(`${API_URL}/Blog/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 204) {
+                        resultElement.textContent = 'Xóa bài viết thành công!';
+                        resultElement.style.color = 'green';
+                        return;
+                    }
+
+                    const errorData = await response.json();
+                    throw { response: { status: response.status, data: errorData } };
+                }
+
+                resultElement.textContent = 'Xóa bài viết thành công!';
+                resultElement.style.color = 'green';
+            } catch (error) {
+                console.error('Delete post error:', error);
+                displayError(resultElement, error);
+            }
+        }
+
+        // Check if token exists on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (token) {
+                document.getElementById('login-result').textContent = `Đã đăng nhập! Token: ${token.substring(0, 20)}...`;
+                document.getElementById('login-result').style.color = 'green';
+            }
+        });
+    </script>
+</body>
+
+</html>

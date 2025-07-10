@@ -5,6 +5,7 @@ using System.Text;
 using AuthApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Linq;
 
 namespace AuthApi.Services
 {
@@ -45,6 +46,28 @@ namespace AuthApi.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+        
+        public string GetUserIdFromToken(string authorizationHeader)
+        {
+            if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
+            {
+                return null;
+            }
+            
+            string token = authorizationHeader.Substring("Bearer ".Length);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            
+            try
+            {
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+                return userIdClaim?.Value;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 } 

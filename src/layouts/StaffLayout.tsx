@@ -25,7 +25,8 @@ import {
     ChevronLeft as ChevronLeftIcon,
     Logout as LogoutIcon,
     SettingsBackupRestore as CheckInIcon,
-    QuestionAnswer as QuestionAnswerIcon
+    QuestionAnswer as QuestionAnswerIcon,
+    Article as BlogIcon
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
@@ -153,6 +154,12 @@ const StaffLayout: React.FC = () => {
                             <EventNoteIcon />
                         </ListItemIcon>
                         <ListItemText primary="Lịch hẹn trong ngày" />
+                    </ListItem>
+                    <ListItem button component="a" href="/staff/blogs">
+                        <ListItemIcon>
+                            <BlogIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Quản lý bài viết" />
                     </ListItem>
                 </List>
                 <Divider />
