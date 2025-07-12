@@ -37,13 +37,14 @@ import BlogPage from './pages/blog/BlogPage';
 import BlogDetailPage from './pages/blog/BlogDetailPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
 import StaffDashboard from './pages/staff/StaffDashboard';
-import StaffAppointmentManagement from './pages/staff/StaffAppointmentManagement';
+import StaffAppointments from './pages/staff/StaffAppointments';
 import StaffConsultationManagement from './pages/staff/StaffConsultationManagement';
 import StaffReports from './pages/staff/StaffReports';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import DoctorPatientManagement from './pages/doctor/DoctorPatientManagement';
 import ARVRegimenManagement from './pages/doctor/ARVRegimenManagement';
 import DoctorAppointmentManagement from './pages/doctor/DoctorAppointmentManagement';
+import DoctorAppointments from './pages/doctor/DoctorAppointments';
 import DoctorConsultationManagement from './pages/doctor/DoctorConsultationManagement';
 import PatientMedicalRecord from './pages/doctor/PatientMedicalRecord';
 import DoctorScheduleManagement from './pages/doctor/DoctorScheduleManagement';
@@ -198,7 +199,7 @@ const AppRoutes: React.FC = () => {
           </RoleGuard>
         }>
           <Route index element={<StaffDashboard />} />
-          <Route path="appointments" element={<StaffAppointmentManagement />} />
+          <Route path="appointments" element={<StaffAppointments />} />
           <Route path="consultations" element={<StaffConsultationManagement />} />
           <Route path="blog" element={<BlogManagementPage />} />
           <Route path="reports" element={<StaffReports />} />
@@ -210,7 +211,8 @@ const AppRoutes: React.FC = () => {
           </RoleGuard>
         }>
           <Route index element={<DoctorDashboard />} />
-          <Route path="appointments" element={<DoctorAppointmentManagement />} />
+          <Route path="appointments" element={<DoctorAppointments />} />
+          <Route path="appointments-old" element={<DoctorAppointmentManagement />} />
           <Route path="consultations" element={<DoctorConsultationManagement />} />
           <Route path="patients" element={<DoctorPatientManagement />} />
           <Route path="patients/:patientId/medical-record" element={<PatientMedicalRecord />} />
