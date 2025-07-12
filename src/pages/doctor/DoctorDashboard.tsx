@@ -1,0 +1,423 @@
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import {
+    Box,
+    Grid,
+    Card,
+    CardContent,
+    Typography,
+    Paper,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemIcon,
+    Chip,
+    Button,
+    Divider,
+    LinearProgress,
+    Avatar,
+    Alert
+} from '@mui/material';
+import {
+    EventNote as EventNoteIcon,
+    QuestionAnswer as QuestionAnswerIcon,
+    People as PatientsIcon,
+    Schedule as ScheduleIcon,
+    CheckCircle as CheckCircleIcon,
+    Pending as PendingIcon,
+    AccessTime as TimeIcon,
+    Star as StarIcon,
+    TrendingUp as TrendingUpIcon
+} from '@mui/icons-material';
+import { RootState } from '../../store/store';
+
+// Mock data - sẽ được thay thế bằng API calls
+const mockDoctorStats = {
+    todayAppointments: 8,
+    pendingConsultations: 5,
+    totalPatients: 45,
+    averageRating: 4.7,
+    completedAppointments: 156,
+    responseTime: '2.3 giờ'
+};
+
+const mockTodayAppointments = [
+    {
+        id: '1',
+        patientName: 'Nguyễn Văn A',
+        time: '09:00',
+        service: 'Tư vấn HIV',
+        status: 'confirmed',
+        notes: 'Bệnh nhân mới, cần tư vấn cơ bản'
+    },
+    {
+        id: '2',
+        patientName: 'Lê Thị B',
+        time: '10:30',
+        service: 'Tái khám',
+        status: 'confirmed',
+        notes: 'Tái khám sau 3 tháng điều trị ARV'
+    },
+    {
+        id: '3',
+        patientName: 'Trần Văn C',
+        time: '14:00',
+        service: 'Xét nghiệm',
+        status: 'pending',
+        notes: 'Xét nghiệm định kỳ'
+    },
+    {
+        id: '4',
+        patientName: 'Phạm Thị D',
+        time: '15:30',
+        service: 'Tư vấn điều trị',
+        status: 'confirmed',
+        notes: 'Tư vấn về phác đồ điều trị mới'
+    }
+];
+
+const mockPendingConsultations = [
+    {
+        id: '1',
+        question: 'Tôi có thể ngừng uống thuốc ARV được không?',
+        submittedAt: '1 giờ trước',
+        priority: 'high',
+        category: 'Điều trị'
+    },
+    {
+        id: '2',
+        question: 'Kết quả xét nghiệm viral load của tôi có bình thường không?',
+        submittedAt: '3 giờ trước',
+        priority: 'medium',
+        category: 'Xét nghiệm'
+    },
+    {
+        id: '3',
+        question: 'Tôi bị tác dụng phụ từ thuốc, phải làm sao?',
+        submittedAt: '5 giờ trước',
+        priority: 'high',
+        category: 'Điều trị'
+    }
+];
+
+const DoctorDashboard: React.FC = () => {
+    const { user } = useSelector((state: RootState) => state.auth);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate loading
+        const timer = setTimeout(() => {
+            setLoading(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+                return 'success';
+            case 'pending':
+                return 'warning';
+            case 'cancelled':
+                return 'error';
+            default:
+                return 'default';
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+                return <CheckCircleIcon />;
+            case 'pending':
+                return <PendingIcon />;
+            default:
+                return <ScheduleIcon />;
+        }
+    };
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'high':
+                return 'error';
+            case 'medium':
+                return 'warning';
+            case 'low':
+                return 'info';
+            default:
+                return 'default';
+        }
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ width: '100%', mt: 2 }}>
+                <LinearProgress />
+                <Typography variant="h6" sx={{ mt: 2, textAlign: 'center' }}>
+                    Đang tải dữ liệu...
+                </Typography>
+            </Box>
+        );
+    }
+
+    return (
+        <Box sx={{ flexGrow: 1 }}>
+            {/* Header */}
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Dashboard Bác sĩ
+                </Typography>
+                <Typography variant="subtitle1" color="text.secondary">
+                    Chào mừng trở lại, {user?.name}! Đây là tổng quan công việc của bạn hôm nay.
+                </Typography>
+            </Box>
+
+            {/* Welcome Alert */}
+            <Alert severity="info" sx={{ mb: 3 }}>
+                <Typography variant="body1">
+                    Bạn có <strong>{mockDoctorStats.todayAppointments}</strong> lịch hẹn và <strong>{mockDoctorStats.pendingConsultations}</strong> tư vấn chờ trả lời hôm nay.
+                </Typography>
+            </Alert>
+
+            {/* Stats Cards */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                                    <EventNoteIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Lịch hẹn hôm nay
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {mockDoctorStats.todayAppointments}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
+                                    <QuestionAnswerIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Tư vấn chờ trả lời
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {mockDoctorStats.pendingConsultations}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
+                                    <PatientsIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Tổng bệnh nhân
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {mockDoctorStats.totalPatients}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
+                                    <StarIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Đánh giá trung bình
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {mockDoctorStats.averageRating}/5.0
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* Performance Stats */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={4}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <TrendingUpIcon sx={{ color: 'success.main', mr: 1 }} />
+                                <Typography variant="h6">
+                                    Hiệu suất
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Lịch hẹn hoàn thành
+                            </Typography>
+                            <Typography variant="h4" color="success.main">
+                                {mockDoctorStats.completedAppointments}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <TimeIcon sx={{ color: 'info.main', mr: 1 }} />
+                                <Typography variant="h6">
+                                    Thời gian phản hồi
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Trung bình
+                            </Typography>
+                            <Typography variant="h4" color="info.main">
+                                {mockDoctorStats.responseTime}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <ScheduleIcon sx={{ color: 'primary.main', mr: 1 }} />
+                                <Typography variant="h6">
+                                    Lịch làm việc
+                                </Typography>
+                            </Box>
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Hôm nay
+                            </Typography>
+                            <Typography variant="h6" color="primary.main">
+                                8:00 - 17:00
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* Main Content */}
+            <Grid container spacing={3}>
+                {/* Today's Appointments */}
+                <Grid item xs={12} md={7}>
+                    <Paper sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6">
+                                Lịch hẹn hôm nay
+                            </Typography>
+                            <Button size="small" href="/doctor/appointments">
+                                Xem tất cả
+                            </Button>
+                        </Box>
+                        <List>
+                            {mockTodayAppointments.map((appointment, index) => (
+                                <React.Fragment key={appointment.id}>
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            {getStatusIcon(appointment.status)}
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="body1" fontWeight="medium">
+                                                        {appointment.time} - {appointment.patientName}
+                                                    </Typography>
+                                                    <Chip
+                                                        label={appointment.service}
+                                                        size="small"
+                                                        variant="outlined"
+                                                    />
+                                                </Box>
+                                            }
+                                            secondary={appointment.notes}
+                                        />
+                                        <Chip
+                                            label={appointment.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận'}
+                                            color={getStatusColor(appointment.status)}
+                                            size="small"
+                                        />
+                                    </ListItem>
+                                    {index < mockTodayAppointments.length - 1 && <Divider />}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                {/* Pending Consultations */}
+                <Grid item xs={12} md={5}>
+                    <Paper sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6">
+                                Tư vấn chờ trả lời
+                            </Typography>
+                            <Button size="small" href="/doctor/consultations">
+                                Xem tất cả
+                            </Button>
+                        </Box>
+                        <List>
+                            {mockPendingConsultations.map((consultation, index) => (
+                                <React.Fragment key={consultation.id}>
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            <QuestionAnswerIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={
+                                                <Typography variant="body2" noWrap>
+                                                    {consultation.question}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                                                    <Chip
+                                                        label={consultation.category}
+                                                        size="small"
+                                                        variant="outlined"
+                                                    />
+                                                    <Chip
+                                                        label={consultation.priority === 'high' ? 'Cao' : 'Trung bình'}
+                                                        color={getPriorityColor(consultation.priority)}
+                                                        size="small"
+                                                    />
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {consultation.submittedAt}
+                                                    </Typography>
+                                                </Box>
+                                            }
+                                        />
+                                    </ListItem>
+                                    {index < mockPendingConsultations.length - 1 && <Divider />}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                </Grid>
+            </Grid>
+        </Box>
+    );
+};
+
+export default DoctorDashboard;

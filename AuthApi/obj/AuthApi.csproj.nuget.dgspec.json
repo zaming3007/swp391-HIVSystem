@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {}
+    "D:\\SWP-AGU\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj": {}
   },
   "projects": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj": {
+    "D:\\SWP-AGU\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
+        "projectUniqueName": "D:\\SWP-AGU\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
         "projectName": "AuthApi",
-        "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\AuthApi.csproj",
+        "projectPath": "D:\\SWP-AGU\\swp391-HIVSystem\\AuthApi\\AuthApi.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AuthApi\\obj\\",
+        "outputPath": "D:\\SWP-AGU\\swp391-HIVSystem\\AuthApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -21,6 +21,16 @@ namespace AuthApi.Data
         public DbSet<DoctorService> DoctorServices { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<BlogPost> BlogPosts { get; set; }
+        public DbSet<BlogComment> BlogComments { get; set; }
+
+        // ARV Management DbSets
+        public DbSet<ARVDrug> ARVDrugs { get; set; }
+        public DbSet<ARVRegimen> ARVRegimens { get; set; }
+        public DbSet<ARVRegimenDrug> ARVRegimenDrugs { get; set; }
+        public DbSet<PatientRegimen> PatientRegimens { get; set; }
+        public DbSet<PatientRegimenHistory> PatientRegimenHistories { get; set; }
+        public DbSet<PatientAdherence> PatientAdherences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,6 +48,16 @@ namespace AuthApi.Data
             modelBuilder.Entity<DoctorService>().ToTable("DoctorServices");
             modelBuilder.Entity<Appointment>().ToTable("Appointments");
             modelBuilder.Entity<Reminder>().ToTable("Reminders");
+            modelBuilder.Entity<BlogPost>().ToTable("BlogPosts");
+            modelBuilder.Entity<BlogComment>().ToTable("BlogComments");
+
+            // ARV Management Tables
+            modelBuilder.Entity<ARVDrug>().ToTable("ARVDrugs");
+            modelBuilder.Entity<ARVRegimen>().ToTable("ARVRegimens");
+            modelBuilder.Entity<ARVRegimenDrug>().ToTable("ARVRegimenDrugs");
+            modelBuilder.Entity<PatientRegimen>().ToTable("PatientRegimens");
+            modelBuilder.Entity<PatientRegimenHistory>().ToTable("PatientRegimenHistories");
+            modelBuilder.Entity<PatientAdherence>().ToTable("PatientAdherences");
 
             // Cấu hình các ràng buộc và mối quan hệ
             modelBuilder.Entity<User>()
@@ -50,59 +70,115 @@ namespace AuthApi.Data
                 .WithMany(c => c.Answers)
                 .HasForeignKey(a => a.ConsultationId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<MedicationReminder>()
                 .HasOne(m => m.User)
                 .WithMany()
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             // Cấu hình mối quan hệ cho các bảng mới
             modelBuilder.Entity<TimeSlot>()
                 .HasOne(t => t.Doctor)
                 .WithMany(d => d.WorkingHours)
                 .HasForeignKey(t => t.DoctorId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<DoctorService>()
                 .HasOne(ds => ds.Doctor)
                 .WithMany(d => d.DoctorServices)
                 .HasForeignKey(ds => ds.DoctorId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<DoctorService>()
                 .HasOne(ds => ds.Service)
                 .WithMany(s => s.DoctorServices)
                 .HasForeignKey(ds => ds.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Patient)
                 .WithMany()
                 .HasForeignKey(a => a.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Doctor)
                 .WithMany(d => d.Appointments)
                 .HasForeignKey(a => a.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
+
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Service)
                 .WithMany(s => s.Appointments)
                 .HasForeignKey(a => a.ServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             // Thiết lập khóa ngoại
             modelBuilder.Entity<Reminder>()
                 .HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
+            // ARV Management Relationships
+            modelBuilder.Entity<ARVRegimenDrug>()
+                .HasOne(rd => rd.Regimen)
+                .WithMany(r => r.RegimenDrugs)
+                .HasForeignKey(rd => rd.RegimenId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ARVRegimenDrug>()
+                .HasOne(rd => rd.Drug)
+                .WithMany(d => d.RegimenDrugs)
+                .HasForeignKey(rd => rd.DrugId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PatientRegimen>()
+                .HasOne(pr => pr.Regimen)
+                .WithMany(r => r.PatientRegimens)
+                .HasForeignKey(pr => pr.RegimenId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientRegimen>()
+                .HasOne(pr => pr.Patient)
+                .WithMany()
+                .HasForeignKey(pr => pr.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientRegimen>()
+                .HasOne(pr => pr.Doctor)
+                .WithMany()
+                .HasForeignKey(pr => pr.PrescribedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientRegimenHistory>()
+                .HasOne(prh => prh.PatientRegimen)
+                .WithMany(pr => pr.History)
+                .HasForeignKey(prh => prh.PatientRegimenId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PatientRegimenHistory>()
+                .HasOne(prh => prh.PerformedByUser)
+                .WithMany()
+                .HasForeignKey(prh => prh.PerformedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PatientAdherence>()
+                .HasOne(pa => pa.PatientRegimen)
+                .WithMany(pr => pr.AdherenceRecords)
+                .HasForeignKey(pa => pa.PatientRegimenId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PatientAdherence>()
+                .HasOne(pa => pa.RecordedByUser)
+                .WithMany()
+                .HasForeignKey(pa => pa.RecordedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Seed dữ liệu mẫu
             SeedData(modelBuilder);
+            SeedARVData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)
@@ -112,7 +188,7 @@ namespace AuthApi.Data
             const string passwordHash = "$2a$11$ij4jecQmQGXMbP1qdQYz4.YaXiMvz2dGXRKNVKGMsPNWMeGsEfTdm";
             // Sử dụng giá trị cố định cho ngày tháng với múi giờ UTC để tránh lỗi PostgreSQL
             var currentDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            
+
             // Seed Users
             modelBuilder.Entity<User>().HasData(
                 new User
@@ -169,7 +245,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate
                 }
             );
-            
+
             // Seed Consultations
             modelBuilder.Entity<Consultation>().HasData(
                 new Consultation
@@ -203,7 +279,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate.AddDays(-5)
                 }
             );
-            
+
             // Seed Answers
             modelBuilder.Entity<Answer>().HasData(
                 new Answer
@@ -225,7 +301,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate.AddDays(-4)
                 }
             );
-            
+
             // Seed MedicationReminders
             modelBuilder.Entity<MedicationReminder>().HasData(
                 new MedicationReminder
@@ -253,7 +329,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate.AddDays(-15)
                 }
             );
-            
+
             // Seed Doctors
             modelBuilder.Entity<Doctor>().HasData(
                 new Doctor
@@ -299,7 +375,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate
                 }
             );
-            
+
             // Seed TimeSlots
             modelBuilder.Entity<TimeSlot>().HasData(
                 new TimeSlot
@@ -343,7 +419,7 @@ namespace AuthApi.Data
                     EndTime = "17:00"
                 }
             );
-            
+
             // Seed Services
             modelBuilder.Entity<Service>().HasData(
                 new Service
@@ -380,7 +456,7 @@ namespace AuthApi.Data
                     CreatedAt = currentDate
                 }
             );
-            
+
             // Seed DoctorServices
             modelBuilder.Entity<DoctorService>().HasData(
                 new DoctorService
@@ -408,7 +484,7 @@ namespace AuthApi.Data
                     ServiceId = "1"
                 }
             );
-            
+
             // Seed Appointments
             modelBuilder.Entity<Appointment>().HasData(
                 new Appointment
@@ -445,5 +521,179 @@ namespace AuthApi.Data
                 }
             );
         }
+
+        private void SeedARVData(ModelBuilder modelBuilder)
+        {
+            var currentDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            // Seed ARV Drugs
+            modelBuilder.Entity<ARVDrug>().HasData(
+                new ARVDrug
+                {
+                    Id = 1,
+                    Name = "Efavirenz",
+                    GenericName = "Efavirenz",
+                    BrandName = "Sustiva",
+                    DrugClass = "NNRTI",
+                    Description = "Non-nucleoside reverse transcriptase inhibitor",
+                    Dosage = "600mg",
+                    Form = "Tablet",
+                    SideEffects = "Dizziness, drowsiness, trouble concentrating, unusual dreams",
+                    Contraindications = "Pregnancy (first trimester), severe liver disease",
+                    Instructions = "Take once daily at bedtime on empty stomach",
+                    IsActive = true,
+                    IsPregnancySafe = false,
+                    IsPediatricSafe = true,
+                    MinAge = 3,
+                    MinWeight = 10,
+                    CreatedAt = currentDate,
+                    UpdatedAt = currentDate,
+                    CreatedBy = "1",
+                    UpdatedBy = "1"
+                },
+                new ARVDrug
+                {
+                    Id = 2,
+                    Name = "Tenofovir/Emtricitabine",
+                    GenericName = "Tenofovir DF/Emtricitabine",
+                    BrandName = "Truvada",
+                    DrugClass = "NRTI",
+                    Description = "Nucleoside reverse transcriptase inhibitor combination",
+                    Dosage = "300mg/200mg",
+                    Form = "Tablet",
+                    SideEffects = "Nausea, diarrhea, headache, fatigue",
+                    Contraindications = "Severe kidney disease, lactic acidosis",
+                    Instructions = "Take once daily with or without food",
+                    IsActive = true,
+                    IsPregnancySafe = true,
+                    IsPediatricSafe = true,
+                    MinAge = 12,
+                    MinWeight = 35,
+                    CreatedAt = currentDate,
+                    UpdatedAt = currentDate,
+                    CreatedBy = "1",
+                    UpdatedBy = "1"
+                },
+                new ARVDrug
+                {
+                    Id = 3,
+                    Name = "Dolutegravir",
+                    GenericName = "Dolutegravir",
+                    BrandName = "Tivicay",
+                    DrugClass = "INSTI",
+                    Description = "Integrase strand transfer inhibitor",
+                    Dosage = "50mg",
+                    Form = "Tablet",
+                    SideEffects = "Headache, insomnia, fatigue",
+                    Contraindications = "Hypersensitivity to dolutegravir",
+                    Instructions = "Take once daily with or without food",
+                    IsActive = true,
+                    IsPregnancySafe = true,
+                    IsPediatricSafe = true,
+                    MinAge = 6,
+                    MinWeight = 20,
+                    CreatedAt = currentDate,
+                    UpdatedAt = currentDate,
+                    CreatedBy = "1",
+                    UpdatedBy = "1"
+                }
+            );
+
+            // Seed ARV Regimens
+            modelBuilder.Entity<ARVRegimen>().HasData(
+                new ARVRegimen
+                {
+                    Id = 1,
+                    Name = "TDF/FTC + DTG",
+                    Description = "First-line regimen for adults and adolescents",
+                    RegimenType = "FirstLine",
+                    TargetPopulation = "Adult",
+                    Instructions = "Take all medications once daily, preferably at the same time each day",
+                    Monitoring = "Monitor viral load at 3, 6, and 12 months, then every 6 months",
+                    IsActive = true,
+                    IsPregnancySafe = true,
+                    IsPediatricSafe = false,
+                    MinAge = 18,
+                    MinWeight = 50,
+                    CreatedAt = currentDate,
+                    UpdatedAt = currentDate,
+                    CreatedBy = "1",
+                    UpdatedBy = "1"
+                },
+                new ARVRegimen
+                {
+                    Id = 2,
+                    Name = "TDF/FTC + EFV",
+                    Description = "Alternative first-line regimen",
+                    RegimenType = "FirstLine",
+                    TargetPopulation = "Adult",
+                    Instructions = "Take TDF/FTC in morning, EFV at bedtime",
+                    Monitoring = "Monitor viral load and liver function regularly",
+                    IsActive = true,
+                    IsPregnancySafe = false,
+                    IsPediatricSafe = false,
+                    MinAge = 18,
+                    MinWeight = 50,
+                    CreatedAt = currentDate,
+                    UpdatedAt = currentDate,
+                    CreatedBy = "1",
+                    UpdatedBy = "1"
+                }
+            );
+
+            // Seed ARV Regimen Drugs
+            modelBuilder.Entity<ARVRegimenDrug>().HasData(
+                // TDF/FTC + DTG regimen
+                new ARVRegimenDrug
+                {
+                    Id = 1,
+                    RegimenId = 1,
+                    DrugId = 2, // TDF/FTC
+                    Dosage = "300mg/200mg",
+                    Frequency = "Once daily",
+                    Timing = "With or without food",
+                    SpecialInstructions = "Take at the same time every day",
+                    SortOrder = 1,
+                    CreatedAt = currentDate
+                },
+                new ARVRegimenDrug
+                {
+                    Id = 2,
+                    RegimenId = 1,
+                    DrugId = 3, // DTG
+                    Dosage = "50mg",
+                    Frequency = "Once daily",
+                    Timing = "With or without food",
+                    SpecialInstructions = "Can be taken with TDF/FTC",
+                    SortOrder = 2,
+                    CreatedAt = currentDate
+                },
+                // TDF/FTC + EFV regimen
+                new ARVRegimenDrug
+                {
+                    Id = 3,
+                    RegimenId = 2,
+                    DrugId = 2, // TDF/FTC
+                    Dosage = "300mg/200mg",
+                    Frequency = "Once daily",
+                    Timing = "Morning with food",
+                    SpecialInstructions = "Take in the morning",
+                    SortOrder = 1,
+                    CreatedAt = currentDate
+                },
+                new ARVRegimenDrug
+                {
+                    Id = 4,
+                    RegimenId = 2,
+                    DrugId = 1, // EFV
+                    Dosage = "600mg",
+                    Frequency = "Once daily",
+                    Timing = "Bedtime on empty stomach",
+                    SpecialInstructions = "Take 2-3 hours after dinner",
+                    SortOrder = 2,
+                    CreatedAt = currentDate
+                }
+            );
+        }
     }
-} 
+}

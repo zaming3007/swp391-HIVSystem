@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
     Box,
     Button,
@@ -9,6 +10,9 @@ import {
     Container,
     Typography,
     Stack,
+    Alert,
+    Chip,
+    Divider
 } from '@mui/material';
 import {
     CalendarMonth as CalendarIcon,
@@ -16,10 +20,52 @@ import {
     Healing as HealingIcon,
     Notifications as NotificationsIcon,
     ArrowForward as ArrowForwardIcon,
+    Dashboard as DashboardIcon,
+    AdminPanelSettings as AdminIcon,
+    MedicalServices as DoctorIcon,
+    SupportAgent as StaffIcon
 } from '@mui/icons-material';
+import { RootState } from '../../store/store';
 import Chatbot from '../../components/Chatbot/Chatbot';
 
 const HomePage: React.FC = () => {
+    const { user } = useSelector((state: RootState) => state.auth);
+
+    const getManagementLink = () => {
+        if (!user) return null;
+
+        switch (user.role) {
+            case 'admin':
+                return {
+                    title: 'Quản trị hệ thống',
+                    description: 'Truy cập bảng điều khiển quản trị để quản lý toàn bộ hệ thống',
+                    link: '/admin',
+                    icon: <AdminIcon />,
+                    color: '#7E57C2'
+                };
+            case 'staff':
+                return {
+                    title: 'Giao diện nhân viên',
+                    description: 'Quản lý lịch hẹn, tư vấn và hỗ trợ bệnh nhân',
+                    link: '/staff',
+                    icon: <StaffIcon />,
+                    color: '#26A69A'
+                };
+            case 'doctor':
+                return {
+                    title: 'Giao diện bác sĩ',
+                    description: 'Quản lý lịch hẹn, tư vấn và hồ sơ bệnh nhân',
+                    link: '/doctor',
+                    icon: <DoctorIcon />,
+                    color: '#FF7043'
+                };
+            default:
+                return null;
+        }
+    };
+
+    const managementInfo = getManagementLink();
+
     return (
         <Box>
             {/* Hero Section */}
@@ -82,6 +128,95 @@ const HomePage: React.FC = () => {
                     </Box>
                 </Container>
             </Box>
+
+            {/* Management Panel for Staff/Doctor/Admin */}
+            {managementInfo && (
+                <Container maxWidth="lg" sx={{ mb: 6 }}>
+                    <Alert
+                        severity="info"
+                        sx={{
+                            mb: 3,
+                            '& .MuiAlert-message': { width: '100%' }
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Box sx={{ color: managementInfo.color }}>
+                                    {managementInfo.icon}
+                                </Box>
+                                <Box>
+                                    <Typography variant="h6" component="div">
+                                        Chào mừng, {user?.name}!
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="body2">
+                                            Bạn đang đăng nhập với vai trò:
+                                        </Typography>
+                                        <Chip
+                                            label={user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'staff' ? 'Nhân viên' : 'Bác sĩ'}
+                                            size="small"
+                                            color={user?.role === 'admin' ? 'secondary' : user?.role === 'staff' ? 'info' : 'warning'}
+                                        />
+                                    </Box>
+                                </Box>
+                            </Box>
+                            <Button
+                                variant="contained"
+                                component={RouterLink}
+                                to={managementInfo.link}
+                                startIcon={<DashboardIcon />}
+                                sx={{
+                                    bgcolor: managementInfo.color,
+                                    '&:hover': {
+                                        bgcolor: managementInfo.color,
+                                        opacity: 0.8
+                                    }
+                                }}
+                            >
+                                Vào trang quản lý
+                            </Button>
+                        </Box>
+                    </Alert>
+
+                    <Card sx={{ p: 3, bgcolor: 'grey.50' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Box sx={{ color: managementInfo.color }}>
+                                {managementInfo.icon}
+                            </Box>
+                            <Typography variant="h5" component="h2">
+                                {managementInfo.title}
+                            </Typography>
+                        </Box>
+                        <Typography variant="body1" color="text.secondary" paragraph>
+                            {managementInfo.description}
+                        </Typography>
+                        <Divider sx={{ my: 2 }} />
+                        <Stack direction="row" spacing={2}>
+                            <Button
+                                variant="contained"
+                                component={RouterLink}
+                                to={managementInfo.link}
+                                sx={{
+                                    bgcolor: managementInfo.color,
+                                    '&:hover': {
+                                        bgcolor: managementInfo.color,
+                                        opacity: 0.8
+                                    }
+                                }}
+                            >
+                                Truy cập ngay
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                component={RouterLink}
+                                to="/profile"
+                            >
+                                Xem hồ sơ
+                            </Button>
+                        </Stack>
+                    </Card>
+                </Container>
+            )}
 
             {/* Services Overview */}
             <Container maxWidth="lg" sx={{ my: 8 }}>

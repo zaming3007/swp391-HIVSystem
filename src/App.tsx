@@ -12,6 +12,7 @@ import MainLayout from './layouts/MainLayout';
 import AuthLayout from './layouts/AuthLayout';
 import AdminLayout from './layouts/AdminLayout';
 import StaffLayout from './layouts/StaffLayout';
+import DoctorLayout from './layouts/DoctorLayout';
 
 import HomePage from './pages/home/HomePage';
 import AboutPage from './pages/about/AboutPage';
@@ -34,6 +35,14 @@ import StigmaReductionPage from './pages/education/StigmaReductionPage';
 import TestResultsPage from './pages/medical/TestResultsPage';
 import BlogPage from './pages/blog/BlogPage';
 import BlogDetailPage from './pages/blog/BlogDetailPage';
+import BlogManagementPage from './pages/admin/BlogManagementPage';
+import StaffDashboard from './pages/staff/StaffDashboard';
+import StaffAppointmentManagement from './pages/staff/StaffAppointmentManagement';
+import StaffConsultationManagement from './pages/staff/StaffConsultationManagement';
+import StaffReports from './pages/staff/StaffReports';
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorPatientManagement from './pages/doctor/DoctorPatientManagement';
+import ARVRegimenManagement from './pages/doctor/ARVRegimenManagement';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -164,6 +173,7 @@ const AppRoutes: React.FC = () => {
           <Route path="consultations" element={<ConsultationsPage />} />
           <Route path="services" element={<div>Quản lý dịch vụ</div>} />
           <Route path="users" element={<div>Quản lý người dùng</div>} />
+          <Route path="blog" element={<BlogManagementPage />} />
           <Route path="doctors" element={<div>Quản lý thông tin bác sĩ</div>} />
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
           <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
@@ -188,9 +198,24 @@ const AppRoutes: React.FC = () => {
             <StaffLayout />
           </RoleGuard>
         }>
-          <Route index element={<div>Dashboard Nhân viên</div>} />
-          <Route path="patients" element={<div>Danh sách bệnh nhân</div>} />
-          <Route path="consultations" element={<ConsultationsPage />} />
+          <Route index element={<StaffDashboard />} />
+          <Route path="appointments" element={<StaffAppointmentManagement />} />
+          <Route path="consultations" element={<StaffConsultationManagement />} />
+          <Route path="blog" element={<BlogManagementPage />} />
+          <Route path="reports" element={<StaffReports />} />
+        </Route>
+
+        <Route path="/doctor" element={
+          <RoleGuard requiredRole="doctor" userRole={user?.role}>
+            <DoctorLayout />
+          </RoleGuard>
+        }>
+          <Route index element={<DoctorDashboard />} />
+          <Route path="appointments" element={<div>Lịch hẹn của tôi</div>} />
+          <Route path="consultations" element={<div>Tư vấn của tôi</div>} />
+          <Route path="patients" element={<DoctorPatientManagement />} />
+          <Route path="regimens" element={<ARVRegimenManagement />} />
+          <Route path="schedule" element={<div>Quản lý lịch làm việc</div>} />
         </Route>
       </Route>
 

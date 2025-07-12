@@ -5,6 +5,7 @@ import * as appointmentService from './appointmentService';
 import * as consultationService from './consultationService';
 import * as reminderService from './reminderService';
 import * as medicalTestService from './medicalTestService';
+import * as blogService from './blogService';
 
 export {
     authApi,
@@ -13,5 +14,6 @@ export {
     appointmentService,
     reminderService,
     consultationService,
-    medicalTestService
-}; 
+    medicalTestService,
+    blogService
+};

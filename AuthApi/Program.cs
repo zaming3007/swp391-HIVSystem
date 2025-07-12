@@ -23,7 +23,7 @@ builder.Services.AddControllers();
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .ConfigureWarnings(warnings => 
+           .ConfigureWarnings(warnings =>
                 warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // Add JWT Authentication
@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IBlogService, BlogService>();
 // Uncomment line below when ReminderService is implemented
 // builder.Services.AddScoped<IReminderService, ReminderService>();
 
@@ -72,7 +73,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Auth API", Version = "v1" });
-    
+
     // Add JWT Authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -105,7 +106,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => 
+    app.UseSwaggerUI(c =>
     {
         if (c != null) // Thêm kiểm tra null
         {
@@ -150,4 +151,4 @@ Console.WriteLine("AuthAPI is starting...");
 Console.WriteLine($"JWT Settings - Issuer: {jwtSettings.Issuer}, Audience: {jwtSettings.Audience}");
 Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
 
-app.Run(); 
+app.Run();

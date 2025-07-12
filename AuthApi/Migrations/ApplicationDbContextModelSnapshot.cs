@@ -22,6 +22,384 @@ namespace AuthApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("AuthApi.Models.ARVDrug", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BrandName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Contraindications")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("DrugClass")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Form")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("GenericName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPediatricSafe")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPregnancySafe")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MinAge")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MinWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SideEffects")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ARVDrugs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            BrandName = "Sustiva",
+                            Contraindications = "Pregnancy (first trimester), severe liver disease",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "1",
+                            Description = "Non-nucleoside reverse transcriptase inhibitor",
+                            Dosage = "600mg",
+                            DrugClass = "NNRTI",
+                            Form = "Tablet",
+                            GenericName = "Efavirenz",
+                            Instructions = "Take once daily at bedtime on empty stomach",
+                            IsActive = true,
+                            IsPediatricSafe = true,
+                            IsPregnancySafe = false,
+                            MinAge = 3,
+                            MinWeight = 10m,
+                            Name = "Efavirenz",
+                            SideEffects = "Dizziness, drowsiness, trouble concentrating, unusual dreams",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            BrandName = "Truvada",
+                            Contraindications = "Severe kidney disease, lactic acidosis",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "1",
+                            Description = "Nucleoside reverse transcriptase inhibitor combination",
+                            Dosage = "300mg/200mg",
+                            DrugClass = "NRTI",
+                            Form = "Tablet",
+                            GenericName = "Tenofovir DF/Emtricitabine",
+                            Instructions = "Take once daily with or without food",
+                            IsActive = true,
+                            IsPediatricSafe = true,
+                            IsPregnancySafe = true,
+                            MinAge = 12,
+                            MinWeight = 35m,
+                            Name = "Tenofovir/Emtricitabine",
+                            SideEffects = "Nausea, diarrhea, headache, fatigue",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "1"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            BrandName = "Tivicay",
+                            Contraindications = "Hypersensitivity to dolutegravir",
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "1",
+                            Description = "Integrase strand transfer inhibitor",
+                            Dosage = "50mg",
+                            DrugClass = "INSTI",
+                            Form = "Tablet",
+                            GenericName = "Dolutegravir",
+                            Instructions = "Take once daily with or without food",
+                            IsActive = true,
+                            IsPediatricSafe = true,
+                            IsPregnancySafe = true,
+                            MinAge = 6,
+                            MinWeight = 20m,
+                            Name = "Dolutegravir",
+                            SideEffects = "Headache, insomnia, fatigue",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "1"
+                        });
+                });
+
+            modelBuilder.Entity("AuthApi.Models.ARVRegimen", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPediatricSafe")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPregnancySafe")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MinAge")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("MinWeight")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Monitoring")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("RegimenType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TargetPopulation")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ARVRegimens", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "1",
+                            Description = "First-line regimen for adults and adolescents",
+                            Instructions = "Take all medications once daily, preferably at the same time each day",
+                            IsActive = true,
+                            IsPediatricSafe = false,
+                            IsPregnancySafe = true,
+                            MinAge = 18,
+                            MinWeight = 50m,
+                            Monitoring = "Monitor viral load at 3, 6, and 12 months, then every 6 months",
+                            Name = "TDF/FTC + DTG",
+                            RegimenType = "FirstLine",
+                            TargetPopulation = "Adult",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "1",
+                            Description = "Alternative first-line regimen",
+                            Instructions = "Take TDF/FTC in morning, EFV at bedtime",
+                            IsActive = true,
+                            IsPediatricSafe = false,
+                            IsPregnancySafe = false,
+                            MinAge = 18,
+                            MinWeight = 50m,
+                            Monitoring = "Monitor viral load and liver function regularly",
+                            Name = "TDF/FTC + EFV",
+                            RegimenType = "FirstLine",
+                            TargetPopulation = "Adult",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "1"
+                        });
+                });
+
+            modelBuilder.Entity("AuthApi.Models.ARVRegimenDrug", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("DrugId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("RegimenId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SpecialInstructions")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Timing")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DrugId");
+
+                    b.HasIndex("RegimenId");
+
+                    b.ToTable("ARVRegimenDrugs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Dosage = "300mg/200mg",
+                            DrugId = 2,
+                            Frequency = "Once daily",
+                            RegimenId = 1,
+                            SortOrder = 1,
+                            SpecialInstructions = "Take at the same time every day",
+                            Timing = "With or without food"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Dosage = "50mg",
+                            DrugId = 3,
+                            Frequency = "Once daily",
+                            RegimenId = 1,
+                            SortOrder = 2,
+                            SpecialInstructions = "Can be taken with TDF/FTC",
+                            Timing = "With or without food"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Dosage = "300mg/200mg",
+                            DrugId = 2,
+                            Frequency = "Once daily",
+                            RegimenId = 2,
+                            SortOrder = 1,
+                            SpecialInstructions = "Take in the morning",
+                            Timing = "Morning with food"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Dosage = "600mg",
+                            DrugId = 1,
+                            Frequency = "Once daily",
+                            RegimenId = 2,
+                            SortOrder = 2,
+                            SpecialInstructions = "Take 2-3 hours after dinner",
+                            Timing = "Bedtime on empty stomach"
+                        });
+                });
+
             modelBuilder.Entity("AuthApi.Models.Answer", b =>
                 {
                     b.Property<string>("Id")
@@ -52,9 +430,15 @@ namespace AuthApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("responder_name");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ConsultationId");
+
+                    b.HasIndex("ResponderId");
 
                     b.ToTable("Answers", (string)null);
 
@@ -191,6 +575,116 @@ namespace AuthApi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AuthApi.Models.BlogComment", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BlogPostId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("blog_post_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("user_name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlogPostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("BlogComments", (string)null);
+                });
+
+            modelBuilder.Entity("AuthApi.Models.BlogPost", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AuthorId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("author_id");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("author_name");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("comment_count");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("published_at");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("summary");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("view_count");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("BlogPosts", (string)null);
+                });
+
             modelBuilder.Entity("AuthApi.Models.Consultation", b =>
                 {
                     b.Property<string>("Id")
@@ -226,7 +720,13 @@ namespace AuthApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("title");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Consultations", (string)null);
 
@@ -261,6 +761,35 @@ namespace AuthApi.Migrations
                             Status = "answered",
                             Title = "Câu hỏi về tác dụng phụ thuốc"
                         });
+                });
+
+            modelBuilder.Entity("AuthApi.Models.ConsultationTopic", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ConsultationTopics", (string)null);
                 });
 
             modelBuilder.Entity("AuthApi.Models.Doctor", b =>
@@ -503,6 +1032,176 @@ namespace AuthApi.Migrations
                             StartDate = new DateTime(2024, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = "4"
                         });
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientAdherence", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AdherencePercentage")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Challenges")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("PatientRegimenId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("RecordDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecordedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientRegimenId");
+
+                    b.HasIndex("RecordedBy");
+
+                    b.ToTable("PatientAdherences", (string)null);
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientRegimen", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiscontinuationReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastReviewDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("NextReviewDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PrescribedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("PrescribedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RegimenId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReviewedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PrescribedBy");
+
+                    b.HasIndex("RegimenId");
+
+                    b.ToTable("PatientRegimens", (string)null);
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientRegimenHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("PatientRegimenId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PerformedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PerformedBy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientRegimenId");
+
+                    b.HasIndex("PerformedBy");
+
+                    b.ToTable("PatientRegimenHistories", (string)null);
                 });
 
             modelBuilder.Entity("AuthApi.Models.Reminder", b =>
@@ -802,7 +1501,6 @@ namespace AuthApi.Migrations
                         .HasColumnName("phone");
 
                     b.Property<string>("ProfileImage")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("profile_image");
 
@@ -826,7 +1524,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "1",
-                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 629, DateTimeKind.Utc).AddTicks(8310),
+                            CreatedAt = new DateTime(2025, 7, 12, 18, 40, 15, 721, DateTimeKind.Utc).AddTicks(2131),
                             DateOfBirth = "1990-01-01",
                             Email = "admin@example.com",
                             FirstName = "Admin",
@@ -840,7 +1538,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "2",
-                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 630, DateTimeKind.Utc).AddTicks(100),
+                            CreatedAt = new DateTime(2025, 7, 12, 18, 40, 15, 721, DateTimeKind.Utc).AddTicks(3992),
                             DateOfBirth = "1985-05-15",
                             Email = "doctor@example.com",
                             FirstName = "Doctor",
@@ -854,7 +1552,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "3",
-                            CreatedAt = new DateTime(2025, 7, 1, 10, 39, 20, 630, DateTimeKind.Utc).AddTicks(105),
+                            CreatedAt = new DateTime(2025, 7, 12, 18, 40, 15, 721, DateTimeKind.Utc).AddTicks(4021),
                             DateOfBirth = "1992-10-20",
                             Email = "staff@example.com",
                             FirstName = "Staff",
@@ -881,6 +1579,25 @@ namespace AuthApi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("AuthApi.Models.ARVRegimenDrug", b =>
+                {
+                    b.HasOne("AuthApi.Models.ARVDrug", "Drug")
+                        .WithMany("RegimenDrugs")
+                        .HasForeignKey("DrugId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.ARVRegimen", "Regimen")
+                        .WithMany("RegimenDrugs")
+                        .HasForeignKey("RegimenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Drug");
+
+                    b.Navigation("Regimen");
+                });
+
             modelBuilder.Entity("AuthApi.Models.Answer", b =>
                 {
                     b.HasOne("AuthApi.Models.Consultation", "Consultation")
@@ -889,7 +1606,15 @@ namespace AuthApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AuthApi.Models.User", "Responder")
+                        .WithMany()
+                        .HasForeignKey("ResponderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Consultation");
+
+                    b.Navigation("Responder");
                 });
 
             modelBuilder.Entity("AuthApi.Models.Appointment", b =>
@@ -917,6 +1642,47 @@ namespace AuthApi.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.BlogComment", b =>
+                {
+                    b.HasOne("AuthApi.Models.BlogPost", "BlogPost")
+                        .WithMany("Comments")
+                        .HasForeignKey("BlogPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BlogPost");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.BlogPost", b =>
+                {
+                    b.HasOne("AuthApi.Models.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.Consultation", b =>
+                {
+                    b.HasOne("AuthApi.Models.User", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("AuthApi.Models.DoctorService", b =>
@@ -949,6 +1715,71 @@ namespace AuthApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AuthApi.Models.PatientAdherence", b =>
+                {
+                    b.HasOne("AuthApi.Models.PatientRegimen", "PatientRegimen")
+                        .WithMany("AdherenceRecords")
+                        .HasForeignKey("PatientRegimenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PatientRegimen");
+
+                    b.Navigation("RecordedByUser");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientRegimen", b =>
+                {
+                    b.HasOne("AuthApi.Models.User", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.User", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("PrescribedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.ARVRegimen", "Regimen")
+                        .WithMany("PatientRegimens")
+                        .HasForeignKey("RegimenId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Regimen");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientRegimenHistory", b =>
+                {
+                    b.HasOne("AuthApi.Models.PatientRegimen", "PatientRegimen")
+                        .WithMany("History")
+                        .HasForeignKey("PatientRegimenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuthApi.Models.User", "PerformedByUser")
+                        .WithMany()
+                        .HasForeignKey("PerformedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PatientRegimen");
+
+                    b.Navigation("PerformedByUser");
+                });
+
             modelBuilder.Entity("AuthApi.Models.Reminder", b =>
                 {
                     b.HasOne("AuthApi.Models.User", "User")
@@ -971,6 +1802,23 @@ namespace AuthApi.Migrations
                     b.Navigation("Doctor");
                 });
 
+            modelBuilder.Entity("AuthApi.Models.ARVDrug", b =>
+                {
+                    b.Navigation("RegimenDrugs");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.ARVRegimen", b =>
+                {
+                    b.Navigation("PatientRegimens");
+
+                    b.Navigation("RegimenDrugs");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.BlogPost", b =>
+                {
+                    b.Navigation("Comments");
+                });
+
             modelBuilder.Entity("AuthApi.Models.Consultation", b =>
                 {
                     b.Navigation("Answers");
@@ -983,6 +1831,13 @@ namespace AuthApi.Migrations
                     b.Navigation("DoctorServices");
 
                     b.Navigation("WorkingHours");
+                });
+
+            modelBuilder.Entity("AuthApi.Models.PatientRegimen", b =>
+                {
+                    b.Navigation("AdherenceRecords");
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("AuthApi.Models.Service", b =>

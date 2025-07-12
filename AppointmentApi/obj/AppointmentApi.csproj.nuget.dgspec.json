@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj": {}
+    "D:\\SWP-AGU\\swp391-HIVSystem\\AppointmentApi\\AppointmentApi.csproj": {}
   },
   "projects": {
-    "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj": {
+    "D:\\SWP-AGU\\swp391-HIVSystem\\AppointmentApi\\AppointmentApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj",
+        "projectUniqueName": "D:\\SWP-AGU\\swp391-HIVSystem\\AppointmentApi\\AppointmentApi.csproj",
         "projectName": "AppointmentApi",
-        "projectPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\AppointmentApi.csproj",
+        "projectPath": "D:\\SWP-AGU\\swp391-HIVSystem\\AppointmentApi\\AppointmentApi.csproj",
         "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-        "outputPath": "D:\\HIV-HealthcareSystem_stock\\HIV-HealthcareSystem\\AppointmentApi\\obj\\",
+        "outputPath": "D:\\SWP-AGU\\swp391-HIVSystem\\AppointmentApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"

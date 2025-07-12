@@ -14,7 +14,8 @@ import {
     Divider,
     useTheme,
     Theme,
-    CSSObject
+    CSSObject,
+    ListItemButton
 } from '@mui/material';
 import {
     Menu as MenuIcon,
@@ -23,15 +24,20 @@ import {
     EventNote as EventNoteIcon,
     MedicalServices as MedicalServicesIcon,
     ChevronLeft as ChevronLeftIcon,
+    ChevronRight as ChevronRightIcon,
     Logout as LogoutIcon,
+    Home as HomeIcon,
     SettingsBackupRestore as CheckInIcon,
-    QuestionAnswer as QuestionAnswerIcon
+    QuestionAnswer as QuestionAnswerIcon,
+    Article as ArticleIcon,
+    Assessment as ReportsIcon
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
 const drawerWidth = 240;
+const miniDrawerWidth = 64;
 
 // Define mixins for drawer open/close states
 const openedMixin = (theme: Theme): CSSObject => ({
@@ -49,7 +55,7 @@ const closedMixin = (theme: Theme): CSSObject => ({
         duration: theme.transitions.duration.leavingScreen,
     }),
     overflowX: 'hidden',
-    width: theme.spacing(7),
+    width: miniDrawerWidth,
 });
 
 const StaffLayout: React.FC = () => {
@@ -67,45 +73,73 @@ const StaffLayout: React.FC = () => {
         navigate('/auth/login');
     };
 
+    const handleGoHome = () => {
+        navigate('/');
+    };
+
     return (
         <Box sx={{ display: 'flex' }}>
+            {/* Backdrop when sidebar is open */}
+            {open && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        zIndex: theme.zIndex.drawer + 1,
+                        display: { xs: 'block', sm: 'none' }, // Only show on mobile
+                    }}
+                    onClick={handleDrawerToggle}
+                />
+            )}
+
             <AppBar
                 position="fixed"
                 sx={{
-                    zIndex: theme.zIndex.drawer + 1,
-                    width: { sm: `calc(100% - ${open ? drawerWidth : 0}px)` },
-                    ml: { sm: `${open ? drawerWidth : 0}px` },
-                    transition: theme.transitions.create(['width', 'margin'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                    }),
+                    zIndex: theme.zIndex.drawer + 3, // Above drawer and backdrop
+                    width: '100%',
+                    ml: 0,
                 }}
             >
                 <Toolbar>
                     <IconButton
                         color="inherit"
-                        aria-label="open drawer"
+                        aria-label="toggle drawer"
                         edge="start"
                         onClick={handleDrawerToggle}
                         sx={{ mr: 2 }}
                     >
-                        <MenuIcon />
+                        {open ? <ChevronLeftIcon /> : <MenuIcon />}
                     </IconButton>
-                    <Typography variant="h6" noWrap component="div">
+                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                         Giao diện Nhân viên hỗ trợ
                     </Typography>
+                    <IconButton
+                        color="inherit"
+                        onClick={handleGoHome}
+                        sx={{ mr: 1 }}
+                        title="Quay về trang chủ"
+                    >
+                        <HomeIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
             <Drawer
                 variant="permanent"
                 sx={{
-                    width: drawerWidth,
+                    width: miniDrawerWidth, // Always mini width to not affect layout
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
-                        width: drawerWidth,
                         boxSizing: 'border-box',
                         whiteSpace: 'nowrap',
                         ...(open ? openedMixin(theme) : closedMixin(theme)),
+                        position: 'fixed',
+                        height: '100vh',
+                        zIndex: open ? theme.zIndex.drawer + 2 : theme.zIndex.drawer, // Higher z-index when open
+                        boxShadow: open ? '0 8px 30px rgba(0,0,0,0.12)' : 'none', // Shadow when expanded
                     },
                 }}
                 open={open}
@@ -114,54 +148,175 @@ const StaffLayout: React.FC = () => {
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'flex-end',
+                        justifyContent: open ? 'flex-end' : 'center',
                         px: [1],
+                        minHeight: '64px !important',
                     }}
                 >
-                    <IconButton onClick={handleDrawerToggle}>
-                        <ChevronLeftIcon />
-                    </IconButton>
+                    {open && (
+                        <IconButton onClick={handleDrawerToggle}>
+                            <ChevronLeftIcon />
+                        </IconButton>
+                    )}
+                    {!open && (
+                        <IconButton onClick={handleDrawerToggle}>
+                            <ChevronRightIcon />
+                        </IconButton>
+                    )}
                 </Toolbar>
                 <Divider />
                 <List>
-                    <ListItem button component="a" href="/staff">
-                        <ListItemIcon>
-                            <DashboardIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Dashboard" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
+                            href="/staff"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <DashboardIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Dashboard"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
-                    <ListItem button component="a" href="/staff/patients">
-                        <ListItemIcon>
-                            <PeopleIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Danh sách bệnh nhân" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
+                            href="/staff/appointments"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <EventNoteIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Quản lý lịch hẹn"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
-                    <ListItem button component="a" href="/staff/consultations">
-                        <ListItemIcon>
-                            <QuestionAnswerIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Quản lý tư vấn" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
+                            href="/staff/consultations"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <QuestionAnswerIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Quản lý tư vấn"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
-                    <ListItem button component="a" href="/staff/check-in">
-                        <ListItemIcon>
-                            <CheckInIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Hỗ trợ Check-in" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
+                            href="/staff/blog"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <ArticleIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Quản lý Blog"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
-                    <ListItem button component="a" href="/staff/appointments">
-                        <ListItemIcon>
-                            <EventNoteIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Lịch hẹn trong ngày" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
+                            href="/staff/reports"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <ReportsIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Báo cáo & Thống kê"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
                 </List>
                 <Divider />
                 <List>
-                    <ListItem button onClick={handleLogout}>
-                        <ListItemIcon>
-                            <LogoutIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Đăng xuất" />
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            onClick={handleLogout}
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <LogoutIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Đăng xuất"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
                     </ListItem>
                 </List>
             </Drawer>
@@ -170,13 +325,10 @@ const StaffLayout: React.FC = () => {
                 sx={{
                     flexGrow: 1,
                     p: 3,
-                    width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    ml: { sm: `${open ? drawerWidth : 0}px` },
+                    width: '100%',
+                    ml: `${miniDrawerWidth}px`, // Always use mini drawer width
                     mt: 8,
-                    transition: theme.transitions.create('margin', {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.leavingScreen,
-                    }),
+                    minHeight: '100vh',
                 }}
             >
                 <Outlet />

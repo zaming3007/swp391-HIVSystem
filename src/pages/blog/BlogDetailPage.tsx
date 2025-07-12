@@ -25,12 +25,14 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CommentIcon from '@mui/icons-material/Comment';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PersonIcon from '@mui/icons-material/Person';
-import { getPostById, getCommentsByPostId, addComment, incrementViewCount, getAllPublishedPosts } from '../../services/mockData/blogMockData';
-import { BlogPost, BlogComment } from '../../types/blog';
+import { getPostById, getCommentsByPostId, createComment, incrementViewCount, getAllPublishedPosts, BlogPost, BlogComment } from '../../services/blogService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 const BlogDetailPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
     const [post, setPost] = useState<BlogPost | null>(null);
     const [comments, setComments] = useState<BlogComment[]>([]);
     const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
@@ -39,35 +41,51 @@ const BlogDetailPage: React.FC = () => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (id) {
-            // Lấy thông tin bài viết
-            const fetchedPost = getPostById(id);
+        const fetchData = async () => {
+            if (id) {
+                try {
+                    // Lấy thông tin bài viết
+                    const fetchedPost = await getPostById(id);
 
-            if (fetchedPost) {
-                // Tăng lượt xem
-                const updatedPost = incrementViewCount(id);
-                setPost(updatedPost || fetchedPost);
+                    if (fetchedPost) {
+                        // Kiểm tra quyền xem bài viết
+                        if (fetchedPost.status !== 1 && user?.role !== "staff") {
+                            navigate('/blog');
+                            return;
+                        }
 
-                // Lấy danh sách bình luận
-                const fetchedComments = getCommentsByPostId(id);
-                setComments(fetchedComments);
+                        setPost(fetchedPost);
 
-                // Lấy các bài viết liên quan (trừ bài viết hiện tại)
-                const allPosts = getAllPublishedPosts();
-                const related = allPosts
-                    .filter(p => p.id !== id)
-                    .slice(0, 3);
-                setRelatedPosts(related);
-            } else {
-                // Không tìm thấy bài viết
-                navigate('/blog');
+                        // Tăng lượt xem
+                        await incrementViewCount(id);
+
+                        // Lấy danh sách bình luận
+                        const fetchedComments = await getCommentsByPostId(id);
+                        setComments(fetchedComments);
+
+                        // Lấy các bài viết liên quan (trừ bài viết hiện tại)
+                        const allPosts = await getAllPublishedPosts();
+                        const related = allPosts
+                            .filter(p => p.id !== id)
+                            .slice(0, 3);
+                        setRelatedPosts(related);
+                    } else {
+                        // Không tìm thấy bài viết
+                        navigate('/blog');
+                    }
+                } catch (error) {
+                    console.error('Error fetching blog data:', error);
+                    navigate('/blog');
+                }
             }
-        }
+        };
+
+        fetchData();
     }, [id, navigate]);
 
-    const handleSubmitComment = () => {
-        if (!commentName.trim()) {
-            setError('Vui lòng nhập tên của bạn');
+    const handleSubmitComment = async () => {
+        if (!isAuthenticated) {
+            setError('Vui lòng đăng nhập để bình luận');
             return;
         }
 
@@ -77,16 +95,23 @@ const BlogDetailPage: React.FC = () => {
         }
 
         if (id) {
-            const newComment = addComment(id, commentName, commentContent);
-            setComments([...comments, newComment]);
-            setCommentName('');
-            setCommentContent('');
-            setError('');
+            try {
+                const newComment = await createComment(id, { content: commentContent });
+                if (newComment) {
+                    setComments([...comments, newComment]);
+                    setCommentContent('');
+                    setError('');
 
-            // Cập nhật lại post để hiển thị số lượng comment mới
-            const updatedPost = getPostById(id);
-            if (updatedPost) {
-                setPost(updatedPost);
+                    // Cập nhật số lượng bình luận của bài viết
+                    if (post) {
+                        setPost(prev => prev ? { ...prev, commentCount: prev.commentCount + 1 } : null);
+                    }
+                } else {
+                    setError('Không thể thêm bình luận. Vui lòng thử lại.');
+                }
+            } catch (error) {
+                console.error('Error creating comment:', error);
+                setError('Có lỗi xảy ra khi thêm bình luận');
             }
         }
     };
@@ -120,7 +145,7 @@ const BlogDetailPage: React.FC = () => {
                         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
                             <Chip
                                 icon={<CalendarTodayIcon />}
-                                label={new Date(post.publishedDate).toLocaleDateString('vi-VN')}
+                                label={new Date(post.publishedAt || post.createdAt).toLocaleDateString('vi-VN')}
                                 variant="outlined"
                                 size="small"
                             />
@@ -162,38 +187,38 @@ const BlogDetailPage: React.FC = () => {
                             Bình luận ({comments.length})
                         </Typography>
 
-                        <Box sx={{ mb: 4 }}>
-                            <TextField
-                                fullWidth
-                                label="Tên của bạn"
-                                value={commentName}
-                                onChange={(e) => setCommentName(e.target.value)}
-                                margin="normal"
-                                error={!!error && !commentName.trim()}
-                            />
-                            <TextField
-                                fullWidth
-                                label="Nội dung bình luận"
-                                value={commentContent}
-                                onChange={(e) => setCommentContent(e.target.value)}
-                                margin="normal"
-                                multiline
-                                rows={4}
-                                error={!!error && !commentContent.trim()}
-                            />
-                            {error && (
-                                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                                    {error}
+                        {isAuthenticated ? (
+                            <Box sx={{ mb: 4 }}>
+                                <TextField
+                                    fullWidth
+                                    label="Nội dung bình luận"
+                                    value={commentContent}
+                                    onChange={(e) => setCommentContent(e.target.value)}
+                                    margin="normal"
+                                    multiline
+                                    rows={4}
+                                    error={!!error && !commentContent.trim()}
+                                />
+                                {error && (
+                                    <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                                        {error}
+                                    </Typography>
+                                )}
+                                <Button
+                                    variant="contained"
+                                    onClick={handleSubmitComment}
+                                    sx={{ mt: 2 }}
+                                >
+                                    Gửi bình luận
+                                </Button>
+                            </Box>
+                        ) : (
+                            <Box sx={{ mb: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+                                <Typography color="text.secondary" sx={{ textAlign: 'center' }}>
+                                    Vui lòng <a href="/login" style={{ color: '#1976d2' }}>đăng nhập</a> để bình luận
                                 </Typography>
-                            )}
-                            <Button
-                                variant="contained"
-                                onClick={handleSubmitComment}
-                                sx={{ mt: 2 }}
-                            >
-                                Gửi bình luận
-                            </Button>
-                        </Box>
+                            </Box>
+                        )}
 
                         <Divider sx={{ my: 3 }} />
 

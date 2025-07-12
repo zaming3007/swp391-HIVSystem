@@ -18,8 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CommentIcon from '@mui/icons-material/Comment';
-import { getAllPublishedPosts, searchPosts } from '../../services/mockData/blogMockData';
-import { BlogPost } from '../../types/blog';
+import { getAllPublishedPosts, searchPosts, BlogPost } from '../../services/blogService';
 
 const BlogPage: React.FC = () => {
     const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -30,11 +29,16 @@ const BlogPage: React.FC = () => {
 
     useEffect(() => {
         // Lấy danh sách bài viết khi component được mount
-        const fetchPosts = () => {
-            const allPosts = searchTerm
-                ? searchPosts(searchTerm)
-                : getAllPublishedPosts();
-            setPosts(allPosts);
+        const fetchPosts = async () => {
+            try {
+                const allPosts = searchTerm
+                    ? await searchPosts(searchTerm)
+                    : await getAllPublishedPosts();
+                setPosts(allPosts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+                setPosts([]);
+            }
         };
 
         fetchPosts();
@@ -142,7 +146,7 @@ const BlogPage: React.FC = () => {
                                             </Typography>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {new Date(post.publishedDate).toLocaleDateString('vi-VN')}
+                                                    {new Date(post.publishedAt || post.createdAt).toLocaleDateString('vi-VN')}
                                                 </Typography>
                                                 <Box sx={{ display: 'flex', gap: 1 }}>
                                                     <Chip

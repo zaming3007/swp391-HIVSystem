@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Base API configuration
-// Sử dụng URL của Railway hoặc fallback về localhost nếu không có
-const baseURL = 'https://interchange.proxy.rlwy.net:46712/api';
+// Sử dụng local AuthApi server
+const baseURL = 'http://localhost:5000/api';
 
 const api = axios.create({
     baseURL,
