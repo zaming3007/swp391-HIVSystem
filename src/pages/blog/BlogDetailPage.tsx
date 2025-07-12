@@ -287,7 +287,7 @@ const BlogDetailPage: React.FC = () => {
                                                     {relatedPost.title}
                                                 </Typography>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {new Date(relatedPost.publishedDate).toLocaleDateString('vi-VN')}
+                                                    {new Date(relatedPost.publishedAt || relatedPost.createdAt).toLocaleDateString('vi-VN')}
                                                 </Typography>
                                             </CardContent>
                                         </Card>

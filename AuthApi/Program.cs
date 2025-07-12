@@ -56,6 +56,9 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 // Uncomment line below when ReminderService is implemented
 // builder.Services.AddScoped<IReminderService, ReminderService>();
 
+// Add HttpClient for external API calls
+builder.Services.AddHttpClient();
+
 // Add CORS
 builder.Services.AddCors(options =>
 {

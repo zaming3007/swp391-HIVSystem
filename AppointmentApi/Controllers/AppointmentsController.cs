@@ -17,7 +17,7 @@ namespace AppointmentApi.Controllers
         private readonly IServiceManager _serviceManager;
 
         public AppointmentsController(
-            IAppointmentService appointmentService, 
+            IAppointmentService appointmentService,
             IDoctorService doctorService,
             IServiceManager serviceManager)
         {
@@ -36,11 +36,11 @@ namespace AppointmentApi.Controllers
             }
 
             var appointments = await _appointmentService.GetAllAsync();
-            return new ApiResponse<List<Appointment>> 
-            { 
-                Success = true, 
-                Message = "Lấy danh sách lịch hẹn thành công", 
-                Data = appointments 
+            return new ApiResponse<List<Appointment>>
+            {
+                Success = true,
+                Message = "Lấy danh sách lịch hẹn thành công",
+                Data = appointments
             };
         }
 
@@ -50,10 +50,10 @@ namespace AppointmentApi.Controllers
             var appointment = await _appointmentService.GetByIdAsync(id);
             if (appointment == null)
             {
-                return NotFound(new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = "Không tìm thấy lịch hẹn" 
+                return NotFound(new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy lịch hẹn"
                 });
             }
 
@@ -64,11 +64,11 @@ namespace AppointmentApi.Controllers
                 return Forbid();
             }
 
-            return new ApiResponse<Appointment> 
-            { 
-                Success = true, 
-                Message = "Lấy chi tiết lịch hẹn thành công", 
-                Data = appointment 
+            return new ApiResponse<Appointment>
+            {
+                Success = true,
+                Message = "Lấy chi tiết lịch hẹn thành công",
+                Data = appointment
             };
         }
 
@@ -76,7 +76,7 @@ namespace AppointmentApi.Controllers
         public async Task<ActionResult<ApiResponse<List<Appointment>>>> GetMyAppointments()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
+
             if (string.IsNullOrEmpty(userId))
             {
                 return BadRequest(new ApiResponse<List<Appointment>>
@@ -85,17 +85,42 @@ namespace AppointmentApi.Controllers
                     Message = "Không tìm thấy thông tin người dùng"
                 });
             }
-            
+
             var appointments = await _appointmentService.GetByPatientIdAsync(userId);
 
-            return new ApiResponse<List<Appointment>> 
-            { 
-                Success = true, 
-                Message = "Lấy danh sách lịch hẹn của bạn thành công", 
-                Data = appointments 
+            return new ApiResponse<List<Appointment>>
+            {
+                Success = true,
+                Message = "Lấy danh sách lịch hẹn của bạn thành công",
+                Data = appointments
             };
         }
-        
+
+        [HttpGet("doctor")]
+        [Authorize(Roles = "Doctor")]
+        public async Task<ActionResult<ApiResponse<List<Appointment>>>> GetMyDoctorAppointments()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest(new ApiResponse<List<Appointment>>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy thông tin bác sĩ"
+                });
+            }
+
+            var appointments = await _appointmentService.GetByDoctorIdAsync(userId);
+
+            return new ApiResponse<List<Appointment>>
+            {
+                Success = true,
+                Message = "Lấy danh sách lịch hẹn của bác sĩ thành công",
+                Data = appointments
+            };
+        }
+
         [HttpGet("patient/{patientId}")]
         [AllowAnonymous] // Cho phép truy cập mà không cần xác thực
         public async Task<ActionResult<ApiResponse<List<Appointment>>>> GetByPatientId(string patientId)
@@ -108,34 +133,46 @@ namespace AppointmentApi.Controllers
                     Message = "PatientId không được để trống"
                 });
             }
-            
+
             // Bỏ kiểm tra quyền để cho phép truy cập API này
             var appointments = await _appointmentService.GetByPatientIdAsync(patientId);
 
-            return new ApiResponse<List<Appointment>> 
-            { 
-                Success = true, 
-                Message = $"Lấy danh sách lịch hẹn của bệnh nhân thành công", 
-                Data = appointments 
+            return new ApiResponse<List<Appointment>>
+            {
+                Success = true,
+                Message = $"Lấy danh sách lịch hẹn của bệnh nhân thành công",
+                Data = appointments
             };
         }
 
         [HttpGet("doctor/{doctorId}")]
         public async Task<ActionResult<ApiResponse<List<Appointment>>>> GetByDoctorId(string doctorId)
         {
-            // Chỉ admin mới có thể xem lịch hẹn của bác sĩ
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Admin có thể xem lịch hẹn của bất kỳ bác sĩ nào
+            // Doctor chỉ có thể xem lịch hẹn của chính mình
             if (!User.IsInRole("Admin"))
             {
-                return Forbid();
+                if (!User.IsInRole("Doctor"))
+                {
+                    return Forbid();
+                }
+
+                // Kiểm tra xem doctor có đang xem lịch hẹn của chính mình không
+                if (userId != doctorId)
+                {
+                    return Forbid();
+                }
             }
 
             var appointments = await _appointmentService.GetByDoctorIdAsync(doctorId);
 
-            return new ApiResponse<List<Appointment>> 
-            { 
-                Success = true, 
-                Message = $"Lấy danh sách lịch hẹn của bác sĩ {doctorId} thành công", 
-                Data = appointments 
+            return new ApiResponse<List<Appointment>>
+            {
+                Success = true,
+                Message = $"Lấy danh sách lịch hẹn của bác sĩ {doctorId} thành công",
+                Data = appointments
             };
         }
 
@@ -165,25 +202,25 @@ namespace AppointmentApi.Controllers
 
                 // Lấy tất cả lịch hẹn của bác sĩ
                 var allAppointments = await _appointmentService.GetByDoctorIdAsync(doctorId);
-                
+
                 // Lọc theo ngày
                 var appointmentsOnDate = allAppointments
                     .Where(a => a.Date.Date == appointmentDate.Date)
                     .ToList();
 
-                return new ApiResponse<List<Appointment>> 
-                { 
-                    Success = true, 
-                    Message = $"Lấy danh sách lịch hẹn của bác sĩ {doctorId} vào ngày {date} thành công", 
-                    Data = appointmentsOnDate 
+                return new ApiResponse<List<Appointment>>
+                {
+                    Success = true,
+                    Message = $"Lấy danh sách lịch hẹn của bác sĩ {doctorId} vào ngày {date} thành công",
+                    Data = appointmentsOnDate
                 };
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse<List<Appointment>> 
-                { 
-                    Success = false, 
-                    Message = $"Lỗi khi lấy lịch hẹn: {ex.Message}" 
+                return BadRequest(new ApiResponse<List<Appointment>>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi lấy lịch hẹn: {ex.Message}"
                 });
             }
         }
@@ -191,48 +228,48 @@ namespace AppointmentApi.Controllers
         [HttpGet("available-slots")]
         [AllowAnonymous] // Cho phép truy cập mà không cần xác thực
         public async Task<ActionResult<ApiResponse<List<AvailableSlot>>>> GetAvailableSlots(
-            [FromQuery] string doctorId, 
+            [FromQuery] string doctorId,
             [FromQuery] DateTime date)
         {
             try
             {
                 Console.WriteLine($"GetAvailableSlots API called with doctorId={doctorId}, date={date:yyyy-MM-dd}");
-                
-                // Kiểm tra và chuyển đổi doctorId
-                if (!int.TryParse(doctorId, out int _))
+
+                // Kiểm tra doctorId không rỗng
+                if (string.IsNullOrEmpty(doctorId))
                 {
-                    Console.WriteLine($"Invalid doctorId format: {doctorId}");
+                    Console.WriteLine($"DoctorId is null or empty");
                     return BadRequest(new ApiResponse<List<AvailableSlot>>
                     {
                         Success = false,
-                        Message = "ID bác sĩ không hợp lệ"
+                        Message = "ID bác sĩ không được để trống"
                     });
                 }
-                
+
                 var slots = await _doctorService.GetAvailableSlotsAsync(doctorId, date);
-                
+
                 Console.WriteLine($"API returning {slots.Count} available slot records");
-                
-                return new ApiResponse<List<AvailableSlot>> 
-                { 
-                    Success = true, 
-                    Message = "Lấy danh sách khung giờ khả dụng thành công", 
-                    Data = slots 
+
+                return new ApiResponse<List<AvailableSlot>>
+                {
+                    Success = true,
+                    Message = "Lấy danh sách khung giờ khả dụng thành công",
+                    Data = slots
                 };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception in GetAvailableSlots API: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                return BadRequest(new ApiResponse<List<AvailableSlot>> 
-                { 
-                    Success = false, 
-                    Message = $"Lỗi khi lấy khung giờ khả dụng: {ex.Message}" 
+
+                return BadRequest(new ApiResponse<List<AvailableSlot>>
+                {
+                    Success = false,
+                    Message = $"Lỗi khi lấy khung giờ khả dụng: {ex.Message}"
                 });
             }
         }
-        
+
         [HttpPost]
         [AllowAnonymous] // Cho phép truy cập mà không cần xác thực
         public async Task<ActionResult<ApiResponse<Appointment>>> Create([FromBody] AppointmentRequest request)
@@ -241,31 +278,31 @@ namespace AppointmentApi.Controllers
             {
                 // Log chi tiết dữ liệu nhận được
                 Console.WriteLine($"Creating appointment with data: {System.Text.Json.JsonSerializer.Serialize(request)}");
-                
+
                 var appointmentDto = request.AppointmentDto;
                 var patientId = request.PatientId;
                 var patientName = request.PatientName;
-                
+
                 if (appointmentDto == null)
                 {
                     Console.WriteLine("Error: AppointmentDto is missing");
-                    return BadRequest(new ApiResponse<Appointment> 
-                    { 
-                        Success = false, 
-                        Message = "appointmentDto là bắt buộc" 
+                    return BadRequest(new ApiResponse<Appointment>
+                    {
+                        Success = false,
+                        Message = "appointmentDto là bắt buộc"
                     });
                 }
-                
+
                 if (string.IsNullOrEmpty(patientId))
                 {
                     Console.WriteLine("Error: PatientId is missing");
-                    return BadRequest(new ApiResponse<Appointment> 
-                    { 
-                        Success = false, 
-                        Message = "PatientId là bắt buộc" 
+                    return BadRequest(new ApiResponse<Appointment>
+                    {
+                        Success = false,
+                        Message = "PatientId là bắt buộc"
                     });
                 }
-                
+
                 // Chuyển đổi và validate dữ liệu
                 if (!DateTime.TryParse(appointmentDto.Date.ToString(), out DateTime parsedDate))
                 {
@@ -275,7 +312,7 @@ namespace AppointmentApi.Controllers
                         Message = "Định dạng ngày không hợp lệ"
                     });
                 }
-                
+
                 // Đảm bảo doctorId và serviceId là chuỗi
                 if (appointmentDto.DoctorId == null)
                 {
@@ -285,7 +322,7 @@ namespace AppointmentApi.Controllers
                         Message = "DoctorId là bắt buộc"
                     });
                 }
-                
+
                 if (appointmentDto.ServiceId == null)
                 {
                     return BadRequest(new ApiResponse<Appointment>
@@ -294,7 +331,7 @@ namespace AppointmentApi.Controllers
                         Message = "ServiceId là bắt buộc"
                     });
                 }
-                
+
                 // Đảm bảo chuỗi thời gian đúng định dạng
                 if (!TimeSpan.TryParse(appointmentDto.StartTime, out _))
                 {
@@ -304,7 +341,7 @@ namespace AppointmentApi.Controllers
                         Message = "Định dạng thời gian không hợp lệ (HH:mm)"
                     });
                 }
-                
+
                 // Tạo một bản sao của DTO để đảm bảo dữ liệu đúng
                 var validDto = new AppointmentCreateDto
                 {
@@ -315,43 +352,43 @@ namespace AppointmentApi.Controllers
                     Notes = appointmentDto.Notes ?? string.Empty,
                     AppointmentType = appointmentDto.AppointmentType
                 };
-                
+
                 Console.WriteLine($"Calling AppointmentService.CreateAsync with validated data: {System.Text.Json.JsonSerializer.Serialize(validDto)}");
                 var appointment = await _appointmentService.CreateAsync(patientId, patientName, validDto);
-                
-                return new ApiResponse<Appointment> 
-                { 
-                    Success = true, 
-                    Message = "Đặt lịch hẹn thành công", 
-                    Data = appointment 
+
+                return new ApiResponse<Appointment>
+                {
+                    Success = true,
+                    Message = "Đặt lịch hẹn thành công",
+                    Data = appointment
                 };
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"ArgumentException: {ex.Message}");
-                return BadRequest(new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = ex.Message 
+                return BadRequest(new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = ex.Message
                 });
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"InvalidOperationException: {ex.Message}");
-                return BadRequest(new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = ex.Message 
+                return BadRequest(new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = ex.Message
                 });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected exception: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return StatusCode(500, new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = $"Lỗi không xác định: {ex.Message}" 
+                return StatusCode(500, new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = $"Lỗi không xác định: {ex.Message}"
                 });
             }
         }
@@ -364,10 +401,10 @@ namespace AppointmentApi.Controllers
                 var appointment = await _appointmentService.GetByIdAsync(id);
                 if (appointment == null)
                 {
-                    return NotFound(new ApiResponse<Appointment> 
-                    { 
-                        Success = false, 
-                        Message = "Không tìm thấy lịch hẹn" 
+                    return NotFound(new ApiResponse<Appointment>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy lịch hẹn"
                     });
                 }
 
@@ -379,28 +416,28 @@ namespace AppointmentApi.Controllers
                 }
 
                 var updatedAppointment = await _appointmentService.UpdateAsync(id, appointmentDto);
-                
-                return new ApiResponse<Appointment> 
-                { 
-                    Success = true, 
-                    Message = "Cập nhật lịch hẹn thành công", 
-                    Data = updatedAppointment 
+
+                return new ApiResponse<Appointment>
+                {
+                    Success = true,
+                    Message = "Cập nhật lịch hẹn thành công",
+                    Data = updatedAppointment
                 };
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = ex.Message 
+                return BadRequest(new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = ex.Message
                 });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new ApiResponse<Appointment> 
-                { 
-                    Success = false, 
-                    Message = ex.Message 
+                return BadRequest(new ApiResponse<Appointment>
+                {
+                    Success = false,
+                    Message = ex.Message
                 });
             }
         }
@@ -411,10 +448,10 @@ namespace AppointmentApi.Controllers
             var appointment = await _appointmentService.GetByIdAsync(id);
             if (appointment == null)
             {
-                return NotFound(new ApiResponse<bool> 
-                { 
-                    Success = false, 
-                    Message = "Không tìm thấy lịch hẹn" 
+                return NotFound(new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy lịch hẹn"
                 });
             }
 
@@ -426,13 +463,13 @@ namespace AppointmentApi.Controllers
             }
 
             var result = await _appointmentService.DeleteAsync(id);
-            
-            return new ApiResponse<bool> 
-            { 
-                Success = true, 
-                Message = "Hủy lịch hẹn thành công", 
-                Data = result 
+
+            return new ApiResponse<bool>
+            {
+                Success = true,
+                Message = "Hủy lịch hẹn thành công",
+                Data = result
             };
         }
     }
-} 
+}

@@ -268,6 +268,12 @@ const AuthStatus: React.FC = () => {
                             </ListItemIcon>
                             Hồ sơ bệnh nhân
                         </MenuItem>
+                        <MenuItem onClick={() => { navigate('/doctor/regimens'); handleClose(); }}>
+                            <ListItemIcon>
+                                <BlogIcon fontSize="small" />
+                            </ListItemIcon>
+                            Phác đồ ARV
+                        </MenuItem>
                         <MenuItem onClick={() => { navigate('/doctor/schedule'); handleClose(); }}>
                             <ListItemIcon>
                                 <SettingsIcon fontSize="small" />

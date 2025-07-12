@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import appointmentApi from '../../services/appointmentApi';
 import {
     Box,
     Grid,
@@ -16,7 +18,9 @@ import {
     Divider,
     LinearProgress,
     Avatar,
-    Alert
+    Alert,
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import {
     EventNote as EventNoteIcon,
@@ -27,9 +31,14 @@ import {
     Pending as PendingIcon,
     AccessTime as TimeIcon,
     Star as StarIcon,
-    TrendingUp as TrendingUpIcon
+    TrendingUp as TrendingUpIcon,
+    Add as AddIcon,
+    Visibility as ViewIcon,
+    LocalPharmacy as PharmacyIcon,
+    Assignment as AssignmentIcon,
+    Notifications as NotificationIcon
 } from '@mui/icons-material';
-import { RootState } from '../../store/store';
+import { RootState } from '../../store';
 
 // Mock data - sẽ được thay thế bằng API calls
 const mockDoctorStats = {
@@ -102,16 +111,39 @@ const mockPendingConsultations = [
 
 const DoctorDashboard: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
+    const [appointments, setAppointments] = useState<any[]>([]);
+    const [consultations, setConsultations] = useState<any[]>([]);
 
     useEffect(() => {
-        // Simulate loading
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
+        loadDashboardData();
+    }, [user]);
 
-        return () => clearTimeout(timer);
-    }, []);
+    const loadDashboardData = async () => {
+        if (!user?.id) return;
+
+        try {
+            setLoading(true);
+
+            // Load appointments
+            const appointmentResponse = await appointmentApi.get('/appointments/doctor');
+            if (appointmentResponse.data.success) {
+                setAppointments(appointmentResponse.data.data || []);
+            }
+
+            // TODO: Load consultations when API is ready
+            // const consultationResponse = await consultationApi.get('/consultations/doctor');
+            // if (consultationResponse.data.success) {
+            //     setConsultations(consultationResponse.data.data || []);
+            // }
+
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -318,6 +350,63 @@ const DoctorDashboard: React.FC = () => {
                 </Grid>
             </Grid>
 
+            {/* Quick Actions */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12}>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Thao tác nhanh
+                        </Typography>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    startIcon={<AddIcon />}
+                                    onClick={() => navigate('/doctor/appointments')}
+                                    sx={{ py: 1.5 }}
+                                >
+                                    Xem lịch hẹn
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<QuestionAnswerIcon />}
+                                    onClick={() => navigate('/doctor/consultations')}
+                                    sx={{ py: 1.5 }}
+                                >
+                                    Trả lời tư vấn
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<PatientsIcon />}
+                                    onClick={() => navigate('/doctor/patients')}
+                                    sx={{ py: 1.5 }}
+                                >
+                                    Quản lý bệnh nhân
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    startIcon={<PharmacyIcon />}
+                                    onClick={() => navigate('/doctor/regimens')}
+                                    sx={{ py: 1.5 }}
+                                >
+                                    Phác đồ ARV
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Paper>
+                </Grid>
+            </Grid>
+
             {/* Main Content */}
             <Grid container spacing={3}>
                 {/* Today's Appointments */}
@@ -327,7 +416,11 @@ const DoctorDashboard: React.FC = () => {
                             <Typography variant="h6">
                                 Lịch hẹn hôm nay
                             </Typography>
-                            <Button size="small" href="/doctor/appointments">
+                            <Button
+                                size="small"
+                                onClick={() => navigate('/doctor/appointments')}
+                                variant="outlined"
+                            >
                                 Xem tất cả
                             </Button>
                         </Box>
@@ -353,11 +446,21 @@ const DoctorDashboard: React.FC = () => {
                                             }
                                             secondary={appointment.notes}
                                         />
-                                        <Chip
-                                            label={appointment.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận'}
-                                            color={getStatusColor(appointment.status)}
-                                            size="small"
-                                        />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Chip
+                                                label={appointment.status === 'confirmed' ? 'Đã xác nhận' : 'Chờ xác nhận'}
+                                                color={getStatusColor(appointment.status)}
+                                                size="small"
+                                            />
+                                            <Tooltip title="Xem chi tiết">
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => navigate('/doctor/appointments')}
+                                                >
+                                                    <ViewIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
                                     </ListItem>
                                     {index < mockTodayAppointments.length - 1 && <Divider />}
                                 </React.Fragment>
@@ -373,7 +476,11 @@ const DoctorDashboard: React.FC = () => {
                             <Typography variant="h6">
                                 Tư vấn chờ trả lời
                             </Typography>
-                            <Button size="small" href="/doctor/consultations">
+                            <Button
+                                size="small"
+                                onClick={() => navigate('/doctor/consultations')}
+                                variant="outlined"
+                            >
                                 Xem tất cả
                             </Button>
                         </Box>

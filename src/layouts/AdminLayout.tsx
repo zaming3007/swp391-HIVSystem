@@ -200,7 +200,7 @@ const AdminLayout: React.FC = () => {
                                 <DashboardIcon />
                             </ListItemIcon>
                             <ListItemText
-                                primary="Dashboard & Báo cáo"
+                                primary="Dashboard"
                                 sx={{ opacity: open ? 1 : 0 }}
                             />
                         </ListItemButton>
@@ -230,6 +230,35 @@ const AdminLayout: React.FC = () => {
                             </ListItemIcon>
                             <ListItemText
                                 primary="Quản lý người dùng"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={RouterLink}
+                            to="/admin/doctors"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                                py: 1.5,
+                                '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
+                                '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                    color: '#7E57C2'
+                                }}
+                            >
+                                <MedicalServicesIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Quản lý bác sĩ"
                                 sx={{ opacity: open ? 1 : 0 }}
                             />
                         </ListItemButton>

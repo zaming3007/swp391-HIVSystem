@@ -21,7 +21,7 @@ import ContactPage from './pages/contact/ContactPage';
 import TeamPage from './pages/team/TeamPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
-import DashboardPage from './pages/admin/DashboardPage';
+// import DashboardPage from './pages/admin/DashboardPage';
 import ConsultationsPage from './pages/admin/ConsultationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import AppointmentPage from './pages/appointment/AppointmentPage';
@@ -43,6 +43,13 @@ import StaffReports from './pages/staff/StaffReports';
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import DoctorPatientManagement from './pages/doctor/DoctorPatientManagement';
 import ARVRegimenManagement from './pages/doctor/ARVRegimenManagement';
+import DoctorAppointmentManagement from './pages/doctor/DoctorAppointmentManagement';
+import DoctorConsultationManagement from './pages/doctor/DoctorConsultationManagement';
+import PatientMedicalRecord from './pages/doctor/PatientMedicalRecord';
+import DoctorScheduleManagement from './pages/doctor/DoctorScheduleManagement';
+import AdminDoctorManagement from './pages/admin/AdminDoctorManagement';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLogin from './pages/admin/AdminLogin';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -162,36 +169,28 @@ const AppRoutes: React.FC = () => {
           <Route path="qa" element={<ConsultationQAPage />} />
         </Route>
 
+        {/* Admin Login Route */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
         <Route path="/admin" element={
           <RoleGuard requiredRole="admin" userRole={user?.role}>
             <AdminLayout />
           </RoleGuard>
         }>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="appointments" element={<div>Quản lý lịch hẹn</div>} />
           <Route path="consultations" element={<ConsultationsPage />} />
           <Route path="services" element={<div>Quản lý dịch vụ</div>} />
           <Route path="users" element={<div>Quản lý người dùng</div>} />
           <Route path="blog" element={<BlogManagementPage />} />
-          <Route path="doctors" element={<div>Quản lý thông tin bác sĩ</div>} />
+          <Route path="doctors" element={<AdminDoctorManagement />} />
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
           <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
           <Route path="reports" element={<div>Báo cáo thống kê</div>} />
         </Route>
 
-        <Route path="/doctor" element={
-          <RoleGuard requiredRole="doctor" userRole={user?.role}>
-            <MainLayout />
-          </RoleGuard>
-        }>
-          <Route index element={<div>Dashboard Bác sĩ</div>} />
-          <Route path="patients" element={<div>Quản lý bệnh nhân</div>} />
-          <Route path="appointments" element={<div>Lịch hẹn khám</div>} />
-          <Route path="consultations" element={<ConsultationsPage />} />
-          <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
-          <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
-        </Route>
+
 
         <Route path="/staff" element={
           <RoleGuard requiredRole="staff" userRole={user?.role}>
@@ -211,11 +210,12 @@ const AppRoutes: React.FC = () => {
           </RoleGuard>
         }>
           <Route index element={<DoctorDashboard />} />
-          <Route path="appointments" element={<div>Lịch hẹn của tôi</div>} />
-          <Route path="consultations" element={<div>Tư vấn của tôi</div>} />
+          <Route path="appointments" element={<DoctorAppointmentManagement />} />
+          <Route path="consultations" element={<DoctorConsultationManagement />} />
           <Route path="patients" element={<DoctorPatientManagement />} />
+          <Route path="patients/:patientId/medical-record" element={<PatientMedicalRecord />} />
           <Route path="regimens" element={<ARVRegimenManagement />} />
-          <Route path="schedule" element={<div>Quản lý lịch làm việc</div>} />
+          <Route path="schedule" element={<DoctorScheduleManagement />} />
         </Route>
       </Route>
 
