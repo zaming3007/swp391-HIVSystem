@@ -1141,6 +1141,49 @@ namespace AppointmentApi.Controllers
             }
         }
 
+        [HttpPost("create-doctor-schedule-tables")]
+        public async Task<IActionResult> CreateDoctorScheduleTables()
+        {
+            try
+            {
+                // Create DoctorSchedules table
+                var createScheduleTableSql = @"
+                    CREATE TABLE IF NOT EXISTS ""DoctorSchedules"" (
+                        ""Id"" text NOT NULL,
+                        ""DoctorId"" text NOT NULL,
+                        ""DayOfWeek"" integer NOT NULL,
+                        ""IsWorking"" boolean NOT NULL,
+                        ""CreatedAt"" timestamp with time zone NOT NULL,
+                        ""UpdatedAt"" timestamp with time zone,
+                        CONSTRAINT ""PK_DoctorSchedules"" PRIMARY KEY (""Id"")
+                    );";
+
+                await _context.Database.ExecuteSqlRawAsync(createScheduleTableSql);
+
+                // Create DoctorTimeSlots table
+                var createTimeSlotsTableSql = @"
+                    CREATE TABLE IF NOT EXISTS ""DoctorTimeSlots"" (
+                        ""Id"" text NOT NULL,
+                        ""DoctorScheduleId"" text NOT NULL,
+                        ""StartTime"" interval NOT NULL,
+                        ""EndTime"" interval NOT NULL,
+                        ""IsAvailable"" boolean NOT NULL,
+                        ""CreatedAt"" timestamp with time zone NOT NULL,
+                        ""UpdatedAt"" timestamp with time zone,
+                        CONSTRAINT ""PK_DoctorTimeSlots"" PRIMARY KEY (""Id""),
+                        CONSTRAINT ""FK_DoctorTimeSlots_DoctorSchedules_DoctorScheduleId"" FOREIGN KEY (""DoctorScheduleId"") REFERENCES ""DoctorSchedules"" (""Id"") ON DELETE CASCADE
+                    );";
+
+                await _context.Database.ExecuteSqlRawAsync(createTimeSlotsTableSql);
+
+                return Ok(new { success = true, message = "Doctor schedule tables created successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error creating doctor schedule tables", error = ex.Message });
+            }
+        }
+
         [HttpPost("insert-arv-medications")]
         public async Task<IActionResult> InsertARVMedications()
         {

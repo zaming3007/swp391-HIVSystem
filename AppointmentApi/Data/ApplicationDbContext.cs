@@ -25,6 +25,8 @@ namespace AppointmentApi.Data
         public DbSet<AdherenceRecord> AdherenceRecords { get; set; }
         public DbSet<SideEffectRecord> SideEffectRecords { get; set; }
 
+        // Doctor Schedule Management uses existing TimeSlots table
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.ConfigureWarnings(warnings =>

@@ -29,7 +29,12 @@ import {
     Tooltip,
     Alert,
     CircularProgress,
-    Snackbar
+    Snackbar,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Divider
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -39,7 +44,9 @@ import {
     Visibility as ViewIcon,
     ToggleOff as ToggleOffIcon,
     ToggleOn as ToggleOnIcon,
-    Person as PersonIcon
+    Person as PersonIcon,
+    Schedule as ScheduleIcon,
+    AccessTime as TimeIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -56,6 +63,20 @@ interface Doctor {
     profileImage: string;
     createdAt: string;
     updatedAt?: string;
+}
+
+interface TimeSlot {
+    id: string;
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+}
+
+interface WorkingHours {
+    dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+    dayName: string;
+    isWorking: boolean;
+    timeSlots: TimeSlot[];
 }
 
 interface CreateDoctorData {
@@ -98,6 +119,12 @@ const AdminDoctorManagement: React.FC = () => {
         message: '',
         severity: 'success' as 'success' | 'error'
     });
+
+    // Schedule management states
+    const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+    const [selectedDoctorForSchedule, setSelectedDoctorForSchedule] = useState<Doctor | null>(null);
+    const [workingHours, setWorkingHours] = useState<WorkingHours[]>([]);
+    const [loadingSchedule, setLoadingSchedule] = useState(false);
 
     useEffect(() => {
         loadDoctors();
@@ -247,6 +274,131 @@ const AdminDoctorManagement: React.FC = () => {
         } catch (error: any) {
             console.error('Error toggling availability:', error);
             showSnackbar('Lỗi: ' + (error.response?.data?.message || error.message), 'error');
+        }
+    };
+
+    // Schedule management functions
+    const handleOpenScheduleDialog = async (doctor: Doctor) => {
+        setSelectedDoctorForSchedule(doctor);
+        setScheduleDialogOpen(true);
+        await loadDoctorSchedule(doctor.id);
+    };
+
+    const loadDoctorSchedule = async (doctorId: string) => {
+        setLoadingSchedule(true);
+        try {
+            const response = await fetch(`http://localhost:5002/api/DoctorSchedule/${doctorId}`);
+            if (response.ok) {
+                const scheduleData = await response.json();
+                setWorkingHours(scheduleData);
+            } else {
+                // Initialize default working hours for the week if no data exists
+                const defaultWorkingHours: WorkingHours[] = [
+                    { dayOfWeek: 1, dayName: 'Thứ Hai', isWorking: true, timeSlots: [] },
+                    { dayOfWeek: 2, dayName: 'Thứ Ba', isWorking: true, timeSlots: [] },
+                    { dayOfWeek: 3, dayName: 'Thứ Tư', isWorking: true, timeSlots: [] },
+                    { dayOfWeek: 4, dayName: 'Thứ Năm', isWorking: true, timeSlots: [] },
+                    { dayOfWeek: 5, dayName: 'Thứ Sáu', isWorking: true, timeSlots: [] },
+                    { dayOfWeek: 6, dayName: 'Thứ Bảy', isWorking: false, timeSlots: [] },
+                    { dayOfWeek: 0, dayName: 'Chủ Nhật', isWorking: false, timeSlots: [] }
+                ];
+
+                // Add default time slots for working days
+                defaultWorkingHours.forEach(day => {
+                    if (day.isWorking) {
+                        day.timeSlots = [
+                            { id: `${day.dayOfWeek}-1`, startTime: '08:00', endTime: '09:00', isAvailable: true },
+                            { id: `${day.dayOfWeek}-2`, startTime: '09:00', endTime: '10:00', isAvailable: true },
+                            { id: `${day.dayOfWeek}-3`, startTime: '10:00', endTime: '11:00', isAvailable: true },
+                            { id: `${day.dayOfWeek}-4`, startTime: '14:00', endTime: '15:00', isAvailable: true },
+                            { id: `${day.dayOfWeek}-5`, startTime: '15:00', endTime: '16:00', isAvailable: true },
+                            { id: `${day.dayOfWeek}-6`, startTime: '16:00', endTime: '17:00', isAvailable: true }
+                        ];
+                    }
+                });
+
+                setWorkingHours(defaultWorkingHours);
+            }
+        } catch (error) {
+            console.error('Error loading doctor schedule:', error);
+            showSnackbar('Lỗi khi tải lịch làm việc', 'error');
+        } finally {
+            setLoadingSchedule(false);
+        }
+    };
+
+    const handleToggleWorkingDay = (dayOfWeek: number) => {
+        setWorkingHours(prev => prev.map(day =>
+            day.dayOfWeek === dayOfWeek
+                ? { ...day, isWorking: !day.isWorking }
+                : day
+        ));
+    };
+
+    const handleAddTimeSlot = (dayOfWeek: number) => {
+        const newSlot: TimeSlot = {
+            id: `${dayOfWeek}-${Date.now()}`,
+            startTime: '08:00',
+            endTime: '09:00',
+            isAvailable: true
+        };
+
+        setWorkingHours(prev => prev.map(day =>
+            day.dayOfWeek === dayOfWeek
+                ? { ...day, timeSlots: [...day.timeSlots, newSlot] }
+                : day
+        ));
+    };
+
+    const handleUpdateTimeSlot = (dayOfWeek: number, slotId: string, field: 'startTime' | 'endTime', value: string) => {
+        setWorkingHours(prev => prev.map(day =>
+            day.dayOfWeek === dayOfWeek
+                ? {
+                    ...day,
+                    timeSlots: day.timeSlots.map(slot =>
+                        slot.id === slotId ? { ...slot, [field]: value } : slot
+                    )
+                }
+                : day
+        ));
+    };
+
+    const handleRemoveTimeSlot = (dayOfWeek: number, slotId: string) => {
+        setWorkingHours(prev => prev.map(day =>
+            day.dayOfWeek === dayOfWeek
+                ? { ...day, timeSlots: day.timeSlots.filter(slot => slot.id !== slotId) }
+                : day
+        ));
+    };
+
+    const handleSaveSchedule = async () => {
+        if (!selectedDoctorForSchedule) return;
+
+        try {
+            const requestData = {
+                doctorId: selectedDoctorForSchedule.id,
+                workingHours: workingHours
+            };
+
+            const response = await fetch('http://localhost:5002/api/DoctorSchedule', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showSnackbar('Lưu lịch làm việc thành công!', 'success');
+                setScheduleDialogOpen(false);
+            } else {
+                showSnackbar(result.message || 'Lỗi khi lưu lịch làm việc', 'error');
+            }
+        } catch (error) {
+            console.error('Error saving schedule:', error);
+            showSnackbar('Lỗi khi lưu lịch làm việc', 'error');
         }
     };
 
@@ -495,6 +647,15 @@ const AdminDoctorManagement: React.FC = () => {
                                                 <EditIcon />
                                             </IconButton>
                                         </Tooltip>
+                                        <Tooltip title="Quản lý lịch làm việc">
+                                            <IconButton
+                                                size="small"
+                                                color="info"
+                                                onClick={() => handleOpenScheduleDialog(doctor)}
+                                            >
+                                                <ScheduleIcon />
+                                            </IconButton>
+                                        </Tooltip>
                                         <Tooltip title={doctor.available ? 'Vô hiệu hóa' : 'Kích hoạt'}>
                                             <IconButton
                                                 size="small"
@@ -687,6 +848,131 @@ const AdminDoctorManagement: React.FC = () => {
                             {actionType === 'delete' && 'Xóa'}
                         </Button>
                     )}
+                </DialogActions>
+            </Dialog>
+
+            {/* Schedule Management Dialog */}
+            <Dialog
+                open={scheduleDialogOpen}
+                onClose={() => setScheduleDialogOpen(false)}
+                maxWidth="lg"
+                fullWidth
+            >
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <ScheduleIcon />
+                        <Typography variant="h6">
+                            Quản lý lịch làm việc - {selectedDoctorForSchedule?.firstName} {selectedDoctorForSchedule?.lastName}
+                        </Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    {loadingSchedule ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <Box sx={{ mt: 2 }}>
+                            {workingHours.map((day) => (
+                                <Card key={day.dayOfWeek} sx={{ mb: 2 }}>
+                                    <CardContent>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                            <Typography variant="h6">{day.dayName}</Typography>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                <Typography variant="body2">
+                                                    {day.isWorking ? 'Làm việc' : 'Nghỉ'}
+                                                </Typography>
+                                                <Button
+                                                    variant={day.isWorking ? 'contained' : 'outlined'}
+                                                    color={day.isWorking ? 'success' : 'primary'}
+                                                    size="small"
+                                                    onClick={() => handleToggleWorkingDay(day.dayOfWeek)}
+                                                >
+                                                    {day.isWorking ? 'Đang làm việc' : 'Đặt làm việc'}
+                                                </Button>
+                                            </Box>
+                                        </Box>
+
+                                        {day.isWorking && (
+                                            <Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                                    <Typography variant="subtitle2">Khung giờ làm việc:</Typography>
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        startIcon={<TimeIcon />}
+                                                        onClick={() => handleAddTimeSlot(day.dayOfWeek)}
+                                                    >
+                                                        Thêm khung giờ
+                                                    </Button>
+                                                </Box>
+
+                                                <Grid container spacing={2}>
+                                                    {day.timeSlots.map((slot) => (
+                                                        <Grid item xs={12} sm={6} md={4} key={slot.id}>
+                                                            <Paper sx={{ p: 2, border: '1px solid #e0e0e0' }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                                                    <TextField
+                                                                        type="time"
+                                                                        label="Từ"
+                                                                        value={slot.startTime}
+                                                                        onChange={(e) => handleUpdateTimeSlot(day.dayOfWeek, slot.id, 'startTime', e.target.value)}
+                                                                        size="small"
+                                                                        sx={{ flex: 1 }}
+                                                                    />
+                                                                    <Typography variant="body2">-</Typography>
+                                                                    <TextField
+                                                                        type="time"
+                                                                        label="Đến"
+                                                                        value={slot.endTime}
+                                                                        onChange={(e) => handleUpdateTimeSlot(day.dayOfWeek, slot.id, 'endTime', e.target.value)}
+                                                                        size="small"
+                                                                        sx={{ flex: 1 }}
+                                                                    />
+                                                                </Box>
+                                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    <Chip
+                                                                        label={slot.isAvailable ? 'Có sẵn' : 'Không có sẵn'}
+                                                                        color={slot.isAvailable ? 'success' : 'default'}
+                                                                        size="small"
+                                                                    />
+                                                                    <IconButton
+                                                                        size="small"
+                                                                        color="error"
+                                                                        onClick={() => handleRemoveTimeSlot(day.dayOfWeek, slot.id)}
+                                                                    >
+                                                                        <DeleteIcon />
+                                                                    </IconButton>
+                                                                </Box>
+                                                            </Paper>
+                                                        </Grid>
+                                                    ))}
+                                                </Grid>
+
+                                                {day.timeSlots.length === 0 && (
+                                                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                                                        Chưa có khung giờ làm việc. Nhấn "Thêm khung giờ" để thêm.
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setScheduleDialogOpen(false)}>
+                        Hủy
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleSaveSchedule}
+                        disabled={loadingSchedule}
+                    >
+                        Lưu lịch làm việc
+                    </Button>
                 </DialogActions>
             </Dialog>
 
