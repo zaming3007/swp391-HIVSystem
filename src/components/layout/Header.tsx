@@ -28,6 +28,10 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import ForumIcon from '@mui/icons-material/Forum';
+import ArticleIcon from '@mui/icons-material/Article';
+import SchoolIcon from '@mui/icons-material/School';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AuthStatus from '../auth/AuthStatus';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -74,12 +78,14 @@ const Header: React.FC = () => {
     const moreMenuItems = [
         { name: 'Về chúng tôi', path: '/about' },
         { name: 'Đội ngũ y tế', path: '/team', hasSubmenu: false },
-        { name: 'Liên hệ', path: '/contact' },
-        { name: 'Tư vấn trực tuyến', path: '/app/consultations' }
+        { name: 'Liên hệ', path: '/contact' }
     ];
 
     // Kiểm tra đường dẫn hiện tại để xác định nút nào đang được active
     const isActive = (path: string) => {
+        if (path === '/') {
+            return location.pathname === path;
+        }
         if (path === '/services') {
             return location.pathname === path || location.pathname.includes('/services');
         }
@@ -91,6 +97,12 @@ const Header: React.FC = () => {
         }
         if (path === '/blog') {
             return location.pathname === path || location.pathname.includes('/blog');
+        }
+        if (path === '/consultation') {
+            return location.pathname === path || location.pathname.includes('/consultation');
+        }
+        if (path === '/appointment') {
+            return location.pathname === path || location.pathname.includes('/appointment');
         }
         if (path === '/app/reminder') {
             return location.pathname === path;
@@ -222,7 +234,13 @@ const Header: React.FC = () => {
                     </Box>
 
                     {/* Menu cho màn hình lớn */}
-                    <Box sx={{ display: { xs: 'none', md: 'flex' }, flexGrow: 1, alignItems: 'center' }}>
+                    <Box sx={{
+                        display: { xs: 'none', md: 'flex' },
+                        flexGrow: 1,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5
+                    }}>
                         {/* Trang chủ */}
                         <Button
                             component={RouterLink}
@@ -237,7 +255,9 @@ const Header: React.FC = () => {
                                     color: 'primary.main',
                                 },
                                 fontSize: '0.85rem',
-                                px: 1
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             Trang chủ
@@ -257,10 +277,56 @@ const Header: React.FC = () => {
                                     color: 'primary.main',
                                 },
                                 fontSize: '0.85rem',
-                                px: 1
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             Đặt lịch hẹn
+                        </Button>
+
+                        {/* Tư vấn */}
+                        <Button
+                            component={RouterLink}
+                            to="/consultation"
+                            sx={{
+                                color: isActive('/consultation') ? 'primary.main' : 'text.secondary',
+                                fontWeight: isActive('/consultation') ? 'bold' : 'normal',
+                                borderBottom: isActive('/consultation') ? '2px solid' : 'none',
+                                borderRadius: 0,
+                                '&:hover': {
+                                    backgroundColor: 'transparent',
+                                    color: 'primary.main',
+                                },
+                                fontSize: '0.85rem',
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            Tư vấn
+                        </Button>
+
+                        {/* Blog */}
+                        <Button
+                            component={RouterLink}
+                            to="/blog"
+                            sx={{
+                                color: isActive('/blog') ? 'primary.main' : 'text.secondary',
+                                fontWeight: isActive('/blog') ? 'bold' : 'normal',
+                                borderBottom: isActive('/blog') ? '2px solid' : 'none',
+                                borderRadius: 0,
+                                '&:hover': {
+                                    backgroundColor: 'transparent',
+                                    color: 'primary.main',
+                                },
+                                fontSize: '0.85rem',
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            Blog
                         </Button>
 
                         {/* Nút Dịch vụ với dropdown */}
@@ -277,7 +343,9 @@ const Header: React.FC = () => {
                                     color: 'primary.main',
                                 },
                                 fontSize: '0.85rem',
-                                px: 1
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
                             }}
                             endIcon={<KeyboardArrowDownIcon />}
                         >
@@ -343,7 +411,9 @@ const Header: React.FC = () => {
                                     color: 'primary.main',
                                 },
                                 fontSize: '0.85rem',
-                                px: 1
+                                px: 1.5,
+                                minWidth: 'auto',
+                                whiteSpace: 'nowrap'
                             }}
                             endIcon={<KeyboardArrowDownIcon />}
                         >
@@ -387,25 +457,7 @@ const Header: React.FC = () => {
                             )}
                         </Popper>
 
-                        {/* Thêm nút Blog chia sẻ vào menu chính */}
-                        <Button
-                            component={RouterLink}
-                            to="/blog"
-                            sx={{
-                                color: isActive('/blog') ? 'primary.main' : 'text.secondary',
-                                fontWeight: isActive('/blog') ? 'bold' : 'normal',
-                                borderBottom: isActive('/blog') ? '2px solid' : 'none',
-                                borderRadius: 0,
-                                '&:hover': {
-                                    backgroundColor: 'transparent',
-                                    color: 'primary.main',
-                                },
-                                fontSize: '0.85rem',
-                                px: 1
-                            }}
-                        >
-                            Blog chia sẻ
-                        </Button>
+
 
                         {/* Menu thêm */}
                         <Button
@@ -536,9 +588,7 @@ const Header: React.FC = () => {
                         <ListItem component={RouterLink} to="/education/basic-hiv-info">
                             <ListItemText primary="Tài liệu" />
                         </ListItem>
-                        <ListItem component={RouterLink} to="/blog">
-                            <ListItemText primary="Blog chia sẻ" />
-                        </ListItem>
+
                         <ListItem component={RouterLink} to="/team">
                             <ListItemText primary="Đội ngũ y tế" />
                         </ListItem>
@@ -555,9 +605,7 @@ const Header: React.FC = () => {
                                 <ListItem component={RouterLink} to="/app/reminder">
                                     <ListItemText primary="Nhắc nhở thuốc" />
                                 </ListItem>
-                                <ListItem component={RouterLink} to="/app/consultations">
-                                    <ListItemText primary="Tư vấn trực tuyến" />
-                                </ListItem>
+
                                 <ListItem component={RouterLink} to="/app/test-results">
                                     <ListItemText primary="Kết quả xét nghiệm" />
                                 </ListItem>

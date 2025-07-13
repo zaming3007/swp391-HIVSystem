@@ -1,24 +1,47 @@
 import arvApi from './arvApi';
+import axios from 'axios';
+
+// Create AuthApi instance for ARV Drug endpoints
+const authApi = axios.create({
+    baseURL: 'http://localhost:5000/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests
+authApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
 
 export interface ARVDrug {
-    id: number;
+    id: number; // Changed back to number to match AuthApi database
     name: string;
     genericName: string;
-    brandName: string;
+    brandName?: string;
     drugClass: string;
-    description: string;
+    description?: string;
     dosage: string;
     form: string;
-    sideEffects: string;
-    contraindications: string;
-    instructions: string;
+    sideEffects?: string;
+    contraindications?: string;
+    instructions?: string;
     isActive: boolean;
     isPregnancySafe: boolean;
     isPediatricSafe: boolean;
     minAge: number;
     minWeight: number;
     createdAt: string;
-    updatedAt: string;
+    updatedAt?: string;
 }
 
 export interface ARVMedication {
@@ -170,20 +193,44 @@ export interface UpdateStatusRequest {
 }
 
 const arvService = {
-    // ARV Drugs - Use AppointmentApi endpoints
+    // ARV Drugs - Use AuthApi endpoints (working database)
     getDrugs: async (): Promise<ARVDrug[]> => {
-        // Temporarily return empty array - AuthApi endpoints have type mismatch
-        return [];
+        try {
+            const response = await authApi.get('/ARVDrug');
+            if (response.data.success) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching ARV drugs:', error);
+            return [];
+        }
     },
 
     getDrug: async (id: number): Promise<ARVDrug> => {
-        // Temporarily throw error - AuthApi endpoints have type mismatch
-        throw new Error('Drug details not available');
+        try {
+            const response = await authApi.get(`/ARVDrug/${id}`);
+            if (response.data.success) {
+                return response.data.data;
+            }
+            throw new Error('Drug not found');
+        } catch (error) {
+            console.error('Error fetching ARV drug:', error);
+            throw new Error('Drug details not available');
+        }
     },
 
     getDrugsByClass: async (drugClass: string): Promise<ARVDrug[]> => {
-        // Temporarily return empty array - AuthApi endpoints have type mismatch
-        return [];
+        try {
+            const response = await authApi.get(`/ARVDrug/by-class/${drugClass}`);
+            if (response.data.success) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching drugs by class:', error);
+            return [];
+        }
     },
 
     getSuitableDrugs: async (params: {
@@ -192,18 +239,48 @@ const arvService = {
         isPregnant?: boolean;
         isPediatric?: boolean;
     }): Promise<ARVDrug[]> => {
-        // Temporarily return empty array - AuthApi endpoints have type mismatch
-        return [];
+        try {
+            const queryParams = new URLSearchParams();
+            if (params.age) queryParams.append('age', params.age.toString());
+            if (params.weight) queryParams.append('weight', params.weight.toString());
+            if (params.isPregnant) queryParams.append('isPregnant', params.isPregnant.toString());
+            if (params.isPediatric) queryParams.append('isPediatric', params.isPediatric.toString());
+
+            const response = await authApi.get(`/ARVDrug/suitable?${queryParams.toString()}`);
+            if (response.data.success) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching suitable drugs:', error);
+            return [];
+        }
     },
 
     searchDrugs: async (query: string): Promise<ARVDrug[]> => {
-        // Temporarily return empty array - AuthApi endpoints have type mismatch
-        return [];
+        try {
+            const response = await authApi.get(`/ARVDrug/search?query=${encodeURIComponent(query)}`);
+            if (response.data.success) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error searching drugs:', error);
+            return [];
+        }
     },
 
     getDrugClasses: async (): Promise<string[]> => {
-        // Temporarily return empty array - AuthApi endpoints have type mismatch
-        return [];
+        try {
+            const response = await authApi.get('/ARVDrug/classes');
+            if (response.data.success) {
+                return response.data.data;
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching drug classes:', error);
+            return [];
+        }
     },
 
     // ARV Regimens - Use AppointmentApi endpoints
@@ -216,8 +293,16 @@ const arvService = {
     },
 
     getRegimen: async (id: number): Promise<ARVRegimen> => {
-        // Temporarily throw error - need to implement in AppointmentApi
-        throw new Error('Regimen details not available');
+        try {
+            const response = await arvApi.get(`/ARVPrescription/regimens/${id}`);
+            if (response.data.success) {
+                return response.data.data;
+            }
+            throw new Error('Regimen not found');
+        } catch (error) {
+            console.error('Error fetching ARV regimen:', error);
+            throw new Error('Regimen details not available');
+        }
     },
 
     getSuitableRegimens: async (params: {
@@ -265,11 +350,41 @@ const arvService = {
 
     // Get patients for doctor (from appointments)
     getDoctorPatients: async (): Promise<Patient[]> => {
-        const response = await arvApi.get('/ARVPrescription/doctor-patients');
-        if (response.data.success) {
-            return response.data.data;
+        try {
+            // Use existing ARVPrescription endpoints to get patients
+            const response = await arvApi.get('/ARVPrescription');
+            if (response.data.success) {
+                // Extract unique patients from prescriptions
+                const prescriptions = response.data.data;
+                const patientMap = new Map<string, Patient>();
+
+                prescriptions.forEach((prescription: any) => {
+                    if (!patientMap.has(prescription.patientId)) {
+                        patientMap.set(prescription.patientId, {
+                            id: prescription.patientId,
+                            name: prescription.patientName || `Patient ${prescription.patientId}`,
+                            age: prescription.patientAge || 0,
+                            gender: prescription.patientGender || 'Unknown',
+                            phone: prescription.patientPhone || '',
+                            email: prescription.patientEmail || '',
+                            address: prescription.patientAddress || '',
+                            medicalHistory: [],
+                            currentRegimen: prescription.regimenName || '',
+                            adherenceRate: 85, // Default value
+                            lastVisit: prescription.prescribedDate || new Date().toISOString(),
+                            nextAppointment: '',
+                            status: 'active'
+                        });
+                    }
+                });
+
+                return Array.from(patientMap.values());
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching doctor patients:', error);
+            return [];
         }
-        return [];
     },
 
     // Adherence tracking

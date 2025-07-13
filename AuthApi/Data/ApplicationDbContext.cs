@@ -302,6 +302,52 @@ namespace AuthApi.Data
                 }
             );
 
+            // Seed ConsultationTopics
+            modelBuilder.Entity<ConsultationTopic>().HasData(
+                new ConsultationTopic
+                {
+                    Id = "1",
+                    Name = "Điều trị",
+                    Description = "Câu hỏi về điều trị ARV và các phác đồ điều trị",
+                    CreatedAt = currentDate.AddDays(-30)
+                },
+                new ConsultationTopic
+                {
+                    Id = "2",
+                    Name = "Xét nghiệm",
+                    Description = "Câu hỏi về các xét nghiệm CD4, viral load",
+                    CreatedAt = currentDate.AddDays(-30)
+                },
+                new ConsultationTopic
+                {
+                    Id = "3",
+                    Name = "Tác dụng phụ",
+                    Description = "Câu hỏi về tác dụng phụ của thuốc",
+                    CreatedAt = currentDate.AddDays(-30)
+                },
+                new ConsultationTopic
+                {
+                    Id = "4",
+                    Name = "Dinh dưỡng",
+                    Description = "Câu hỏi về chế độ ăn uống và dinh dưỡng",
+                    CreatedAt = currentDate.AddDays(-30)
+                },
+                new ConsultationTopic
+                {
+                    Id = "5",
+                    Name = "Phòng ngừa",
+                    Description = "Câu hỏi về phòng ngừa HIV và các biện pháp bảo vệ",
+                    CreatedAt = currentDate.AddDays(-30)
+                },
+                new ConsultationTopic
+                {
+                    Id = "6",
+                    Name = "Khác",
+                    Description = "Các câu hỏi khác liên quan đến HIV",
+                    CreatedAt = currentDate.AddDays(-30)
+                }
+            );
+
             // Seed MedicationReminders
             modelBuilder.Entity<MedicationReminder>().HasData(
                 new MedicationReminder

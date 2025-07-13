@@ -26,6 +26,7 @@ import {
     EventNote as EventNoteIcon,
     QuestionAnswer as QuestionAnswerIcon,
     People as PatientsIcon,
+    People as PeopleIcon,
     Schedule as ScheduleIcon,
     CheckCircle as CheckCircleIcon,
     Pending as PendingIcon,
@@ -40,83 +41,30 @@ import {
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import arvService, { Patient } from '../../services/arvService';
+import doctorService, { DoctorStats, TodayAppointment, DoctorPatient, ConsultationForDoctor } from '../../services/doctorService';
 
-// Mock data - sẽ được thay thế bằng API calls
-const mockDoctorStats = {
-    todayAppointments: 8,
-    pendingConsultations: 5,
-    totalPatients: 45,
-    averageRating: 4.7,
-    completedAppointments: 156,
-    responseTime: '2.3 giờ'
-};
+// Remove mock data - now using real API calls
 
-const mockTodayAppointments = [
-    {
-        id: '1',
-        patientName: 'Nguyễn Văn A',
-        time: '09:00',
-        service: 'Tư vấn HIV',
-        status: 'confirmed',
-        notes: 'Bệnh nhân mới, cần tư vấn cơ bản'
-    },
-    {
-        id: '2',
-        patientName: 'Lê Thị B',
-        time: '10:30',
-        service: 'Tái khám',
-        status: 'confirmed',
-        notes: 'Tái khám sau 3 tháng điều trị ARV'
-    },
-    {
-        id: '3',
-        patientName: 'Trần Văn C',
-        time: '14:00',
-        service: 'Xét nghiệm',
-        status: 'pending',
-        notes: 'Xét nghiệm định kỳ'
-    },
-    {
-        id: '4',
-        patientName: 'Phạm Thị D',
-        time: '15:30',
-        service: 'Tư vấn điều trị',
-        status: 'confirmed',
-        notes: 'Tư vấn về phác đồ điều trị mới'
-    }
-];
+// Remove mock data - using real API data now
 
-const mockPendingConsultations = [
-    {
-        id: '1',
-        question: 'Tôi có thể ngừng uống thuốc ARV được không?',
-        submittedAt: '1 giờ trước',
-        priority: 'high',
-        category: 'Điều trị'
-    },
-    {
-        id: '2',
-        question: 'Kết quả xét nghiệm viral load của tôi có bình thường không?',
-        submittedAt: '3 giờ trước',
-        priority: 'medium',
-        category: 'Xét nghiệm'
-    },
-    {
-        id: '3',
-        question: 'Tôi bị tác dụng phụ từ thuốc, phải làm sao?',
-        submittedAt: '5 giờ trước',
-        priority: 'high',
-        category: 'Điều trị'
-    }
-];
+// Remove mock consultations - using real API data now
 
 const DoctorDashboard: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [appointments, setAppointments] = useState<any[]>([]);
-    const [consultations, setConsultations] = useState<any[]>([]);
+    const [doctorStats, setDoctorStats] = useState<DoctorStats>({
+        todayAppointments: 0,
+        pendingConsultations: 0,
+        totalPatients: 0,
+        completedAppointments: 0,
+        averageRating: 0,
+        responseTime: 'N/A'
+    });
+    const [todayAppointments, setTodayAppointments] = useState<TodayAppointment[]>([]);
+    const [consultations, setConsultations] = useState<ConsultationForDoctor[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
+    const [doctorPatients, setDoctorPatients] = useState<DoctorPatient[]>([]);
     const [arvStats, setArvStats] = useState({
         totalPatients: 0,
         activeRegimens: 0,
@@ -133,17 +81,21 @@ const DoctorDashboard: React.FC = () => {
         try {
             setLoading(true);
 
-            // Load appointments
-            const appointmentResponse = await appointmentApi.get('/appointments/doctor');
-            if (appointmentResponse.data.success) {
-                setAppointments(appointmentResponse.data.data || []);
-            }
+            // Load doctor statistics
+            const stats = await doctorService.getDoctorStats();
+            setDoctorStats(stats);
 
-            // TODO: Load consultations when API is ready
-            // const consultationResponse = await consultationApi.get('/consultations/doctor');
-            // if (consultationResponse.data.success) {
-            //     setConsultations(consultationResponse.data.data || []);
-            // }
+            // Load today's appointments
+            const todayApts = await doctorService.getTodayAppointments();
+            setTodayAppointments(todayApts);
+
+            // Load consultations
+            const consultationsData = await doctorService.getConsultationsForDoctor();
+            setConsultations(consultationsData);
+
+            // Load doctor's patients
+            const patientsData = await doctorService.getDoctorPatients();
+            setDoctorPatients(patientsData);
 
             // Load ARV patients data
             await loadARVData();
@@ -188,17 +140,6 @@ const DoctorDashboard: React.FC = () => {
         }
     };
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'confirmed':
-                return <CheckCircleIcon />;
-            case 'pending':
-                return <PendingIcon />;
-            default:
-                return <ScheduleIcon />;
-        }
-    };
-
     const getPriorityColor = (priority: string) => {
         switch (priority) {
             case 'high':
@@ -211,6 +152,19 @@ const DoctorDashboard: React.FC = () => {
                 return 'default';
         }
     };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case 'confirmed':
+                return <CheckCircleIcon />;
+            case 'pending':
+                return <PendingIcon />;
+            default:
+                return <ScheduleIcon />;
+        }
+    };
+
+
 
     if (loading) {
         return (
@@ -238,7 +192,7 @@ const DoctorDashboard: React.FC = () => {
             {/* Welcome Alert */}
             <Alert severity="info" sx={{ mb: 3 }}>
                 <Typography variant="body1">
-                    Bạn có <strong>{mockDoctorStats.todayAppointments}</strong> lịch hẹn và <strong>{mockDoctorStats.pendingConsultations}</strong> tư vấn chờ trả lời hôm nay.
+                    Bạn có <strong>{doctorStats.todayAppointments}</strong> lịch hẹn và <strong>{doctorStats.pendingConsultations}</strong> tư vấn chờ trả lời hôm nay.
                 </Typography>
             </Alert>
 
@@ -256,7 +210,7 @@ const DoctorDashboard: React.FC = () => {
                                         Lịch hẹn hôm nay
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockDoctorStats.todayAppointments}
+                                        {doctorStats.todayAppointments}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -275,7 +229,7 @@ const DoctorDashboard: React.FC = () => {
                                         Tư vấn chờ trả lời
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockDoctorStats.pendingConsultations}
+                                        {doctorStats.pendingConsultations}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -286,12 +240,54 @@ const DoctorDashboard: React.FC = () => {
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
+                                    <PeopleIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Tổng số bệnh nhân
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {doctorStats.totalPatients}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
+                                    <CheckCircleIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Lịch hẹn hoàn thành
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {doctorStats.completedAppointments}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
+
+            {/* ARV Stats Cards */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} sm={6} md={4}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
                                     <PatientsIcon />
                                 </Avatar>
                                 <Box>
                                     <Typography color="text.secondary" gutterBottom>
-                                        Tổng bệnh nhân ARV
+                                        Bệnh nhân ARV
                                     </Typography>
                                     <Typography variant="h5">
                                         {arvStats.totalPatients}
@@ -301,7 +297,7 @@ const DoctorDashboard: React.FC = () => {
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={4}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -314,6 +310,25 @@ const DoctorDashboard: React.FC = () => {
                                     </Typography>
                                     <Typography variant="h5">
                                         {arvStats.activeRegimens}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                    <Card>
+                        <CardContent>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
+                                    <NotificationIcon />
+                                </Avatar>
+                                <Box>
+                                    <Typography color="text.secondary" gutterBottom>
+                                        Cần xem xét
+                                    </Typography>
+                                    <Typography variant="h5">
+                                        {arvStats.needingReview}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -337,7 +352,7 @@ const DoctorDashboard: React.FC = () => {
                                 Lịch hẹn hoàn thành
                             </Typography>
                             <Typography variant="h4" color="success.main">
-                                {mockDoctorStats.completedAppointments}
+                                {doctorStats.completedAppointments}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -355,7 +370,7 @@ const DoctorDashboard: React.FC = () => {
                                 Trung bình
                             </Typography>
                             <Typography variant="h4" color="info.main">
-                                {mockDoctorStats.responseTime}
+                                {doctorStats.responseTime}
                             </Typography>
                         </CardContent>
                     </Card>
@@ -455,7 +470,7 @@ const DoctorDashboard: React.FC = () => {
                             </Button>
                         </Box>
                         <List>
-                            {mockTodayAppointments.map((appointment, index) => (
+                            {todayAppointments.length > 0 ? todayAppointments.map((appointment, index) => (
                                 <React.Fragment key={appointment.id}>
                                     <ListItem>
                                         <ListItemIcon>
@@ -494,7 +509,17 @@ const DoctorDashboard: React.FC = () => {
                                     </ListItem>
                                     {index < mockTodayAppointments.length - 1 && <Divider />}
                                 </React.Fragment>
-                            ))}
+                            )) : (
+                                <ListItem>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="body2" color="text.secondary" align="center">
+                                                Không có lịch hẹn nào hôm nay
+                                            </Typography>
+                                        }
+                                    />
+                                </ListItem>
+                            )}
                         </List>
                     </Paper>
                 </Grid>
@@ -582,7 +607,7 @@ const DoctorDashboard: React.FC = () => {
                             </Button>
                         </Box>
                         <List>
-                            {mockPendingConsultations.map((consultation, index) => (
+                            {consultations.filter(c => c.status === 'pending').length > 0 ? consultations.filter(c => c.status === 'pending').map((consultation, index) => (
                                 <React.Fragment key={consultation.id}>
                                     <ListItem>
                                         <ListItemIcon>
@@ -607,15 +632,25 @@ const DoctorDashboard: React.FC = () => {
                                                         size="small"
                                                     />
                                                     <Typography variant="caption" color="text.secondary">
-                                                        {consultation.submittedAt}
+                                                        {new Date(consultation.createdAt).toLocaleDateString('vi-VN')}
                                                     </Typography>
                                                 </Box>
                                             }
                                         />
                                     </ListItem>
-                                    {index < mockPendingConsultations.length - 1 && <Divider />}
+                                    {index < consultations.filter(c => c.status === 'pending').length - 1 && <Divider />}
                                 </React.Fragment>
-                            ))}
+                            )) : (
+                                <ListItem>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="body2" color="text.secondary" align="center">
+                                                Không có tư vấn nào chờ trả lời
+                                            </Typography>
+                                        }
+                                    />
+                                </ListItem>
+                            )}
                         </List>
                     </Paper>
                 </Grid>

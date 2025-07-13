@@ -45,6 +45,8 @@ import {
     PriorityHigh as HighPriorityIcon
 } from '@mui/icons-material';
 import { RootState } from '../../store/store';
+import { consultationService } from '../../services/consultationService';
+import { Consultation } from '../../types';
 
 // Mock data for consultations assigned to doctor
 const mockConsultations = [
@@ -122,29 +124,55 @@ const mockConsultations = [
 
 const DoctorConsultationManagement: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const [consultations, setConsultations] = useState(mockConsultations);
-    const [filteredConsultations, setFilteredConsultations] = useState(mockConsultations);
+    const [consultations, setConsultations] = useState<Consultation[]>([]);
+    const [filteredConsultations, setFilteredConsultations] = useState<Consultation[]>([]);
     const [selectedTab, setSelectedTab] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
-    const [selectedConsultation, setSelectedConsultation] = useState<any>(null);
+    const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
     const [openDialog, setOpenDialog] = useState(false);
     const [actionType, setActionType] = useState<'view' | 'reply'>('view');
     const [response, setResponse] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Load consultations from database
+    useEffect(() => {
+        loadConsultations();
+    }, []);
 
     useEffect(() => {
         filterConsultations();
     }, [selectedTab, searchTerm, priorityFilter, categoryFilter, consultations]);
+
+    const loadConsultations = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Get all consultations for doctor
+            const allConsultations = await consultationService.getPendingConsultations();
+            console.log('Loaded consultations:', allConsultations);
+
+            setConsultations(allConsultations);
+        } catch (err) {
+            console.error('Error loading consultations:', err);
+            setError('Không thể tải danh sách tư vấn. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const filterConsultations = () => {
         let filtered = consultations;
 
         // Filter by tab
         if (selectedTab === 1) {
-            filtered = filtered.filter(cons => cons.status === 'assigned');
+            filtered = filtered.filter(cons => cons.status === 'pending');
         } else if (selectedTab === 2) {
-            filtered = filtered.filter(cons => cons.priority === 'high');
+            // High priority - for now, show all pending (can add priority field later)
+            filtered = filtered.filter(cons => cons.status === 'pending');
         } else if (selectedTab === 3) {
             filtered = filtered.filter(cons => cons.status === 'answered');
         }
@@ -158,11 +186,6 @@ const DoctorConsultationManagement: React.FC = () => {
             );
         }
 
-        // Filter by priority
-        if (priorityFilter !== 'all') {
-            filtered = filtered.filter(cons => cons.priority === priorityFilter);
-        }
-
         // Filter by category
         if (categoryFilter !== 'all') {
             filtered = filtered.filter(cons => cons.category === categoryFilter);
@@ -171,33 +194,58 @@ const DoctorConsultationManagement: React.FC = () => {
         setFilteredConsultations(filtered);
     };
 
-    const handleAction = (consultation: any, action: 'view' | 'reply') => {
+    const handleAction = (consultation: Consultation, action: 'view' | 'reply') => {
         setSelectedConsultation(consultation);
         setActionType(action);
         setResponse(consultation.response || '');
         setOpenDialog(true);
     };
 
-    const handleSendResponse = () => {
-        if (!selectedConsultation || !response.trim()) return;
+    const handleSendResponse = async () => {
+        if (!selectedConsultation || !response.trim() || !user?.id) {
+            return;
+        }
 
-        const updatedConsultations = consultations.map(cons => {
-            if (cons.id === selectedConsultation.id) {
-                return {
-                    ...cons,
-                    status: 'answered',
-                    response: response.trim(),
-                    responseAt: new Date().toISOString()
-                };
+        try {
+            setLoading(true);
+
+            // Submit answer using consultation service
+            const updatedConsultation = await consultationService.answerConsultation(
+                selectedConsultation.id,
+                response.trim(),
+                user.id
+            );
+
+            if (updatedConsultation) {
+                // Update local state
+                setConsultations(prev =>
+                    prev.map(cons =>
+                        cons.id === selectedConsultation.id
+                            ? { ...cons, status: 'answered', response: response.trim() }
+                            : cons
+                    )
+                );
+
+                // Close dialog and reset
+                setOpenDialog(false);
+                setResponse('');
+                setSelectedConsultation(null);
+
+                // Show success message (you can add a snackbar here)
+                console.log('Response sent successfully');
             }
-            return cons;
-        });
-
-        setConsultations(updatedConsultations);
-        setOpenDialog(false);
-        setSelectedConsultation(null);
-        setResponse('');
+        } catch (err) {
+            console.error('Error sending response:', err);
+            setError('Không thể gửi câu trả lời. Vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
     };
+
+    // Computed values for statistics
+    const pendingConsultations = consultations.filter(cons => cons.status === 'pending');
+    const answeredConsultations = consultations.filter(cons => cons.status === 'answered');
+    const highPriorityConsultations = consultations.filter(cons => cons.status === 'pending'); // All pending for now
 
     const getPriorityColor = (priority: string) => {
         switch (priority) {
@@ -255,17 +303,12 @@ const DoctorConsultationManagement: React.FC = () => {
         const now = new Date();
         const date = new Date(dateString);
         const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-        
+
         if (diffInHours < 1) return 'Vừa xong';
         if (diffInHours < 24) return `${diffInHours} giờ trước`;
         const diffInDays = Math.floor(diffInHours / 24);
         return `${diffInDays} ngày trước`;
     };
-
-    // Calculate stats
-    const pendingConsultations = consultations.filter(cons => cons.status === 'assigned');
-    const highPriorityConsultations = consultations.filter(cons => cons.priority === 'high');
-    const answeredConsultations = consultations.filter(cons => cons.status === 'answered');
 
     return (
         <Box sx={{ flexGrow: 1 }}>
@@ -278,6 +321,20 @@ const DoctorConsultationManagement: React.FC = () => {
                     Trả lời câu hỏi tư vấn được phân công cho bác sĩ {user?.name}
                 </Typography>
             </Box>
+
+            {/* Error Alert */}
+            {error && (
+                <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+                    {error}
+                </Alert>
+            )}
+
+            {/* Loading State */}
+            {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+                    <Typography>Đang tải dữ liệu...</Typography>
+                </Box>
+            )}
 
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -458,19 +515,15 @@ const DoctorConsultationManagement: React.FC = () => {
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
-                                    {consultation.isAnonymous ? (
-                                        <Chip label="Ẩn danh" size="small" variant="outlined" />
-                                    ) : (
-                                        <Typography variant="body2">
-                                            {consultation.patientName}
-                                        </Typography>
-                                    )}
+                                    <Typography variant="body2">
+                                        {consultation.patientName || 'Bệnh nhân'}
+                                    </Typography>
                                 </TableCell>
                                 <TableCell>{consultation.category}</TableCell>
                                 <TableCell>
                                     <Chip
-                                        label={getPriorityText(consultation.priority)}
-                                        color={getPriorityColor(consultation.priority)}
+                                        label="Bình thường"
+                                        color="default"
                                         size="small"
                                     />
                                 </TableCell>
@@ -483,7 +536,7 @@ const DoctorConsultationManagement: React.FC = () => {
                                 </TableCell>
                                 <TableCell>
                                     <Typography variant="caption">
-                                        {getTimeAgo(consultation.submittedAt)}
+                                        {new Date(consultation.createdAt).toLocaleDateString('vi-VN')}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -496,7 +549,7 @@ const DoctorConsultationManagement: React.FC = () => {
                                                 <ViewIcon />
                                             </IconButton>
                                         </Tooltip>
-                                        {consultation.status === 'assigned' ? (
+                                        {consultation.status === 'pending' ? (
                                             <Tooltip title="Trả lời">
                                                 <IconButton
                                                     size="small"
@@ -539,11 +592,11 @@ const DoctorConsultationManagement: React.FC = () => {
                             <Typography variant="body1" sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                                 {selectedConsultation.question}
                             </Typography>
-                            
+
                             <Grid container spacing={2} sx={{ mb: 2 }}>
                                 <Grid item xs={6}>
                                     <Typography variant="body2">
-                                        <strong>Người gửi:</strong> {selectedConsultation.isAnonymous ? 'Ẩn danh' : selectedConsultation.patientName}
+                                        <strong>Người gửi:</strong> {selectedConsultation.patientName || 'Bệnh nhân'}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
@@ -553,12 +606,12 @@ const DoctorConsultationManagement: React.FC = () => {
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="body2">
-                                        <strong>Độ ưu tiên:</strong> {getPriorityText(selectedConsultation.priority)}
+                                        <strong>Trạng thái:</strong> {selectedConsultation.status === 'pending' ? 'Chờ trả lời' : 'Đã trả lời'}
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={6}>
                                     <Typography variant="body2">
-                                        <strong>Thời gian gửi:</strong> {formatDateTime(selectedConsultation.submittedAt)}
+                                        <strong>Thời gian gửi:</strong> {new Date(selectedConsultation.createdAt).toLocaleString('vi-VN')}
                                     </Typography>
                                 </Grid>
                             </Grid>

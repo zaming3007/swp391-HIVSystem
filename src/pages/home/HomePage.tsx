@@ -71,57 +71,130 @@ const HomePage: React.FC = () => {
             {/* Hero Section */}
             <Box
                 sx={{
+                    position: 'relative',
                     bgcolor: 'primary.light',
-                    color: 'primary.contrastText',
-                    py: 8,
-                    borderRadius: 2,
-                    mb: 6,
-                    mt: 2,
-                    backgroundImage: 'linear-gradient(45deg, #7E57C2 30%, #26A69A 90%)',
+                    color: 'white',
+                    py: { xs: 6, md: 10 },
+                    mb: 8,
+                    overflow: 'hidden',
+                    backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0,0,0,0.1)',
+                        zIndex: 1
+                    }
                 }}
             >
-                <Container maxWidth="lg">
-                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, alignItems: 'center' }}>
-                        <Box sx={{ flex: 1 }}>
-                            <Typography variant="h3" component="h1" gutterBottom>
-                                Chăm Sóc Sức Khỏe HIV Toàn Diện
+                <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2 }}>
+                    <Box sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row' },
+                        gap: 6,
+                        alignItems: 'center',
+                        minHeight: { xs: 'auto', md: '500px' }
+                    }}>
+                        <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+                            <Typography
+                                variant="h2"
+                                component="h1"
+                                gutterBottom
+                                sx={{
+                                    fontWeight: 700,
+                                    fontSize: { xs: '2.5rem', md: '3.5rem' },
+                                    lineHeight: 1.2,
+                                    mb: 3
+                                }}
+                            >
+                                Trung Tâm Chăm Sóc HIV/AIDS
                             </Typography>
-                            <Typography variant="h6" paragraph>
-                                Chúng tôi cung cấp các dịch vụ chăm sóc và điều trị HIV chất lượng cao trong môi trường
-                                an toàn, tôn trọng và bảo mật thông tin cá nhân.
+                            <Typography
+                                variant="h5"
+                                paragraph
+                                sx={{
+                                    fontWeight: 300,
+                                    opacity: 0.95,
+                                    mb: 4,
+                                    lineHeight: 1.6
+                                }}
+                            >
+                                Cung cấp dịch vụ chăm sóc và điều trị HIV chất lượng cao với đội ngũ y tế chuyên nghiệp,
+                                trong môi trường an toàn và bảo mật.
                             </Typography>
-                            <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
+                            <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                spacing={3}
+                                sx={{ mt: 5 }}
+                                alignItems="center"
+                            >
                                 <Button
                                     variant="contained"
                                     color="secondary"
                                     size="large"
                                     component={RouterLink}
-                                    to="/services"
-                                    endIcon={<ArrowForwardIcon />}
+                                    to="/appointment"
+                                    endIcon={<CalendarIcon />}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        fontSize: '1.1rem',
+                                        fontWeight: 600,
+                                        borderRadius: 3,
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 12px 35px rgba(0,0,0,0.3)'
+                                        },
+                                        transition: 'all 0.3s ease'
+                                    }}
                                 >
-                                    Dịch Vụ Của Chúng Tôi
+                                    Đặt Lịch Hẹn
                                 </Button>
                                 <Button
                                     variant="outlined"
-                                    color="inherit"
                                     size="large"
                                     component={RouterLink}
-                                    to="/auth/register"
+                                    to="/consultation"
+                                    endIcon={<ForumIcon />}
+                                    sx={{
+                                        py: 1.5,
+                                        px: 4,
+                                        fontSize: '1.1rem',
+                                        fontWeight: 600,
+                                        borderRadius: 3,
+                                        borderColor: 'white',
+                                        color: 'white',
+                                        '&:hover': {
+                                            borderColor: 'white',
+                                            backgroundColor: 'rgba(255,255,255,0.1)',
+                                            transform: 'translateY(-2px)'
+                                        },
+                                        transition: 'all 0.3s ease'
+                                    }}
                                 >
-                                    Tham Gia Ngay
+                                    Tư Vấn Trực Tuyến
                                 </Button>
                             </Stack>
                         </Box>
-                        <Box sx={{ flex: 1 }}>
+                        <Box sx={{
+                            flex: 1,
+                            display: { xs: 'none', md: 'block' },
+                            textAlign: 'center'
+                        }}>
                             <Box
                                 component="img"
-                                src="/homepageImage.jpg"
-                                alt="Nhóm người đa dạng"
+                                src="/hivicon.png"
+                                alt="HIV Care Center"
                                 sx={{
                                     width: '100%',
-                                    borderRadius: 2,
-                                    boxShadow: 3,
-                                    display: { xs: 'none', sm: 'block' },
+                                    maxWidth: 400,
+                                    height: 'auto',
+                                    filter: 'brightness(1.2)',
+                                    opacity: 0.9
                                 }}
                             />
                         </Box>
@@ -129,94 +202,292 @@ const HomePage: React.FC = () => {
                 </Container>
             </Box>
 
+            {/* Quick Stats Section */}
+            <Container maxWidth="lg" sx={{ mb: 8 }}>
+                <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' },
+                    gap: 3,
+                    mb: 6
+                }}>
+                    <Card sx={{
+                        textAlign: 'center',
+                        p: 3,
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                    }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>24/7</Typography>
+                        <Typography variant="body1">Hỗ trợ khẩn cấp</Typography>
+                    </Card>
+                    <Card sx={{
+                        textAlign: 'center',
+                        p: 3,
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        color: 'white',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                    }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>100%</Typography>
+                        <Typography variant="body1">Bảo mật thông tin</Typography>
+                    </Card>
+                    <Card sx={{
+                        textAlign: 'center',
+                        p: 3,
+                        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        color: 'white',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                    }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>10+</Typography>
+                        <Typography variant="body1">Năm kinh nghiệm</Typography>
+                    </Card>
+                    <Card sx={{
+                        textAlign: 'center',
+                        p: 3,
+                        background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        color: 'white',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+                    }}>
+                        <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>1000+</Typography>
+                        <Typography variant="body1">Bệnh nhân tin tưởng</Typography>
+                    </Card>
+                </Box>
+            </Container>
+            {/* Services Section */}
+            <Container maxWidth="lg" sx={{ mb: 8 }}>
+                <Typography
+                    variant="h3"
+                    component="h2"
+                    textAlign="center"
+                    gutterBottom
+                    sx={{
+                        fontWeight: 700,
+                        mb: 6,
+                        color: 'primary.main'
+                    }}
+                >
+                    Dịch Vụ Chăm Sóc Toàn Diện
+                </Typography>
+                <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
+                    gap: 4
+                }}>
+                    <Card sx={{
+                        p: 4,
+                        textAlign: 'center',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-8px)',
+                            boxShadow: '0 16px 40px rgba(0,0,0,0.15)'
+                        }
+                    }}>
+                        <Box sx={{
+                            width: 80,
+                            height: 80,
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mx: 'auto',
+                            mb: 3
+                        }}>
+                            <HealingIcon sx={{ fontSize: 40, color: 'white' }} />
+                        </Box>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                            Điều Trị HIV
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" paragraph>
+                            Điều trị ARV hiện đại, theo dõi sức khỏe định kỳ và hỗ trợ tuân thủ điều trị.
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/services"
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Tìm hiểu thêm
+                        </Button>
+                    </Card>
+
+                    <Card sx={{
+                        p: 4,
+                        textAlign: 'center',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-8px)',
+                            boxShadow: '0 16px 40px rgba(0,0,0,0.15)'
+                        }
+                    }}>
+                        <Box sx={{
+                            width: 80,
+                            height: 80,
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mx: 'auto',
+                            mb: 3
+                        }}>
+                            <ForumIcon sx={{ fontSize: 40, color: 'white' }} />
+                        </Box>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                            Tư Vấn Trực Tuyến
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" paragraph>
+                            Tư vấn y tế trực tuyến bảo mật với đội ngũ chuyên gia giàu kinh nghiệm.
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/consultation"
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Đặt câu hỏi
+                        </Button>
+                    </Card>
+
+                    <Card sx={{
+                        p: 4,
+                        textAlign: 'center',
+                        borderRadius: 3,
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-8px)',
+                            boxShadow: '0 16px 40px rgba(0,0,0,0.15)'
+                        }
+                    }}>
+                        <Box sx={{
+                            width: 80,
+                            height: 80,
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mx: 'auto',
+                            mb: 3
+                        }}>
+                            <CalendarIcon sx={{ fontSize: 40, color: 'white' }} />
+                        </Box>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
+                            Đặt Lịch Hẹn
+                        </Typography>
+                        <Typography variant="body1" color="text.secondary" paragraph>
+                            Đặt lịch khám bệnh, xét nghiệm và tái khám một cách dễ dàng và nhanh chóng.
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            component={RouterLink}
+                            to="/appointment"
+                            sx={{ borderRadius: 2 }}
+                        >
+                            Đặt lịch ngay
+                        </Button>
+                    </Card>
+                </Box>
+            </Container>
+
             {/* Management Panel for Staff/Doctor/Admin */}
-            {managementInfo && (
-                <Container maxWidth="lg" sx={{ mb: 6 }}>
-                    <Alert
-                        severity="info"
-                        sx={{
-                            mb: 3,
-                            '& .MuiAlert-message': { width: '100%' }
-                        }}
-                    >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {
+                managementInfo && (
+                    <Container maxWidth="lg" sx={{ mb: 6 }}>
+                        <Alert
+                            severity="info"
+                            sx={{
+                                mb: 3,
+                                '& .MuiAlert-message': { width: '100%' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Box sx={{ color: managementInfo.color }}>
+                                        {managementInfo.icon}
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="h6" component="div">
+                                            Chào mừng, {user?.name}!
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Typography variant="body2">
+                                                Bạn đang đăng nhập với vai trò:
+                                            </Typography>
+                                            <Chip
+                                                label={user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'staff' ? 'Nhân viên' : 'Bác sĩ'}
+                                                size="small"
+                                                color={user?.role === 'admin' ? 'secondary' : user?.role === 'staff' ? 'info' : 'warning'}
+                                            />
+                                        </Box>
+                                    </Box>
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    component={RouterLink}
+                                    to={managementInfo.link}
+                                    startIcon={<DashboardIcon />}
+                                    sx={{
+                                        bgcolor: managementInfo.color,
+                                        '&:hover': {
+                                            bgcolor: managementInfo.color,
+                                            opacity: 0.8
+                                        }
+                                    }}
+                                >
+                                    Vào trang quản lý
+                                </Button>
+                            </Box>
+                        </Alert>
+
+                        <Card sx={{ p: 3, bgcolor: 'grey.50' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                                 <Box sx={{ color: managementInfo.color }}>
                                     {managementInfo.icon}
                                 </Box>
-                                <Box>
-                                    <Typography variant="h6" component="div">
-                                        Chào mừng, {user?.name}!
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body2">
-                                            Bạn đang đăng nhập với vai trò:
-                                        </Typography>
-                                        <Chip
-                                            label={user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'staff' ? 'Nhân viên' : 'Bác sĩ'}
-                                            size="small"
-                                            color={user?.role === 'admin' ? 'secondary' : user?.role === 'staff' ? 'info' : 'warning'}
-                                        />
-                                    </Box>
-                                </Box>
+                                <Typography variant="h5" component="h2">
+                                    {managementInfo.title}
+                                </Typography>
                             </Box>
-                            <Button
-                                variant="contained"
-                                component={RouterLink}
-                                to={managementInfo.link}
-                                startIcon={<DashboardIcon />}
-                                sx={{
-                                    bgcolor: managementInfo.color,
-                                    '&:hover': {
-                                        bgcolor: managementInfo.color,
-                                        opacity: 0.8
-                                    }
-                                }}
-                            >
-                                Vào trang quản lý
-                            </Button>
-                        </Box>
-                    </Alert>
-
-                    <Card sx={{ p: 3, bgcolor: 'grey.50' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Box sx={{ color: managementInfo.color }}>
-                                {managementInfo.icon}
-                            </Box>
-                            <Typography variant="h5" component="h2">
-                                {managementInfo.title}
+                            <Typography variant="body1" color="text.secondary" paragraph>
+                                {managementInfo.description}
                             </Typography>
-                        </Box>
-                        <Typography variant="body1" color="text.secondary" paragraph>
-                            {managementInfo.description}
-                        </Typography>
-                        <Divider sx={{ my: 2 }} />
-                        <Stack direction="row" spacing={2}>
-                            <Button
-                                variant="contained"
-                                component={RouterLink}
-                                to={managementInfo.link}
-                                sx={{
-                                    bgcolor: managementInfo.color,
-                                    '&:hover': {
+                            <Divider sx={{ my: 2 }} />
+                            <Stack direction="row" spacing={2}>
+                                <Button
+                                    variant="contained"
+                                    component={RouterLink}
+                                    to={managementInfo.link}
+                                    sx={{
                                         bgcolor: managementInfo.color,
-                                        opacity: 0.8
-                                    }
-                                }}
-                            >
-                                Truy cập ngay
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                component={RouterLink}
-                                to="/profile"
-                            >
-                                Xem hồ sơ
-                            </Button>
-                        </Stack>
-                    </Card>
-                </Container>
-            )}
+                                        '&:hover': {
+                                            bgcolor: managementInfo.color,
+                                            opacity: 0.8
+                                        }
+                                    }}
+                                >
+                                    Truy cập ngay
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    component={RouterLink}
+                                    to="/profile"
+                                >
+                                    Xem hồ sơ
+                                </Button>
+                            </Stack>
+                        </Card>
+                    </Container>
+                )
+            }
 
             {/* Services Overview */}
             <Container maxWidth="lg" sx={{ my: 8 }}>
@@ -364,7 +635,7 @@ const HomePage: React.FC = () => {
 
             {/* Chatbot Component */}
             <Chatbot />
-        </Box>
+        </Box >
     );
 };
 

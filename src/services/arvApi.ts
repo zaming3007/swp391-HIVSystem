@@ -39,6 +39,30 @@ arvApi.interceptors.response.use(
   }
 );
 
+// Update JWT audience to match new frontend port
+const authApi = axios.create({
+  baseURL: 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+authApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Export authApi for use in other services
+export { authApi };
+
 // Mock data for testing
 const mockRegimens = [
   {

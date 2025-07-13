@@ -1,163 +1,385 @@
-# HIV Healthcare System
-                                             
-Hệ thống quản lý và hỗ trợ chăm sóc sức khỏe cho bệnh nhân HIV, cung cấp các công cụ để quản lý thuốc, đặt lịch hẹn và tư vấn trực tuyến.
+# 🏥 HIV Treatment and Medical Services System
 
-## Hướng dẫn cài đặt và cấu hình
+<div align="center">
 
-### Yêu cầu hệ thống
-- Node.js (phiên bản 16 trở lên)
-- .NET SDK (phiên bản 8.0 trở lên)
-- npm hoặc yarn
+![HIV Care System](https://img.shields.io/badge/HIV-Care%20System-blue?style=for-the-badge)
+![.NET 8.0](https://img.shields.io/badge/.NET-8.0-purple?style=for-the-badge&logo=dotnet)
+![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue?style=for-the-badge&logo=postgresql)
 
-### Các bước cài đặt
+**Hệ thống quản lý điều trị và dịch vụ y tế HIV/AIDS toàn diện**
 
-1. **Clone dự án**
-   ```bash
-   git clone <repository-url>
-   cd HIV-HealthcareSystem_stock
-   ```
+*Cung cấp nền tảng tích hợp để quản lý lịch hẹn, tư vấn trực tuyến, theo dõi điều trị ARV và hỗ trợ bệnh nhân HIV*
 
-2. **Cài đặt các dependencies cho phần Frontend**
-   ```bash
-   cd HIV-HealthcareSystem
-   npm install
-   ```
+</div>
 
-3. **Cấu hình kết nối API**
-   
-   Dự án đã được cấu hình để kết nối với database trên Railway. Không cần thay đổi cấu hình trong `src/services/api.ts` vì đã được thiết lập sẵn URL kết nối:
-   ```javascript
-   const baseURL = 'https://interchange.proxy.rlwy.net:46712/api';
-   ```
+---
 
-4. **Chạy ứng dụng Frontend**
-   ```bash
-   npm run dev
-   ```
-   Ứng dụng sẽ chạy tại địa chỉ: http://localhost:5175
+## 📋 Tổng Quan Dự Án
 
-5. **Chạy Backend API (nếu cần phát triển)**
-   
-   Nếu bạn cần phát triển và chạy API localy:
-   ```bash
-   cd AppointmentApi
-   dotnet run
-   ```
-   
-   Và trong một terminal khác:
-   ```bash
-   cd AuthApi
-   dotnet run
-   ```
+Hệ thống HIV Treatment and Medical Services là một ứng dụng web hiện đại được phát triển để hỗ trợ toàn diện việc chăm sóc và điều trị bệnh nhân HIV/AIDS. Dự án được xây dựng với kiến trúc microservices, sử dụng .NET 8.0 cho backend và React với TypeScript cho frontend.
 
-   Hoặc chạy cả frontend và backend cùng lúc:
-   ```bash
-   npm run dev:all
-   ```
+### 🎯 Mục Tiêu Chính
+- **Cải thiện chất lượng chăm sóc**: Tích hợp toàn bộ quy trình điều trị HIV
+- **Tăng khả năng tiếp cận**: Đặt lịch hẹn và tư vấn trực tuyến dễ dàng
+- **Bảo mật thông tin**: Đảm bảo riêng tư thông tin y tế nhạy cảm
+- **Hỗ trợ tuân thủ điều trị**: Theo dõi và nhắc nhở uống thuốc ARV
 
-### Lưu ý về kết nối database
+## 🏗️ Kiến Trúc Hệ Thống
 
-- Dự án đã được cấu hình để kết nối với database PostgreSQL trên Railway.
-- Thông tin kết nối đã được cấu hình trong các file `appsettings.json` của các project API.
-- Không cần thay đổi cấu hình này nếu bạn muốn sử dụng database đã được setup sẵn.
-
-### Cấu hình cho môi trường phát triển
-
-Nếu bạn muốn sử dụng database local hoặc database khác, bạn cần thay đổi chuỗi kết nối trong các file sau:
-
-1. `HIV-HealthcareSystem/AppointmentApi/appsettings.json`
-2. `HIV-HealthcareSystem/AuthApi/appsettings.json`
-
-Thay đổi giá trị của `ConnectionStrings:DefaultConnection` thành chuỗi kết nối của bạn.
-
-### Cấu hình API URL cho Frontend
-
-Nếu bạn chạy API trên local hoặc một server khác, bạn cần thay đổi API URL trong file `src/services/api.ts`:
-
-```javascript
-// Thay đổi URL này thành URL của API của bạn
-const baseURL = 'https://your-api-url/api';
+### Frontend Stack
+```
+React 18 + TypeScript
+├── Material-UI (MUI) v5      # UI Components
+├── Redux Toolkit             # State Management
+├── React Router v6           # Routing
+├── Axios                     # HTTP Client
+└── Vite                      # Build Tool
 ```
 
-## Cấu trúc dự án
+### Backend Stack
+```
+.NET 8.0 Web API
+├── Entity Framework Core     # ORM
+├── PostgreSQL               # Database
+├── JWT Authentication       # Security
+└── Swagger/OpenAPI         # Documentation
+```
 
-- `HIV-HealthcareSystem/`: Frontend React
-  - `src/`: Mã nguồn React
-  - `public/`: Tài nguyên tĩnh
-- `AppointmentApi/`: API quản lý lịch hẹn
-- `AuthApi/`: API xác thực và phân quyền
+### Database
+- **Primary**: PostgreSQL trên Railway Cloud
+- **Connection**: Entity Framework Core với Connection Pooling
+- **Approach**: Code-First Migrations
 
-## Cấu Trúc Dự Án
+## 🚀 Tính Năng Chính
 
-Dự án bao gồm ba phần chính:
-1. **Frontend**: Ứng dụng React sử dụng TypeScript, Redux và Material UI
-2. **AuthApi**: API .NET cho xác thực và quản lý người dùng
-3. **AppointmentApi**: API .NET cho quản lý lịch hẹn và dịch vụ
+### 👥 Quản Lý Người Dùng & Phân Quyền
+- **4 vai trò chính**: Admin, Staff, Doctor, Customer
+- **Xác thực JWT**: Bảo mật với Bearer Token
+- **Role-based Access Control**: Phân quyền chi tiết theo vai trò
+- **Profile Management**: Quản lý thông tin cá nhân
 
-## Tính Năng
+### 📅 Hệ Thống Đặt Lịch Hẹn
+- **Booking Interface**: Giao diện đặt lịch thân thiện
+- **Real-time Availability**: Kiểm tra lịch trống theo thời gian thực
+- **Auto-confirmation**: Tự động xác nhận không cần phê duyệt
+- **Multi-role Management**: Dashboard riêng cho staff/doctor
 
-### Xác Thực & Quản Lý Người Dùng
-- Đăng ký người dùng với xác thực
-- Đăng nhập người dùng
-- Xác thực JWT
-- Quản lý thông tin cá nhân
+### 💬 Tư Vấn Trực Tuyến
+- **Anonymous Consultation**: Hỏi đáp ẩn danh bảo mật
+- **Topic Categorization**: Phân loại theo chủ đề y tế
+- **Professional Response**: Bác sĩ/staff trả lời chuyên nghiệp
+- **Status Tracking**: Theo dõi trạng thái (Pending → Answered)
 
-### Đặt Lịch Hẹn
-- Đặt lịch hẹn trực tiếp hoặc qua telemedicine
-- Xem lịch sử lịch hẹn
-- Quản lý lịch hẹn sắp tới
+### 🏥 Quản Lý Điều Trị ARV
+- **Regimen Management**: Quản lý phác đồ điều trị ARV
+- **Treatment History**: Lịch sử điều trị chi tiết
+- **Medication Reminders**: Nhắc nhở uống thuốc tự động
+- **Compliance Monitoring**: Đánh giá tuân thủ điều trị
 
-### Nhắc Nhở Thuốc
-- Thiết lập nhắc nhở thuốc ARV
-- Theo dõi việc tuân thủ uống thuốc
+### 📝 Hệ Thống Blog & Giáo Dục
+- **Content Management**: Staff quản lý nội dung giáo dục
+- **Interactive Comments**: Người dùng tương tác với bài viết
+- **Category Organization**: Tổ chức theo chủ đề
+- **Draft/Publish Workflow**: Quy trình xuất bản
 
-### Tư Vấn Trực Tuyến
-- Đặt câu hỏi với chuyên gia y tế
-- Xem lịch sử tư vấn
-- Nhận tư vấn y tế chuyên nghiệp
+## 🛠️ Cài Đặt & Triển Khai
 
-### Giáo Dục Sức Khỏe
-- Thông tin cơ bản về HIV
-- Hướng dẫn sống khỏe mạnh với HIV
-- Tài liệu giảm kỳ thị
+### Yêu Cầu Hệ Thống
+- **Node.js**: v18+
+- **.NET SDK**: 8.0
+- **PostgreSQL**: 14+ (hoặc Railway)
+- **Git**: Latest version
 
-## Công Nghệ Sử Dụng
+### 🚀 Quick Start
 
-### Frontend
-- React 18
-- TypeScript
-- Material UI
-- Redux Toolkit cho quản lý state
-- Axios cho các request API
-- React Router cho routing
-- Vite cho phát triển và build
+#### 1. Clone Repository
+```bash
+git clone [repository-url]
+cd swp391-HIVSystem
+```
 
-### Backend
-- ASP.NET Core 8.0 Web API
-- Entity Framework Core
-- JWT Authentication
-- PostgreSQL
-- Swagger UI cho API documentation
+#### 2. Frontend Setup
+```bash
+# Cài đặt dependencies
+npm install
 
-## API Endpoints
+# Chạy development server (port 5175)
+npm run dev
+```
 
-### Authentication API
-- POST `/api/Auth/login` - Đăng nhập người dùng
-- POST `/api/Auth/register` - Đăng ký người dùng
-- GET `/api/Auth/me` - Lấy thông tin người dùng hiện tại (yêu cầu xác thực)
+#### 3. Backend Setup
 
-### Appointment API
-- GET `/api/appointments/user/{userId}` - Lấy tất cả lịch hẹn của người dùng
-- GET `/api/appointments/user/{userId}/status/{status}` - Lấy lịch hẹn theo trạng thái
-- POST `/api/appointments` - Tạo lịch hẹn mới
-- PUT `/api/appointments/{appointmentId}` - Cập nhật lịch hẹn
-- PUT `/api/appointments/{appointmentId}/cancel` - Hủy lịch hẹn
+**AuthApi (Port 5000)**
+```bash
+cd AuthApi
+dotnet restore
+dotnet run
+```
 
-### Doctors API
-- GET `/api/doctors` - Lấy danh sách bác sĩ
-- GET `/api/doctors/{id}` - Lấy thông tin chi tiết bác sĩ
-- GET `/api/doctors/services/{serviceId}` - Lấy bác sĩ theo dịch vụ
+**AppointmentApi (Port 5002)**
+```bash
+cd AppointmentApi
+dotnet restore
+dotnet run
+```
 
-### Consultation API
-- GET `/api/consultations/patient/{userId}` - Lấy tất cả tư vấn của bệnh nhân
-- GET `/api/consultations/{consultationId}`
+#### 4. Chạy Tất Cả Services
+```bash
+# Chạy đồng thời frontend + backend
+npm run dev:all
+```
+
+### 🌐 URLs & Ports
+- **Frontend**: http://localhost:5175
+- **AuthApi**: http://localhost:5000
+- **AppointmentApi**: http://localhost:5002
+
+---
+
+## 🔧 Cấu Hình
+
+### Environment Variables
+Tạo file `.env` trong thư mục gốc:
+```env
+VITE_API_BASE_URL=http://localhost:5000
+VITE_APPOINTMENT_API_URL=http://localhost:5002
+```
+
+### Database Connection
+Railway PostgreSQL (Production):
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=interchange.proxy.rlwy.net;Port=46712;Database=railway;Username=postgres;Password=***"
+  }
+}
+```
+
+## 👥 Tài Khoản Demo
+
+| Vai Trò | Email | Password | Mô Tả |
+|---------|-------|----------|--------|
+| **Admin** | admin@gmail.com | admin123 | Quản trị hệ thống |
+| **Staff** | staff@gmail.com | staff123 | Nhân viên y tế |
+| **Doctor** | doctor@gmail.com | doctor123 | Bác sĩ điều trị |
+
+## 📱 Giao Diện & Trải Nghiệm
+
+### Menu Navigation
+```
+Trang chủ → Đặt lịch hẹn → Tư vấn → Blog → Dịch Vụ → Tài Liệu
+```
+
+### Responsive Design
+- **Mobile-first**: Tối ưu cho điện thoại
+- **Tablet-friendly**: Thích ứng màn hình tablet
+- **Desktop**: Trải nghiệm đầy đủ trên máy tính
+
+### Key Features
+- **Modern UI**: Material Design với gradient đẹp mắt
+- **Dark/Light Mode**: Hỗ trợ chế độ sáng/tối
+- **Accessibility**: Tuân thủ WCAG 2.1
+- **Performance**: Lazy loading và code splitting
+
+## 🔒 Bảo Mật & Quyền Riêng Tư
+
+### Authentication & Authorization
+- **JWT Tokens**: Xác thực an toàn với Bearer Token
+- **Role-based Access**: Phân quyền chi tiết theo vai trò
+- **Token Expiration**: Tự động hết hạn và refresh
+- **Password Security**: BCrypt hashing
+
+### Data Protection
+- **HTTPS**: Mã hóa dữ liệu truyền tải
+- **Input Validation**: Kiểm tra và sanitize dữ liệu
+- **SQL Injection Prevention**: Parameterized queries
+- **XSS Protection**: Content Security Policy
+
+## 📊 Cấu Trúc Dự Án
+
+```
+swp391-HIVSystem/
+├── 📁 src/
+│   ├── 📁 components/           # UI Components
+│   │   ├── 📁 auth/            # Authentication components
+│   │   ├── 📁 consultation/    # Consultation components
+│   │   ├── 📁 dashboard/       # Dashboard components
+│   │   └── 📁 layout/          # Layout components
+│   ├── 📁 pages/               # Page components
+│   │   ├── 📁 admin/           # Admin pages
+│   │   ├── 📁 doctor/          # Doctor pages
+│   │   ├── 📁 staff/           # Staff pages
+│   │   └── 📁 home/            # Public pages
+│   ├── 📁 services/            # API services
+│   ├── 📁 store/               # Redux store
+│   ├── 📁 types/               # TypeScript definitions
+│   └── 📁 utils/               # Utility functions
+├── 📁 AuthApi/                 # Authentication API (.NET)
+├── 📁 AppointmentApi/          # Appointment API (.NET)
+└── 📁 public/                  # Static assets
+```
+
+## 🧪 Testing & Quality Assurance
+
+### Frontend Testing
+```bash
+# Unit tests
+npm test
+
+# Integration tests
+npm run test:integration
+
+# E2E tests
+npm run test:e2e
+```
+
+### Backend Testing
+```bash
+# API tests
+dotnet test
+
+# Coverage report
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+### Code Quality
+- **ESLint**: JavaScript/TypeScript linting
+- **Prettier**: Code formatting
+- **SonarQube**: Code quality analysis
+- **Husky**: Pre-commit hooks
+
+## 🚀 Deployment & Production
+
+### Build Production
+```bash
+# Frontend build
+npm run build
+
+# Backend publish
+dotnet publish -c Release
+```
+
+### Docker Support
+```dockerfile
+# Multi-stage build
+FROM node:18-alpine AS frontend
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS backend
+```
+
+### CI/CD Pipeline
+- **GitHub Actions**: Automated testing và deployment
+- **Railway**: Automatic deployment từ Git
+- **Environment Management**: Dev/Staging/Production
+
+## 📈 Performance & Monitoring
+
+### Frontend Optimization
+- **Code Splitting**: Lazy loading components
+- **Bundle Analysis**: Webpack bundle analyzer
+- **Image Optimization**: WebP format support
+- **Caching Strategy**: Service worker caching
+
+### Backend Performance
+- **Connection Pooling**: Database connection optimization
+- **Response Caching**: API response caching
+- **Compression**: Gzip compression
+- **Rate Limiting**: API rate limiting
+
+## 🤝 Đóng Góp & Development
+
+### Git Workflow
+```bash
+# 1. Fork repository
+git clone [your-fork-url]
+
+# 2. Create feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Make changes and commit
+git commit -m "feat: add amazing feature"
+
+# 4. Push and create PR
+git push origin feature/amazing-feature
+```
+
+### Commit Convention
+```
+feat: new feature
+fix: bug fix
+docs: documentation
+style: formatting
+refactor: code refactoring
+test: adding tests
+chore: maintenance
+```
+
+## 📊 API Endpoints
+
+### AuthApi (Port 5000)
+```
+POST   /api/auth/login           # Đăng nhập
+POST   /api/auth/register        # Đăng ký
+GET    /api/users               # Danh sách người dùng
+GET    /api/consultations       # Tư vấn
+GET    /api/doctors/dropdown    # Danh sách bác sĩ
+```
+
+### AppointmentApi (Port 5002)
+```
+GET    /api/appointments        # Danh sách lịch hẹn
+POST   /api/appointments        # Tạo lịch hẹn mới
+PUT    /api/appointments/{id}   # Cập nhật lịch hẹn
+DELETE /api/appointments/{id}   # Xóa lịch hẹn
+```
+
+## 🎯 Roadmap & Future Features
+
+### Phase 1 (Completed ✅)
+- [x] User Authentication & Authorization
+- [x] Appointment Booking System
+- [x] Online Consultation Platform
+- [x] Blog Management System
+- [x] Real Database Integration
+
+### Phase 2 (In Progress 🚧)
+- [ ] ARV Treatment Management
+- [ ] Medication Reminder System
+- [ ] Advanced Analytics Dashboard
+- [ ] Mobile App Development
+
+### Phase 3 (Planned 📋)
+- [ ] Telemedicine Video Calls
+- [ ] AI-powered Health Insights
+- [ ] Multi-language Support
+- [ ] Integration with Hospital Systems
+
+## 📄 License & Credits
+
+**License**: Educational Project - SWP391 Course
+**Developed by**: HIV Treatment System Team
+**Version**: 1.0.0
+**Last Updated**: July 2025
+
+### Contributors
+- **Frontend Development**: React/TypeScript Team
+- **Backend Development**: .NET Core Team
+- **Database Design**: PostgreSQL Team
+- **UI/UX Design**: Material-UI Team
+
+---
+
+<div align="center">
+
+**🏥 HIV Treatment and Medical Services System**
+
+*Cải thiện chất lượng chăm sóc sức khỏe HIV/AIDS thông qua công nghệ*
+
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/your-repo)
+[![Documentation](https://img.shields.io/badge/Docs-Wiki-blue?style=for-the-badge&logo=gitbook)](https://github.com/your-repo/wiki)
+[![License](https://img.shields.io/badge/License-Educational-green?style=for-the-badge)](LICENSE)
+
+**Made with ❤️ for HIV/AIDS healthcare improvement**
+
+</div>

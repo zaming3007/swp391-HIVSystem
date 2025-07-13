@@ -242,7 +242,7 @@ namespace AuthApi.Controllers
                     .ToListAsync();
 
                 var consultationIds = consultations.Select(c => c.Id).ToList();
-                
+
                 var answers = await _context.Answers
                     .Where(a => consultationIds.Contains(a.ConsultationId))
                     .ToListAsync();
@@ -282,6 +282,63 @@ namespace AuthApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = $"Lỗi khi lấy danh sách câu hỏi đã trả lời: {ex.Message}" });
+            }
+        }
+
+        // GET: api/consultations/doctor
+        [Authorize(Roles = "doctor")]
+        [HttpGet("doctor")]
+        public async Task<IActionResult> GetConsultationsForDoctor()
+        {
+            try
+            {
+                var consultations = await _context.Consultations
+                    .Where(c => c.Status == "pending")
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToListAsync();
+
+                var patientIds = consultations.Select(c => c.PatientId).Distinct().ToList();
+                var patients = await _context.Users
+                    .Where(u => patientIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => $"{u.FirstName} {u.LastName}");
+
+                var result = consultations.Select(c => new
+                {
+                    id = c.Id,
+                    patientId = c.PatientId,
+                    patientName = patients.ContainsKey(c.PatientId) ? patients[c.PatientId] : "Bệnh nhân",
+                    title = c.Title,
+                    question = c.Question,
+                    category = c.Category,
+                    status = c.Status,
+                    createdAt = c.CreatedAt.ToString("o"),
+                    priority = "medium" // Default priority
+                }).ToList();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách tư vấn cho bác sĩ: {ex.Message}" });
+            }
+        }
+
+        // GET: api/consultations/topics
+        [HttpGet("topics")]
+        public async Task<IActionResult> GetConsultationTopics()
+        {
+            try
+            {
+                var topics = await _context.ConsultationTopics
+                    .OrderBy(t => t.Name)
+                    .Select(t => new { id = t.Id, name = t.Name, description = t.Description })
+                    .ToListAsync();
+
+                return Ok(topics);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách chủ đề: {ex.Message}" });
             }
         }
 
@@ -355,24 +412,7 @@ namespace AuthApi.Controllers
             }
         }
 
-        // GET: api/consultations/topics
-        [HttpGet("topics")]
-        public async Task<IActionResult> GetConsultationTopics()
-        {
-            try
-            {
-                var topics = await _context.ConsultationTopics
-                    .OrderBy(t => t.Name)
-                    .Select(t => new { id = t.Id, name = t.Name })
-                    .ToListAsync();
 
-                return Ok(topics);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách chủ đề: {ex.Message}" });
-            }
-        }
     }
 
     // DTO
@@ -407,4 +447,4 @@ namespace AuthApi.Controllers
         public string Content { get; set; }
         public string ResponderId { get; set; }
     }
-} 
+}

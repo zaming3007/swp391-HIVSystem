@@ -30,6 +30,49 @@ namespace AuthApi.Controllers
                 .ToListAsync();
         }
 
+        // GET: api/Doctors/dropdown - For dropdown lists
+        [HttpGet("dropdown")]
+        public async Task<ActionResult<List<object>>> GetSimpleList()
+        {
+            try
+            {
+                // First try to get from Doctors table
+                var doctors = await _context.Doctors
+                    .Where(d => d.Available)
+                    .Select(d => new
+                    {
+                        id = d.Id,
+                        name = $"{d.FirstName} {d.LastName}",
+                        specialization = d.Specialization,
+                        email = d.Email
+                    })
+                    .ToListAsync();
+
+                // If no doctors in Doctors table, get from Users table with doctor role
+                if (!doctors.Any())
+                {
+                    var userDoctors = await _context.Users
+                        .Where(u => u.Role.ToLower() == "doctor")
+                        .Select(u => new
+                        {
+                            id = u.Id,
+                            name = $"{u.FirstName} {u.LastName}",
+                            specialization = "Bác sĩ HIV",
+                            email = u.Email
+                        })
+                        .ToListAsync();
+
+                    return Ok(userDoctors);
+                }
+
+                return Ok(doctors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách bác sĩ: {ex.Message}" });
+            }
+        }
+
         // GET: api/Doctors/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Doctor>> GetDoctor(string id)
@@ -89,4 +132,4 @@ namespace AuthApi.Controllers
             return workingHours;
         }
     }
-} 
+}
