@@ -80,7 +80,7 @@ namespace AppointmentApi.Controllers
                 {
                     // Get doctor info
                     var doctor = await _context.Doctors.FindAsync(appointment.DoctorId);
-                    
+
                     // Get service info  
                     var service = await _context.Services.FindAsync(appointment.ServiceId);
 
@@ -178,8 +178,8 @@ namespace AppointmentApi.Controllers
                 }
 
                 // Doctors can only confirm, complete, or cancel appointments
-                if (newStatus != AppointmentStatus.Confirmed && 
-                    newStatus != AppointmentStatus.Completed && 
+                if (newStatus != AppointmentStatus.Confirmed &&
+                    newStatus != AppointmentStatus.Completed &&
                     newStatus != AppointmentStatus.Cancelled)
                 {
                     return BadRequest(new ApiResponse<AppointmentDto>
@@ -192,7 +192,7 @@ namespace AppointmentApi.Controllers
                 // Update appointment
                 appointment.Status = newStatus;
                 appointment.UpdatedAt = DateTime.UtcNow;
-                
+
                 if (!string.IsNullOrEmpty(request.Notes))
                 {
                     appointment.Notes = request.Notes;
@@ -259,7 +259,7 @@ namespace AppointmentApi.Controllers
                     });
                 }
 
-                var today = DateTime.Today;
+                var today = DateTime.UtcNow.Date;
                 var appointments = await _context.Appointments
                     .Where(a => a.DoctorId == doctorId && a.Date.Date == today)
                     .OrderBy(a => a.StartTime)

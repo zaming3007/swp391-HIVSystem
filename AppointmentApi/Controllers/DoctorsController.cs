@@ -3,8 +3,10 @@ using AppointmentApi.Services;
 using AppointmentApi.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AppointmentApi.Controllers
@@ -26,12 +28,38 @@ namespace AppointmentApi.Controllers
         public async Task<ActionResult<ApiResponse<List<Doctor>>>> GetAll()
         {
             var doctors = await _doctorService.GetAllAsync();
-            return new ApiResponse<List<Doctor>> 
-            { 
-                Success = true, 
-                Message = "Lấy danh sách bác sĩ thành công", 
-                Data = doctors 
+            return new ApiResponse<List<Doctor>>
+            {
+                Success = true,
+                Message = "Lấy danh sách bác sĩ thành công",
+                Data = doctors
             };
+        }
+
+        // GET: api/doctors/simple - For dropdown lists
+        [HttpGet("simple")]
+        public async Task<ActionResult<List<object>>> GetSimpleList()
+        {
+            try
+            {
+                // Get doctors directly from context without includes to avoid circular reference
+                var doctors = await _context.Doctors
+                    .Where(d => d.Available)
+                    .Select(d => new
+                    {
+                        id = d.Id,
+                        name = $"{d.FirstName} {d.LastName}",
+                        specialization = d.Specialization,
+                        email = d.Email
+                    })
+                    .ToListAsync();
+
+                return Ok(doctors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Lỗi khi lấy danh sách bác sĩ: {ex.Message}" });
+            }
         }
 
         [HttpGet("{id}")]
@@ -40,18 +68,18 @@ namespace AppointmentApi.Controllers
             var doctor = await _doctorService.GetByIdAsync(id);
             if (doctor == null)
             {
-                return NotFound(new ApiResponse<Doctor> 
-                { 
-                    Success = false, 
-                    Message = "Không tìm thấy bác sĩ" 
+                return NotFound(new ApiResponse<Doctor>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy bác sĩ"
                 });
             }
 
-            return new ApiResponse<Doctor> 
-            { 
-                Success = true, 
-                Message = "Lấy thông tin bác sĩ thành công", 
-                Data = doctor 
+            return new ApiResponse<Doctor>
+            {
+                Success = true,
+                Message = "Lấy thông tin bác sĩ thành công",
+                Data = doctor
             };
         }
 
@@ -59,11 +87,11 @@ namespace AppointmentApi.Controllers
         public async Task<ActionResult<ApiResponse<List<Doctor>>>> GetBySpecialization(string specialization)
         {
             var doctors = await _doctorService.GetBySpecializationAsync(specialization);
-            return new ApiResponse<List<Doctor>> 
-            { 
-                Success = true, 
-                Message = $"Lấy danh sách bác sĩ chuyên khoa {specialization} thành công", 
-                Data = doctors 
+            return new ApiResponse<List<Doctor>>
+            {
+                Success = true,
+                Message = $"Lấy danh sách bác sĩ chuyên khoa {specialization} thành công",
+                Data = doctors
             };
         }
 
@@ -72,14 +100,14 @@ namespace AppointmentApi.Controllers
         public async Task<ActionResult<ApiResponse<List<Doctor>>>> GetByServiceId(string serviceId)
         {
             try
-        {
-            var doctors = await _doctorService.GetDoctorsByServiceIdAsync(serviceId);
-            return new ApiResponse<List<Doctor>> 
-            { 
-                Success = true, 
-                Message = $"Lấy danh sách bác sĩ có thể thực hiện dịch vụ {serviceId} thành công", 
-                Data = doctors 
-            };
+            {
+                var doctors = await _doctorService.GetDoctorsByServiceIdAsync(serviceId);
+                return new ApiResponse<List<Doctor>>
+                {
+                    Success = true,
+                    Message = $"Lấy danh sách bác sĩ có thể thực hiện dịch vụ {serviceId} thành công",
+                    Data = doctors
+                };
             }
             catch (Exception ex)
             {
@@ -97,19 +125,19 @@ namespace AppointmentApi.Controllers
             var doctor = await _doctorService.GetByIdAsync(id);
             if (doctor == null)
             {
-                return NotFound(new ApiResponse<List<TimeSlot>> 
-                { 
-                    Success = false, 
-                    Message = "Không tìm thấy bác sĩ" 
+                return NotFound(new ApiResponse<List<TimeSlot>>
+                {
+                    Success = false,
+                    Message = "Không tìm thấy bác sĩ"
                 });
             }
 
             var schedule = await _doctorService.GetScheduleAsync(id);
-            return new ApiResponse<List<TimeSlot>> 
-            { 
-                Success = true, 
-                Message = "Lấy lịch làm việc của bác sĩ thành công", 
-                Data = schedule 
+            return new ApiResponse<List<TimeSlot>>
+            {
+                Success = true,
+                Message = "Lấy lịch làm việc của bác sĩ thành công",
+                Data = schedule
             };
         }
 
@@ -120,13 +148,13 @@ namespace AppointmentApi.Controllers
             try
             {
                 var timeSlots = await _doctorService.GetScheduleAsync(doctorId);
-                
+
                 Console.WriteLine($"Found {timeSlots.Count} time slots for doctor {doctorId}");
                 foreach (var slot in timeSlots)
                 {
                     Console.WriteLine($"Day: {slot.DayOfWeek}, Time: {slot.StartTime} - {slot.EndTime}");
                 }
-                
+
                 return new ApiResponse<List<TimeSlot>>
                 {
                     Success = true,
@@ -161,7 +189,7 @@ namespace AppointmentApi.Controllers
                         Message = "Không tìm thấy bác sĩ"
                     });
                 }
-                
+
                 var timeSlot = new TimeSlot
                 {
                     DoctorId = doctorId,
@@ -169,12 +197,12 @@ namespace AppointmentApi.Controllers
                     StartTime = timeSlotDto.StartTime,
                     EndTime = timeSlotDto.EndTime
                 };
-                
+
                 _context.TimeSlots.Add(timeSlot);
                 await _context.SaveChangesAsync();
-                
+
                 Console.WriteLine($"Created time slot: Day {timeSlot.DayOfWeek}, Time: {timeSlot.StartTime} - {timeSlot.EndTime}");
-                
+
                 return new ApiResponse<TimeSlot>
                 {
                     Success = true,
@@ -204,4 +232,4 @@ namespace AppointmentApi.Models
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
     }
-} 
+}

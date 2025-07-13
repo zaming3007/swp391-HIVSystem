@@ -116,6 +116,67 @@ namespace AppointmentApi.Controllers
             }
         }
 
+        // Lấy chi tiết phác đồ ARV
+        [HttpGet("regimens/{id}")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> GetRegimen(string id)
+        {
+            try
+            {
+                var regimen = await _context.ARVRegimens
+                    .Where(r => r.Id == id && r.IsActive)
+                    .Select(r => new
+                    {
+                        r.Id,
+                        r.Name,
+                        r.Description,
+                        r.Category,
+                        r.LineOfTreatment,
+                        r.IsActive,
+                        medications = _context.ARVMedications
+                            .Where(m => m.RegimenId == r.Id)
+                            .OrderBy(m => m.SortOrder)
+                            .Select(m => new
+                            {
+                                m.Id,
+                                m.MedicationName,
+                                m.ActiveIngredient,
+                                m.Dosage,
+                                m.Frequency,
+                                m.Instructions,
+                                m.SideEffects,
+                                m.SortOrder
+                            })
+                            .ToList()
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (regimen == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Không tìm thấy phác đồ ARV"
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    data = regimen
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Lỗi khi lấy chi tiết phác đồ ARV",
+                    error = ex.Message
+                });
+            }
+        }
+
         // Lấy danh sách bệnh nhân cho bác sĩ
         [HttpGet("all-patients")]
         [Authorize(Roles = "doctor")]

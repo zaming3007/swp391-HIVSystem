@@ -3,6 +3,59 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppointmentApi.Models
 {
+    // ARV Drug - Thuốc ARV cơ bản
+    public class ARVDrug
+    {
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        [Required]
+        [StringLength(200)]
+        public required string Name { get; set; } // Tên thuốc
+
+        [Required]
+        [StringLength(200)]
+        public required string GenericName { get; set; } // Tên hoạt chất
+
+        [StringLength(200)]
+        public string? BrandName { get; set; } // Tên thương mại
+
+        [Required]
+        [StringLength(100)]
+        public required string DrugClass { get; set; } // Nhóm thuốc: NRTI, NNRTI, PI, INSTI
+
+        [StringLength(1000)]
+        public string? Description { get; set; } // Mô tả
+
+        [Required]
+        [StringLength(100)]
+        public required string Dosage { get; set; } // Liều dùng
+
+        [Required]
+        [StringLength(50)]
+        public required string Form { get; set; } // Dạng bào chế: viên nén, viên nang
+
+        [StringLength(1000)]
+        public string? SideEffects { get; set; } // Tác dụng phụ
+
+        [StringLength(1000)]
+        public string? Contraindications { get; set; } // Chống chỉ định
+
+        [StringLength(500)]
+        public string? Instructions { get; set; } // Hướng dẫn sử dụng
+
+        public bool IsActive { get; set; } = true;
+        public bool IsPregnancySafe { get; set; } = false;
+        public bool IsPediatricSafe { get; set; } = false;
+        public int MinAge { get; set; } = 18;
+        public decimal MinWeight { get; set; } = 50;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<ARVMedication> Medications { get; set; } = new List<ARVMedication>();
+    }
     // Phác đồ ARV chuẩn
     public class ARVRegimen
     {
