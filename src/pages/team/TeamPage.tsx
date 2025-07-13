@@ -231,7 +231,7 @@ const teamMembers: TeamMember[] = [
         name: 'TS. BS. Nguyễn Văn A',
         title: 'Giám đốc Y khoa',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=1',
+        image: '/team-medical/doctor1.jpg',
         description: 'Bác sĩ nội tiết với hơn 15 năm kinh nghiệm trong lĩnh vực y học giới tính và liệu pháp hormone.',
         specialties: ['Nội tiết học', 'Liệu pháp hormone', 'Y học giới tính']
     },
@@ -240,7 +240,7 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. BS. Trần Thị B',
         title: 'Bác sĩ Chuyên khoa Nội tiết',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=5',
+        image: '/team-medical/doctor2.jpg',
         description: 'Chuyên gia về liệu pháp hormone cho người chuyển giới, với nhiều nghiên cứu được công bố quốc tế.',
         specialties: ['Liệu pháp hormone', 'Chăm sóc sức khỏe chuyển giới']
     },
@@ -249,7 +249,7 @@ const teamMembers: TeamMember[] = [
         name: 'TS. Lê Văn C',
         title: 'Trưởng khoa Tâm lý',
         department: 'mental-health',
-        image: 'https://i.pravatar.cc/300?img=8',
+        image: '/team-medical/doctor3.jpg',
         description: 'Nhà tâm lý học lâm sàng với chuyên môn về giới tính, bản dạng giới và sức khỏe tâm thần LGBTQ+.',
         specialties: ['Tâm lý học lâm sàng', 'Tư vấn bản dạng giới', 'Trị liệu tâm lý']
     },
@@ -258,7 +258,7 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. Phạm Thị D',
         title: 'Chuyên viên Tâm lý',
         department: 'mental-health',
-        image: 'https://i.pravatar.cc/300?img=9',
+        image: '/team-medical/doctor4.jpg',
         description: 'Nhà trị liệu tâm lý chuyên về hỗ trợ người chuyển giới và người phi nhị nguyên giới trong quá trình chuyển đổi.',
         specialties: ['Trị liệu tâm lý', 'Tư vấn giới tính', 'Hỗ trợ chuyển đổi']
     },
@@ -267,7 +267,7 @@ const teamMembers: TeamMember[] = [
         name: 'BS. Hoàng Văn E',
         title: 'Bác sĩ Da liễu',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=3',
+        image: '/team-medical/doctor5.jpg',
         description: 'Chuyên gia về chăm sóc da cho người đang sử dụng liệu pháp hormone và các vấn đề da liễu liên quan đến giới tính.',
         specialties: ['Da liễu', 'Chăm sóc da cho người dùng hormone']
     },
@@ -276,7 +276,7 @@ const teamMembers: TeamMember[] = [
         name: 'CN. Vũ Thị F',
         title: 'Quản lý Điều dưỡng',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=10',
+        image: '/team-medical/doctor6.jpg',
         description: 'Điều dưỡng viên với chuyên môn về chăm sóc sau phẫu thuật khẳng định giới tính và hỗ trợ bệnh nhân.',
         specialties: ['Điều dưỡng', 'Chăm sóc hậu phẫu']
     },
@@ -285,7 +285,7 @@ const teamMembers: TeamMember[] = [
         name: 'ThS. Đỗ Văn G',
         title: 'Giám đốc Điều hành',
         department: 'administrative',
-        image: 'https://i.pravatar.cc/300?img=4',
+        image: '/team-medical/doctor7.jpg',
         description: 'Quản lý điều hành với hơn 10 năm kinh nghiệm trong lĩnh vực quản lý y tế và dịch vụ chăm sóc sức khỏe.',
     },
     {
@@ -293,7 +293,7 @@ const teamMembers: TeamMember[] = [
         name: 'CN. Ngô Thị H',
         title: 'Điều phối viên Bệnh nhân',
         department: 'administrative',
-        image: 'https://i.pravatar.cc/300?img=7',
+        image: '/team-medical/doctor8.jpg',
         description: 'Chuyên gia liên lạc và hỗ trợ bệnh nhân, đảm bảo trải nghiệm tốt nhất cho mọi người đến với trung tâm.',
     },
     {
@@ -301,7 +301,7 @@ const teamMembers: TeamMember[] = [
         name: 'TS. Trịnh Văn I',
         title: 'Chuyên gia Ngôn ngữ trị liệu',
         department: 'medical',
-        image: 'https://i.pravatar.cc/300?img=6',
+        image: '/team-medical/doctor9.jpg',
         description: 'Chuyên gia về luyện giọng nói và giao tiếp cho người chuyển giới, với nhiều năm kinh nghiệm lâm sàng.',
         specialties: ['Ngôn ngữ trị liệu', 'Luyện giọng nói', 'Kỹ năng giao tiếp']
     }

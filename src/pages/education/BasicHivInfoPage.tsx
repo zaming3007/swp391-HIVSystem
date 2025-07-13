@@ -61,7 +61,7 @@ const articles = [
             <li>Điều trị dự phòng trước phơi nhiễm (PrEP) và sau phơi nhiễm (PEP) trong trường hợp cần thiết</li>
         </ul>
         `,
-        imageUrl: "/hivicon.png",
+        imageUrl: "/document/image6.jpg",
         author: "TS. Nguyễn Văn A",
         publishDate: "2023-05-15",
         tags: ["Kiến thức cơ bản", "HIV/AIDS", "Phòng ngừa"]
@@ -164,7 +164,7 @@ const articles = [
             <li><strong>Xét nghiệm thường xuyên:</strong> Biết tình trạng HIV của bạn và bạn tình là bước quan trọng trong việc ngăn ngừa lây truyền</li>
         </ul>
         `,
-        imageUrl: "/service-3.svg",
+        imageUrl: "/document/image7.jpg",
         author: "PGS.TS. Lê Văn C",
         publishDate: "2023-07-10",
         tags: ["PrEP", "PEP", "U=U", "Phòng ngừa"]
@@ -255,12 +255,14 @@ const BasicHivInfoPage: React.FC = () => {
                     maxWidth: { xs: '100%', md: '50%' }
                 }}>
                     <img
-                        src="/hivicon.png"
+                        src="/document/image1.jpg"
                         alt="HIV Awareness"
                         style={{
                             maxWidth: '100%',
                             maxHeight: '250px',
-                            objectFit: 'contain'
+                            objectFit: 'cover',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
                         }}
                     />
                 </Box>
@@ -285,7 +287,7 @@ const BasicHivInfoPage: React.FC = () => {
                             <CardMedia
                                 component="img"
                                 height="200"
-                                image={article.imageUrl || '/hivicon.png'}
+                                image={article.imageUrl || '/document/image2.jpg'}
                                 alt={article.title}
                             />
                             <CardContent sx={{ flexGrow: 1 }}>

@@ -28,7 +28,8 @@ import {
     Avatar,
     Tooltip,
     Alert,
-    CircularProgress
+    CircularProgress,
+    Snackbar
 } from '@mui/material';
 import {
     Search as SearchIcon,
@@ -92,6 +93,11 @@ const AdminDoctorManagement: React.FC = () => {
         experience: 0,
         bio: ''
     });
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error'
+    });
 
     useEffect(() => {
         loadDoctors();
@@ -100,6 +106,10 @@ const AdminDoctorManagement: React.FC = () => {
     useEffect(() => {
         filterDoctors();
     }, [searchTerm, specializationFilter, availabilityFilter, doctors]);
+
+    const showSnackbar = (message: string, severity: 'success' | 'error') => {
+        setSnackbar({ open: true, message, severity });
+    };
 
     const loadDoctors = async () => {
         try {
@@ -136,7 +146,7 @@ const AdminDoctorManagement: React.FC = () => {
 
         // Filter by availability
         if (availabilityFilter !== 'all') {
-            filtered = filtered.filter(doctor => 
+            filtered = filtered.filter(doctor =>
                 availabilityFilter === 'available' ? doctor.available : !doctor.available
             );
         }
@@ -147,7 +157,7 @@ const AdminDoctorManagement: React.FC = () => {
     const handleAction = (doctor: Doctor | null, action: 'view' | 'create' | 'edit' | 'delete') => {
         setSelectedDoctor(doctor);
         setActionType(action);
-        
+
         if (action === 'create') {
             setFormData({
                 firstName: '',
@@ -175,7 +185,7 @@ const AdminDoctorManagement: React.FC = () => {
                 bio: doctor.bio
             });
         }
-        
+
         setOpenDialog(true);
     };
 
@@ -186,9 +196,9 @@ const AdminDoctorManagement: React.FC = () => {
                 if (response.data.success) {
                     await loadDoctors();
                     setOpenDialog(false);
-                    alert('Tạo bác sĩ thành công!');
+                    showSnackbar('Tạo bác sĩ thành công!', 'success');
                 } else {
-                    alert('Lỗi: ' + response.data.message);
+                    showSnackbar('Lỗi: ' + response.data.message, 'error');
                 }
             } else if (actionType === 'edit' && selectedDoctor) {
                 const updateData = {
@@ -200,28 +210,28 @@ const AdminDoctorManagement: React.FC = () => {
                     bio: formData.bio,
                     available: selectedDoctor.available
                 };
-                
+
                 const response = await api.put(`/AdminDoctor/${selectedDoctor.id}`, updateData);
                 if (response.data.success) {
                     await loadDoctors();
                     setOpenDialog(false);
-                    alert('Cập nhật bác sĩ thành công!');
+                    showSnackbar('Cập nhật bác sĩ thành công!', 'success');
                 } else {
-                    alert('Lỗi: ' + response.data.message);
+                    showSnackbar('Lỗi: ' + response.data.message, 'error');
                 }
             } else if (actionType === 'delete' && selectedDoctor) {
                 const response = await api.delete(`/AdminDoctor/${selectedDoctor.id}`);
                 if (response.data.success) {
                     await loadDoctors();
                     setOpenDialog(false);
-                    alert('Xóa bác sĩ thành công!');
+                    showSnackbar('Xóa bác sĩ thành công!', 'success');
                 } else {
-                    alert('Lỗi: ' + response.data.message);
+                    showSnackbar('Lỗi: ' + response.data.message, 'error');
                 }
             }
         } catch (error: any) {
             console.error('Error submitting form:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || error.message));
+            showSnackbar('Lỗi: ' + (error.response?.data?.message || error.message), 'error');
         }
     };
 
@@ -230,13 +240,13 @@ const AdminDoctorManagement: React.FC = () => {
             const response = await api.put(`/AdminDoctor/${doctorId}/toggle-availability`);
             if (response.data.success) {
                 await loadDoctors();
-                alert(response.data.message);
+                showSnackbar(response.data.message, 'success');
             } else {
-                alert('Lỗi: ' + response.data.message);
+                showSnackbar('Lỗi: ' + response.data.message, 'error');
             }
         } catch (error: any) {
             console.error('Error toggling availability:', error);
-            alert('Lỗi: ' + (error.response?.data?.message || error.message));
+            showSnackbar('Lỗi: ' + (error.response?.data?.message || error.message), 'error');
         }
     };
 
@@ -554,7 +564,7 @@ const AdminDoctorManagement: React.FC = () => {
                                         fullWidth
                                         label="Họ"
                                         value={formData.firstName}
-                                        onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                         required
                                     />
                                 </Grid>
@@ -563,7 +573,7 @@ const AdminDoctorManagement: React.FC = () => {
                                         fullWidth
                                         label="Tên"
                                         value={formData.lastName}
-                                        onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                         required
                                     />
                                 </Grid>
@@ -575,7 +585,7 @@ const AdminDoctorManagement: React.FC = () => {
                                                 label="Email"
                                                 type="email"
                                                 value={formData.email}
-                                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 required
                                             />
                                         </Grid>
@@ -585,7 +595,7 @@ const AdminDoctorManagement: React.FC = () => {
                                                 label="Mật khẩu"
                                                 type="password"
                                                 value={formData.password}
-                                                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 required
                                             />
                                         </Grid>
@@ -594,7 +604,7 @@ const AdminDoctorManagement: React.FC = () => {
                                                 <InputLabel>Giới tính</InputLabel>
                                                 <Select
                                                     value={formData.gender}
-                                                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                                                     label="Giới tính"
                                                 >
                                                     <MenuItem value="male">Nam</MenuItem>
@@ -608,7 +618,7 @@ const AdminDoctorManagement: React.FC = () => {
                                                 label="Ngày sinh"
                                                 type="date"
                                                 value={formData.dateOfBirth}
-                                                onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                                                 InputLabelProps={{ shrink: true }}
                                                 required
                                             />
@@ -620,18 +630,27 @@ const AdminDoctorManagement: React.FC = () => {
                                         fullWidth
                                         label="Số điện thoại"
                                         value={formData.phone}
-                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         required
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        fullWidth
-                                        label="Chuyên khoa"
-                                        value={formData.specialization}
-                                        onChange={(e) => setFormData({...formData, specialization: e.target.value})}
-                                        required
-                                    />
+                                    <FormControl fullWidth required>
+                                        <InputLabel>Chuyên khoa</InputLabel>
+                                        <Select
+                                            value={formData.specialization}
+                                            onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                                            label="Chuyên khoa"
+                                        >
+                                            <MenuItem value="HIV/AIDS">HIV/AIDS</MenuItem>
+                                            <MenuItem value="Nhiễm trùng">Nhiễm trùng</MenuItem>
+                                            <MenuItem value="Tâm lý học">Tâm lý học</MenuItem>
+                                            <MenuItem value="Nội khoa">Nội khoa</MenuItem>
+                                            <MenuItem value="Da liễu">Da liễu</MenuItem>
+                                            <MenuItem value="Miễn dịch học">Miễn dịch học</MenuItem>
+                                            <MenuItem value="Tư vấn">Tư vấn</MenuItem>
+                                        </Select>
+                                    </FormControl>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
                                     <TextField
@@ -639,7 +658,7 @@ const AdminDoctorManagement: React.FC = () => {
                                         label="Kinh nghiệm (năm)"
                                         type="number"
                                         value={formData.experience}
-                                        onChange={(e) => setFormData({...formData, experience: parseInt(e.target.value) || 0})}
+                                        onChange={(e) => setFormData({ ...formData, experience: parseInt(e.target.value) || 0 })}
                                         inputProps={{ min: 0, max: 50 }}
                                     />
                                 </Grid>
@@ -650,7 +669,7 @@ const AdminDoctorManagement: React.FC = () => {
                                         multiline
                                         rows={4}
                                         value={formData.bio}
-                                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                                     />
                                 </Grid>
                             </Grid>
@@ -670,6 +689,22 @@ const AdminDoctorManagement: React.FC = () => {
                     )}
                 </DialogActions>
             </Dialog>
+
+            {/* Snackbar for notifications */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

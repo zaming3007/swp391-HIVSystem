@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using AuthApi.Data;
 using AuthApi.Models;
 using AuthApi.DTOs;
+using AuthApi.Services;
 using System.Security.Claims;
 
 namespace AuthApi.Controllers
@@ -15,13 +16,16 @@ namespace AuthApi.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminDoctorController> _logger;
+        private readonly IUserManagerService _userManager;
 
         public AdminDoctorController(
             ApplicationDbContext context,
-            ILogger<AdminDoctorController> logger)
+            ILogger<AdminDoctorController> logger,
+            IUserManagerService userManager)
         {
             _context = context;
             _logger = logger;
+            _userManager = userManager;
         }
 
         // GET: api/AdminDoctor
@@ -118,8 +122,7 @@ namespace AuthApi.Controllers
             }
         }
 
-        // POST: api/AdminDoctor - Temporarily disabled
-        /*
+        // POST: api/AdminDoctor
         [HttpPost]
         public async Task<ActionResult<ApiResponse<DoctorDto>>> CreateDoctor(CreateDoctorDto createDoctorDto)
         {
@@ -145,7 +148,7 @@ namespace AuthApi.Controllers
                     Email = createDoctorDto.Email,
                     Phone = createDoctorDto.Phone,
                     Gender = createDoctorDto.Gender,
-                    DateOfBirth = createDoctorDto.DateOfBirth.ToString("yyyy-MM-dd"),
+                    DateOfBirth = createDoctorDto.DateOfBirth?.ToString("yyyy-MM-dd") ?? "1990-01-01",
                     Role = "doctor", // lowercase to match existing data
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(createDoctorDto.Password),
                     CreatedAt = DateTime.UtcNow
@@ -205,182 +208,179 @@ namespace AuthApi.Controllers
                 });
             }
         }
-        */
 
-        // PUT: api/AdminDoctor/{id} - Temporarily disabled
-        /*
+        // PUT: api/AdminDoctor/{id}
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<DoctorDto>>> UpdateDoctor(string id, UpdateDoctorDto updateDoctorDto)
         {
-        try
-        {
-        var doctor = await _context.Doctors.FindAsync(id);
-        if (doctor == null)
-        {
-            return NotFound(new ApiResponse<DoctorDto>
+            try
             {
-                Success = false,
-                Message = "Không tìm thấy bác sĩ"
-            });
-        }
+                var doctor = await _context.Doctors.FindAsync(id);
+                if (doctor == null)
+                {
+                    return NotFound(new ApiResponse<DoctorDto>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy bác sĩ"
+                    });
+                }
 
-        // Update doctor profile
-        doctor.FirstName = updateDoctorDto.FirstName;
-        doctor.LastName = updateDoctorDto.LastName;
-        doctor.Phone = updateDoctorDto.Phone;
-        doctor.Specialization = updateDoctorDto.Specialization;
-        doctor.Experience = updateDoctorDto.Experience;
-        doctor.Bio = updateDoctorDto.Bio;
-        doctor.Available = updateDoctorDto.Available;
-        doctor.UpdatedAt = DateTime.UtcNow;
+                // Update doctor profile
+                doctor.FirstName = updateDoctorDto.FirstName;
+                doctor.LastName = updateDoctorDto.LastName;
+                doctor.Phone = updateDoctorDto.Phone;
+                doctor.Specialization = updateDoctorDto.Specialization;
+                doctor.Experience = updateDoctorDto.Experience;
+                doctor.Bio = updateDoctorDto.Bio;
+                doctor.Available = updateDoctorDto.Available;
+                doctor.UpdatedAt = DateTime.UtcNow;
 
-        if (!string.IsNullOrEmpty(updateDoctorDto.ProfileImage))
-        {
-            doctor.ProfileImage = updateDoctorDto.ProfileImage;
-        }
+                if (!string.IsNullOrEmpty(updateDoctorDto.ProfileImage))
+                {
+                    doctor.ProfileImage = updateDoctorDto.ProfileImage;
+                }
 
-        // Update user account
-        var user = await _userManager.FindByIdAsync(id);
-        if (user != null)
-        {
-            user.FirstName = updateDoctorDto.FirstName;
-            user.LastName = updateDoctorDto.LastName;
-            user.Phone = updateDoctorDto.Phone;
-            await _userManager.UpdateAsync(user);
-        }
+                // Update user account
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null)
+                {
+                    user.FirstName = updateDoctorDto.FirstName;
+                    user.LastName = updateDoctorDto.LastName;
+                    user.Phone = updateDoctorDto.Phone;
+                    await _userManager.UpdateAsync(user);
+                }
 
-        await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-        var doctorDto = new DoctorDto
-        {
-            Id = doctor.Id,
-            FirstName = doctor.FirstName,
-            LastName = doctor.LastName,
-            Email = doctor.Email,
-            Phone = doctor.Phone,
-            Specialization = doctor.Specialization,
-            Experience = doctor.Experience,
-            Bio = doctor.Bio,
-            Available = doctor.Available,
-            ProfileImage = doctor.ProfileImage,
-            CreatedAt = doctor.CreatedAt,
-            UpdatedAt = doctor.UpdatedAt
-        };
+                var doctorDto = new DoctorDto
+                {
+                    Id = doctor.Id,
+                    FirstName = doctor.FirstName,
+                    LastName = doctor.LastName,
+                    Email = doctor.Email,
+                    Phone = doctor.Phone,
+                    Specialization = doctor.Specialization,
+                    Experience = doctor.Experience,
+                    Bio = doctor.Bio,
+                    Available = doctor.Available,
+                    ProfileImage = doctor.ProfileImage,
+                    CreatedAt = doctor.CreatedAt,
+                    UpdatedAt = doctor.UpdatedAt
+                };
 
-        return new ApiResponse<DoctorDto>
-        {
-            Success = true,
-            Message = "Cập nhật bác sĩ thành công",
-            Data = doctorDto
-        };
-        }
-        catch (Exception ex)
-        {
-        _logger.LogError(ex, "Error updating doctor {DoctorId}", id);
-        return StatusCode(500, new ApiResponse<DoctorDto>
-        {
-            Success = false,
-            Message = "Lỗi server khi cập nhật bác sĩ"
-        });
-        }
+                return new ApiResponse<DoctorDto>
+                {
+                    Success = true,
+                    Message = "Cập nhật bác sĩ thành công",
+                    Data = doctorDto
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating doctor {DoctorId}", id);
+                return StatusCode(500, new ApiResponse<DoctorDto>
+                {
+                    Success = false,
+                    Message = "Lỗi server khi cập nhật bác sĩ"
+                });
+            }
         }
 
         // DELETE: api/AdminDoctor/{id}
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteDoctor(string id)
         {
-        try
-        {
-        var doctor = await _context.Doctors.FindAsync(id);
-        if (doctor == null)
-        {
-            return NotFound(new ApiResponse<object>
+            try
             {
-                Success = false,
-                Message = "Không tìm thấy bác sĩ"
-            });
-        }
+                var doctor = await _context.Doctors.FindAsync(id);
+                if (doctor == null)
+                {
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy bác sĩ"
+                    });
+                }
 
-        // Check if doctor has appointments
-        var hasAppointments = await _context.Set<object>()
-            .FromSqlRaw("SELECT 1 FROM \"Appointments\" WHERE doctor_id = {0} LIMIT 1", id)
-            .AnyAsync();
+                // Check if doctor has appointments
+                var hasAppointments = await _context.Set<object>()
+                    .FromSqlRaw("SELECT 1 FROM \"Appointments\" WHERE doctor_id = {0} LIMIT 1", id)
+                    .AnyAsync();
 
-        if (hasAppointments)
-        {
-            return BadRequest(new ApiResponse<object>
+                if (hasAppointments)
+                {
+                    return BadRequest(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Không thể xóa bác sĩ vì còn có lịch hẹn"
+                    });
+                }
+
+                // Remove doctor profile
+                _context.Doctors.Remove(doctor);
+
+                // Remove user account
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null)
+                {
+                    await _userManager.DeleteAsync(user);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Xóa bác sĩ thành công"
+                };
+            }
+            catch (Exception ex)
             {
-                Success = false,
-                Message = "Không thể xóa bác sĩ vì còn có lịch hẹn"
-            });
-        }
-
-        // Remove doctor profile
-        _context.Doctors.Remove(doctor);
-
-        // Remove user account
-        var user = await _userManager.FindByIdAsync(id);
-        if (user != null)
-        {
-            await _userManager.DeleteAsync(user);
-        }
-
-        await _context.SaveChangesAsync();
-
-        return new ApiResponse<object>
-        {
-            Success = true,
-            Message = "Xóa bác sĩ thành công"
-        };
-        }
-        catch (Exception ex)
-        {
-        _logger.LogError(ex, "Error deleting doctor {DoctorId}", id);
-        return StatusCode(500, new ApiResponse<object>
-        {
-            Success = false,
-            Message = "Lỗi server khi xóa bác sĩ"
-        });
-        }
+                _logger.LogError(ex, "Error deleting doctor {DoctorId}", id);
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Lỗi server khi xóa bác sĩ"
+                });
+            }
         }
 
         // PUT: api/AdminDoctor/{id}/toggle-availability
         [HttpPut("{id}/toggle-availability")]
         public async Task<ActionResult<ApiResponse<object>>> ToggleAvailability(string id)
         {
-        try
-        {
-        var doctor = await _context.Doctors.FindAsync(id);
-        if (doctor == null)
-        {
-            return NotFound(new ApiResponse<object>
+            try
             {
-                Success = false,
-                Message = "Không tìm thấy bác sĩ"
-            });
-        }
+                var doctor = await _context.Doctors.FindAsync(id);
+                if (doctor == null)
+                {
+                    return NotFound(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy bác sĩ"
+                    });
+                }
 
-        doctor.Available = !doctor.Available;
-        doctor.UpdatedAt = DateTime.UtcNow;
+                doctor.Available = !doctor.Available;
+                doctor.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-        return new ApiResponse<object>
-        {
-            Success = true,
-            Message = $"Đã {(doctor.Available ? "kích hoạt" : "vô hiệu hóa")} bác sĩ"
-        };
+                return new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = $"Đã {(doctor.Available ? "kích hoạt" : "vô hiệu hóa")} bác sĩ"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling doctor availability {DoctorId}", id);
+                return StatusCode(500, new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Lỗi server khi thay đổi trạng thái bác sĩ"
+                });
+            }
         }
-        catch (Exception ex)
-        {
-        _logger.LogError(ex, "Error toggling doctor availability {DoctorId}", id);
-        return StatusCode(500, new ApiResponse<object>
-        {
-            Success = false,
-            Message = "Lỗi server khi thay đổi trạng thái bác sĩ"
-        });
-        }
-        }
-        */
     }
 }

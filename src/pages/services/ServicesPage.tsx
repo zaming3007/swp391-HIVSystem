@@ -345,7 +345,7 @@ const services: Service[] = [
         category: 'hiv-testing',
         price: 100,
         duration: 30,
-        image: '/primaryhealthy.png',
+        image: '/services/image4.jpg',
     },
     {
         id: '2',
@@ -354,7 +354,7 @@ const services: Service[] = [
         category: 'mental-health',
         price: 150,
         duration: 60,
-        image: '/mental.png',
+        image: '/services/image5.jpg',
     },
     {
         id: '3',
@@ -363,7 +363,7 @@ const services: Service[] = [
         category: 'hiv-care',
         price: 120,
         duration: 45,
-        image: '/counseling.svg',
+        image: '/services/image6.jpg',
     },
     {
         id: '4',
@@ -372,7 +372,7 @@ const services: Service[] = [
         category: 'hiv-testing',
         price: 250,
         duration: 60,
-        image: '/homepageImage.jpg',
+        image: '/services/image7.jpg',
     },
     {
         id: '5',
@@ -381,7 +381,7 @@ const services: Service[] = [
         category: 'hiv-treatment',
         price: 200,
         duration: 90,
-        image: '/genderaff.png',
+        image: '/services/image8.jpg',
     },
     {
         id: '6',
@@ -390,7 +390,7 @@ const services: Service[] = [
         category: 'mental-health',
         price: 50,
         duration: 120,
-        image: '/service-1.svg',
+        image: '/services/image9.jpg',
     },
     {
         id: '7',
@@ -399,7 +399,7 @@ const services: Service[] = [
         category: 'hiv-prevention',
         price: 100,
         duration: 45,
-        image: '/service-2.svg',
+        image: '/services/image10.jpg',
     },
     {
         id: '8',
@@ -408,7 +408,7 @@ const services: Service[] = [
         category: 'hiv-prevention',
         price: 150,
         duration: 60,
-        image: '/service-3.svg',
+        image: '/services/image11.jpg',
     },
     {
         id: '9',
@@ -417,7 +417,7 @@ const services: Service[] = [
         category: 'hiv-treatment',
         price: 180,
         duration: 60,
-        image: '/hormone-therapy.svg',
+        image: '/services/image12.jpg',
     },
     {
         id: '10',
@@ -426,7 +426,7 @@ const services: Service[] = [
         category: 'mental-health',
         price: 120,
         duration: 60,
-        image: '/mental.png',
+        image: '/services/image13.jpg',
     },
     {
         id: '11',
@@ -435,7 +435,7 @@ const services: Service[] = [
         category: 'hiv-care',
         price: 80,
         duration: 30,
-        image: '/service-1.svg',
+        image: '/services/image14.jpg',
     },
     {
         id: '12',
@@ -444,7 +444,7 @@ const services: Service[] = [
         category: 'hiv-prevention',
         price: 200,
         duration: 45,
-        image: '/service-2.svg',
+        image: '/services/testingHIV.jpg',
     },
 ];
 

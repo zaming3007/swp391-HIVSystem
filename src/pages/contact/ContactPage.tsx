@@ -183,10 +183,51 @@ const ContactPage: React.FC = () => {
                             Kết nối với chúng tôi trên các nền tảng mạng xã hội để cập nhật thông tin mới nhất về HIV/AIDS.
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 2 }}>
-                            {/* Placeholder for social media icons */}
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
-                            <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: '50%' }}></Box>
+                            <Box
+                                component="img"
+                                src="/icons/facebook.jpg"
+                                alt="Facebook"
+                                sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: '50%',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.1)'
+                                    }
+                                }}
+                            />
+                            <Box
+                                component="img"
+                                src="/icons/zalo.jpg"
+                                alt="Zalo"
+                                sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: '50%',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.1)'
+                                    }
+                                }}
+                            />
+                            <Box
+                                component="img"
+                                src="/icons/twitter.jpg"
+                                alt="Twitter"
+                                sx={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: '50%',
+                                    cursor: 'pointer',
+                                    transition: 'transform 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.1)'
+                                    }
+                                }}
+                            />
                         </Box>
                     </Paper>
                 </Grid>
@@ -299,6 +340,7 @@ const ContactPage: React.FC = () => {
                     </Paper>
                 </Grid>
             </Grid>
+
 
             {/* Bản đồ */}
             <Box sx={{ mt: 6 }}>

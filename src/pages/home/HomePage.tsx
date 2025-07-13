@@ -187,14 +187,21 @@ const HomePage: React.FC = () => {
                         }}>
                             <Box
                                 component="img"
-                                src="/hivicon.png"
+                                src="/homePage/mainImage.jpg"
                                 alt="HIV Care Center"
                                 sx={{
                                     width: '100%',
-                                    maxWidth: 400,
+                                    maxWidth: 600,
                                     height: 'auto',
-                                    filter: 'brightness(1.2)',
-                                    opacity: 0.9
+                                    borderRadius: 3,
+                                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                                    filter: 'brightness(1.1) contrast(1.1)',
+                                    opacity: 0.95,
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.02)',
+                                        boxShadow: '0 12px 40px rgba(0,0,0,0.4)'
+                                    }
                                 }}
                             />
                         </Box>
@@ -644,19 +651,19 @@ const services = [
     {
         title: 'Điều Trị ARV',
         description: 'Điều trị bằng thuốc kháng retrovirus (ARV) với các phác đồ phù hợp cho từng cá nhân, được theo dõi bởi các chuyên gia y tế.',
-        image: '/primaryhealthy.png',
+        image: '/services/image1.jpg',
         link: '/services#arv-treatment',
     },
     {
         title: 'Tư Vấn & Xét Nghiệm',
         description: 'Dịch vụ tư vấn và xét nghiệm nhanh, bảo mật với CD4, tải lượng virus và các xét nghiệm liên quan khác.',
-        image: '/counseling.svg',
+        image: '/services/image2.jpg',
         link: '/services#testing',
     },
     {
         title: 'Hỗ Trợ Tâm Lý',
         description: 'Dịch vụ tư vấn tâm lý chuyên sâu giúp vượt qua các rào cản tâm lý và xã hội khi sống chung với HIV.',
-        image: '/mental.png',
+        image: '/services/image3.jpg',
         link: '/services#mental-support',
     },
 ];

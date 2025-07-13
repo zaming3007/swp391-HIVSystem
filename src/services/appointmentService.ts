@@ -12,7 +12,7 @@ const MOCK_SERVICES: Service[] = [
         duration: 30,
         price: 200000,
         category: "hiv-testing",
-        imageUrl: "/counseling.svg"
+        imageUrl: "/services/image1.jpg"
     },
     {
         id: "2",
@@ -21,7 +21,7 @@ const MOCK_SERVICES: Service[] = [
         duration: 30,
         price: 300000,
         category: "hiv-testing",
-        imageUrl: "/service-1.svg"
+        imageUrl: "/services/image2.jpg"
     },
     {
         id: "3",
@@ -57,7 +57,7 @@ const MOCK_SERVICES: Service[] = [
         duration: 60,
         price: 400000,
         category: "mental-health",
-        imageUrl: "/mental.png"
+        imageUrl: "/services/image3.jpg"
     },
     {
         id: "7",
@@ -66,7 +66,7 @@ const MOCK_SERVICES: Service[] = [
         duration: 60,
         price: 600000,
         category: "hiv-care",
-        imageUrl: "/primaryhealthy.png"
+        imageUrl: "/services/image4.jpg"
     },
     {
         id: "8",
@@ -75,7 +75,7 @@ const MOCK_SERVICES: Service[] = [
         duration: 45,
         price: 350000,
         category: "hiv-prevention",
-        imageUrl: "/service-1.svg"
+        imageUrl: "/services/image5.jpg"
     }
 ];
 
@@ -85,7 +85,7 @@ const MOCK_DOCTORS: Doctor[] = [
         firstName: "Nguyễn",
         lastName: "Minh Anh",
         specialization: "Bác sĩ Nhiễm HIV/AIDS",
-        imageUrl: "/dv1.jpg",
+        imageUrl: "/team-medical/doctor1.jpg",
         biography: "Bác sĩ chuyên khoa Nhiễm với hơn 10 năm kinh nghiệm điều trị HIV/AIDS, chuyên về quản lý điều trị ARV và theo dõi nhiễm trùng cơ hội",
         education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
         experience: "10 năm"
@@ -95,7 +95,7 @@ const MOCK_DOCTORS: Doctor[] = [
         firstName: "Trần",
         lastName: "Hoàng Nam",
         specialization: "Chuyên gia Tư vấn HIV",
-        imageUrl: "/dv2.jpg",
+        imageUrl: "/team-medical/doctor2.jpg",
         biography: "Chuyên gia tư vấn HIV với kinh nghiệm trong tư vấn xét nghiệm, tư vấn tuân thủ điều trị và hỗ trợ tinh thần cho người nhiễm HIV",
         education: "Thạc sĩ Y tế Công cộng, Đại học Y Dược TP.HCM",
         experience: "8 năm"
@@ -105,7 +105,7 @@ const MOCK_DOCTORS: Doctor[] = [
         firstName: "Lê",
         lastName: "Thị Hương",
         specialization: "Tâm lý học Lâm sàng",
-        imageUrl: "/dv3.jpg",
+        imageUrl: "/team-medical/doctor3.jpg",
         biography: "Nhà tâm lý học lâm sàng chuyên về sức khỏe tâm thần và hỗ trợ tâm lý cho người nhiễm HIV và gia đình",
         education: "Thạc sĩ Tâm lý lâm sàng, Đại học Khoa học Xã hội và Nhân văn",
         experience: "7 năm"
@@ -115,7 +115,7 @@ const MOCK_DOCTORS: Doctor[] = [
         firstName: "Phạm",
         lastName: "Văn Khoa",
         specialization: "Bác sĩ Truyền nhiễm",
-        imageUrl: "/dv4.jpg",
+        imageUrl: "/team-medical/doctor4.jpg",
         biography: "Bác sĩ chuyên khoa Truyền nhiễm với chuyên môn về HIV/AIDS và các bệnh nhiễm trùng cơ hội",
         education: "Bác sĩ Chuyên khoa II, Đại học Y Hà Nội",
         experience: "15 năm"
@@ -125,7 +125,7 @@ const MOCK_DOCTORS: Doctor[] = [
         firstName: "Hoàng",
         lastName: "Thị Lan",
         specialization: "Dược sĩ Lâm sàng HIV",
-        imageUrl: "/dv5.jpg",
+        imageUrl: "/team-medical/doctor5.jpg",
         biography: "Dược sĩ lâm sàng chuyên về quản lý thuốc ARV, tương tác thuốc và tư vấn tuân thủ điều trị",
         education: "Thạc sĩ Dược lâm sàng, Đại học Y Dược TP.HCM",
         experience: "5 năm"

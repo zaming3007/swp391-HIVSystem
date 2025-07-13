@@ -43,8 +43,7 @@ namespace AuthApi.DTOs
         [Required(ErrorMessage = "Giới tính là bắt buộc")]
         public string Gender { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Ngày sinh là bắt buộc")]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
         [Required(ErrorMessage = "Chuyên khoa là bắt buộc")]
         [StringLength(100, ErrorMessage = "Chuyên khoa không được vượt quá 100 ký tự")]

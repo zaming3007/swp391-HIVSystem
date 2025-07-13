@@ -52,7 +52,7 @@ const articles = [
         <h3>Hiểu lầm: Nếu cả hai người đều nhiễm HIV, họ không cần thực hiện tình dục an toàn</h3>
         <p><strong>Sự thật:</strong> Ngay cả khi cả hai đều nhiễm HIV, vẫn cần thực hiện tình dục an toàn để tránh tái nhiễm với các chủng HIV khác có thể kháng thuốc, và để ngăn ngừa các bệnh lây truyền qua đường tình dục khác.</p>
         `,
-        imageUrl: "/service-3.svg",
+        imageUrl: "/document/image6.jpg",
         author: "ThS. Hoàng Thị G",
         publishDate: "2023-11-10",
         tags: ["Hiểu lầm", "Kỳ thị", "Giáo dục"]
@@ -124,7 +124,7 @@ const articles = [
             <li>Thúc đẩy sự đa dạng và hòa nhập trong các nội dung truyền thông</li>
         </ul>
         `,
-        imageUrl: "/counseling.svg",
+        imageUrl: "/document/image7.jpg",
         author: "TS. Trần Văn H",
         publishDate: "2023-12-05",
         tags: ["Chiến lược", "Cộng đồng", "Kỳ thị"]
@@ -137,14 +137,14 @@ const testimonials = [
         name: "Minh Anh",
         role: "Người sống với HIV từ 2012",
         content: "Tôi đã phải đối mặt với nhiều sự kỳ thị khi mọi người biết về tình trạng HIV của tôi. Nhưng qua thời gian, với sự hiểu biết và giáo dục, nhiều người xung quanh tôi đã thay đổi thái độ. Tôi tin rằng giáo dục là chìa khóa để xóa bỏ kỳ thị.",
-        avatar: "/counseling.svg"
+        avatar: "/team-medical/doctor6.jpg"
     },
     {
         id: 2,
         name: "Hoàng Nam",
         role: "Nhân viên y tế",
         content: "Là nhân viên y tế, tôi đã chứng kiến cách sự kỳ thị ngăn cản mọi người tìm kiếm dịch vụ chăm sóc HIV. Chúng ta cần tạo ra môi trường y tế an toàn và không phán xét để mọi người cảm thấy thoải mái khi tìm kiếm sự chăm sóc họ cần.",
-        avatar: "/service-1.svg"
+        avatar: "/team-medical/doctor7.jpg"
     },
     {
         id: 3,
@@ -239,12 +239,14 @@ const StigmaReductionPage: React.FC = () => {
                     maxWidth: { xs: '100%', md: '50%' }
                 }}>
                     <img
-                        src="/hivicon.png"
+                        src="/document/image4.jpg"
                         alt="HIV Stigma Reduction"
                         style={{
                             maxWidth: '100%',
                             maxHeight: '250px',
-                            objectFit: 'contain'
+                            objectFit: 'cover',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
                         }}
                     />
                 </Box>
@@ -301,7 +303,7 @@ const StigmaReductionPage: React.FC = () => {
                             <CardMedia
                                 component="img"
                                 height="200"
-                                image={article.imageUrl || '/hivicon.png'}
+                                image={article.imageUrl || '/document/image5.jpg'}
                                 alt={article.title}
                             />
                             <CardContent sx={{ flexGrow: 1 }}>

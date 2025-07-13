@@ -72,7 +72,7 @@ const articles = [
         <h3>Thời điểm bắt đầu điều trị ARV</h3>
         <p>Theo hướng dẫn hiện nay, việc điều trị ARV được khuyến nghị cho tất cả mọi người được chẩn đoán nhiễm HIV, bất kể tình trạng miễn dịch hay giai đoạn lâm sàng. Việc bắt đầu điều trị càng sớm càng tốt giúp bảo vệ hệ miễn dịch, ngăn ngừa các biến chứng liên quan đến HIV, và giảm nguy cơ lây truyền.</p>
         `,
-        imageUrl: "/service-1.svg",
+        imageUrl: "/document/image6.jpg",
         author: "BS. Phạm Thị D",
         publishDate: "2023-08-05",
         tags: ["Điều trị ARV", "Tuân thủ điều trị", "Sức khỏe"]
@@ -133,7 +133,7 @@ const articles = [
             <li>Tránh caffeine, rượu và màn hình điện tử trước khi đi ngủ</li>
         </ul>
         `,
-        imageUrl: "/counseling.svg",
+        imageUrl: "/document/image7.jpg",
         author: "TS. Nguyễn Văn E",
         publishDate: "2023-09-15",
         tags: ["Dinh dưỡng", "Tập luyện", "Sức khỏe tổng thể"]
@@ -184,7 +184,7 @@ const articles = [
             <li><strong>Triệt sản:</strong> Lựa chọn vĩnh viễn cho những người không muốn có thêm con</li>
         </ul>
         `,
-        imageUrl: "/service-2.svg",
+        imageUrl: "/document/image8.jpg",
         author: "BS. CK2. Lê Thị F",
         publishDate: "2023-10-20",
         tags: ["Kế hoạch hóa gia đình", "Mang thai", "Sinh sản"]
@@ -280,12 +280,14 @@ const LivingWithHivPage: React.FC = () => {
                     maxWidth: { xs: '100%', md: '50%' }
                 }}>
                     <img
-                        src="/voice-therapy.svg"
+                        src="/document/image2.jpg"
                         alt="Living with HIV"
                         style={{
                             maxWidth: '100%',
                             maxHeight: '250px',
-                            objectFit: 'contain'
+                            objectFit: 'cover',
+                            borderRadius: '12px',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
                         }}
                     />
                 </Box>
@@ -376,7 +378,7 @@ const LivingWithHivPage: React.FC = () => {
                             <CardMedia
                                 component="img"
                                 height="200"
-                                image={article.imageUrl || '/hivicon.png'}
+                                image={article.imageUrl || '/document/image3.jpg'}
                                 alt={article.title}
                             />
                             <CardContent sx={{ flexGrow: 1 }}>
