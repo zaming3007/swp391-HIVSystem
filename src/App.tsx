@@ -58,6 +58,7 @@ import AdminDoctorManagement from './pages/admin/AdminDoctorManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
 import ServiceManagementPage from './pages/admin/ServiceManagementPage';
+import SystemSettingsPage from './pages/admin/SystemSettings';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -194,11 +195,8 @@ const AppRoutes: React.FC = () => {
 
           <Route path="services" element={<ServiceManagementPage />} />
           <Route path="users" element={<UserManagementPage />} />
-          <Route path="blog" element={<BlogManagementPage />} />
           <Route path="doctors" element={<AdminDoctorManagement />} />
-          <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />
-          <Route path="test-results" element={<div>Quản lý kết quả xét nghiệm</div>} />
-          <Route path="reports" element={<div>Báo cáo thống kê</div>} />
+          <Route path="settings" element={<SystemSettingsPage />} />
         </Route>
 
 

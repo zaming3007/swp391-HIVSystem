@@ -10,11 +10,9 @@ import NoteIcon from '@mui/icons-material/Note';
 import { format, parseISO } from 'date-fns';
 import { RootState } from '../../store';
 import { Appointment, AppointmentStatus, AppointmentType } from '../../types';
-import { getMyAppointments, cancelAppointment, resetMockAppointments } from '../../services/appointmentService';
+import { getMyAppointments, cancelAppointment } from '../../services/appointmentService';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { toast } from 'react-toastify';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -317,20 +315,7 @@ const MyAppointmentsPage: React.FC = () => {
         );
     };
 
-    // Thêm hàm xử lý xóa dữ liệu localStorage
-    const handleResetAppointments = () => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tất cả lịch hẹn đã lưu? Thao tác này sẽ tải lại trang.')) {
-            try {
-                resetMockAppointments();
-                toast.success('Đã xóa dữ liệu lịch hẹn');
-                // Tải lại trang để cập nhật dữ liệu
-                window.location.reload();
-            } catch (error) {
-                console.error('Error resetting appointments', error);
-                toast.error('Không thể xóa dữ liệu lịch hẹn');
-            }
-        }
-    };
+
 
     return (
         <Container maxWidth="lg">
@@ -339,24 +324,13 @@ const MyAppointmentsPage: React.FC = () => {
                     <Typography variant="h4" component="h1">
                         Lịch Hẹn Của Tôi
                     </Typography>
-                    <Box>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() => navigate('/appointment')}
-                            sx={{ mr: 1 }}
-                        >
-                            Đặt Lịch Hẹn Mới
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={handleResetAppointments}
-                        >
-                            Xóa dữ liệu
-                        </Button>
-                    </Box>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => navigate('/appointment')}
+                    >
+                        Đặt Lịch Hẹn Mới
+                    </Button>
                 </Box>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

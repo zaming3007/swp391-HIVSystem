@@ -26,7 +26,8 @@ import {
     Assessment as AnalyticsIcon,
     CheckCircle as CheckCircleIcon,
     Warning as WarningIcon,
-    MedicalServices as MedicalServicesIcon
+    MedicalServices as MedicalServicesIcon,
+    Settings as SettingsIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -238,8 +239,8 @@ const AdminDashboard: React.FC = () => {
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    startIcon={<AnalyticsIcon />}
-                                    onClick={() => navigate('/admin/reports')}
+                                    startIcon={<SettingsIcon />}
+                                    onClick={() => navigate('/admin/settings')}
                                     sx={{
                                         py: 1.5,
                                         bgcolor: 'rgba(255,255,255,0.2)',
@@ -248,7 +249,7 @@ const AdminDashboard: React.FC = () => {
                                         border: '1px solid rgba(255,255,255,0.3)'
                                     }}
                                 >
-                                    Báo cáo & Thống kê
+                                    Cài đặt hệ thống
                                 </Button>
                             </Grid>
                         </Grid>

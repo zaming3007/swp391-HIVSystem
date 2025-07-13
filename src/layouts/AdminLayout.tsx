@@ -256,7 +256,7 @@ const AdminLayout: React.FC = () => {
                                     color: '#7E57C2'
                                 }}
                             >
-                                <MedicalServicesIcon />
+                                <PersonAddIcon />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Quản lý bác sĩ"
@@ -323,40 +323,6 @@ const AdminLayout: React.FC = () => {
                             />
                         </ListItemButton>
                     </ListItem>
-
-
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={RouterLink}
-                            to="/admin/reports"
-                            sx={{
-                                minHeight: 48,
-                                justifyContent: open ? 'initial' : 'center',
-                                px: 2.5,
-                                py: 1.5,
-                                '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
-                                '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
-                            }}
-                        >
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    mr: open ? 3 : 'auto',
-                                    justifyContent: 'center',
-                                    color: '#7E57C2'
-                                }}
-                            >
-                                <AssessmentIcon />
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Báo cáo thống kê"
-                                sx={{ opacity: open ? 1 : 0 }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                </List>
-                <Divider />
-                <List>
                     <ListItem disablePadding>
                         <ListItemButton
                             component={RouterLink}
@@ -386,6 +352,9 @@ const AdminLayout: React.FC = () => {
                             />
                         </ListItemButton>
                     </ListItem>
+                </List>
+                <Divider />
+                <List>
                     <ListItem disablePadding>
                         <ListItemButton
                             onClick={handleLogout}

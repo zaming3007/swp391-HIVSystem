@@ -31,74 +31,44 @@ import {
     Cancel as CancelIcon
 } from '@mui/icons-material';
 
-// Mock data - sẽ được thay thế bằng API calls
-const mockStats = {
-    todayAppointments: 12,
-    pendingConsultations: 8,
-    totalBlogPosts: 25,
-    activeUsers: 156,
-    appointmentGrowth: 15.2,
-    consultationGrowth: 8.7
-};
+// Import real data service
+import staffDashboardService, {
+    StaffStats,
+    RecentAppointment,
+    PendingConsultation,
+    RecentBlogPost,
+    SystemActivity
+} from '../../services/staffDashboardService';
 
-const mockRecentAppointments = [
-    {
-        id: '1',
-        patientName: 'Nguyễn Văn A',
-        doctorName: 'BS. Trần Thị B',
-        time: '09:00',
-        status: 'confirmed',
-        service: 'Tư vấn HIV'
-    },
-    {
-        id: '2',
-        patientName: 'Lê Thị C',
-        doctorName: 'BS. Phạm Văn D',
-        time: '10:30',
-        status: 'pending',
-        service: 'Xét nghiệm'
-    },
-    {
-        id: '3',
-        patientName: 'Hoàng Minh E',
-        doctorName: 'BS. Nguyễn Thị F',
-        time: '14:00',
-        status: 'confirmed',
-        service: 'Tái khám'
-    }
-];
-
-const mockPendingConsultations = [
-    {
-        id: '1',
-        question: 'Tôi có thể làm xét nghiệm HIV ở đâu?',
-        submittedAt: '2 giờ trước',
-        priority: 'high'
-    },
-    {
-        id: '2',
-        question: 'Thuốc ARV có tác dụng phụ gì không?',
-        submittedAt: '4 giờ trước',
-        priority: 'medium'
-    },
-    {
-        id: '3',
-        question: 'Làm thế nào để phòng ngừa HIV?',
-        submittedAt: '6 giờ trước',
-        priority: 'low'
-    }
-];
 
 const StaffDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
+    const [recentAppointments, setRecentAppointments] = useState<RecentAppointment[]>([]);
+    const [pendingConsultations, setPendingConsultations] = useState<PendingConsultation[]>([]);
 
     useEffect(() => {
-        // Simulate loading
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1000);
+        const loadDashboardData = async () => {
+            setLoading(true);
+            try {
+                // Load real data for appointments and consultations
+                const [
+                    appointmentsData,
+                    consultationsData
+                ] = await Promise.all([
+                    staffDashboardService.getRecentAppointments(),
+                    staffDashboardService.getPendingConsultations()
+                ]);
 
-        return () => clearTimeout(timer);
+                setRecentAppointments(appointmentsData);
+                setPendingConsultations(consultationsData);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDashboardData();
     }, []);
 
     const getStatusColor = (status: string) => {
@@ -165,7 +135,7 @@ const StaffDashboard: React.FC = () => {
 
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={4}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -177,14 +147,14 @@ const StaffDashboard: React.FC = () => {
                                         Lịch hẹn hôm nay
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockStats.todayAppointments}
+                                        12
                                     </Typography>
                                 </Box>
                             </Box>
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={4}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -196,14 +166,14 @@ const StaffDashboard: React.FC = () => {
                                         Tư vấn chờ xử lý
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockStats.pendingConsultations}
+                                        8
                                     </Typography>
                                 </Box>
                             </Box>
                         </CardContent>
                     </Card>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={6} md={4}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -215,26 +185,7 @@ const StaffDashboard: React.FC = () => {
                                         Bài viết Blog
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockStats.totalBlogPosts}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <Card>
-                        <CardContent>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
-                                    <PeopleIcon />
-                                </Avatar>
-                                <Box>
-                                    <Typography color="text.secondary" gutterBottom>
-                                        Người dùng hoạt động
-                                    </Typography>
-                                    <Typography variant="h5">
-                                        {mockStats.activeUsers}
+                                        1
                                     </Typography>
                                 </Box>
                             </Box>
@@ -257,7 +208,7 @@ const StaffDashboard: React.FC = () => {
                             </Button>
                         </Box>
                         <List>
-                            {mockRecentAppointments.map((appointment, index) => (
+                            {recentAppointments.map((appointment, index) => (
                                 <React.Fragment key={appointment.id}>
                                     <ListItem>
                                         <ListItemIcon>
@@ -273,7 +224,7 @@ const StaffDashboard: React.FC = () => {
                                             size="small"
                                         />
                                     </ListItem>
-                                    {index < mockRecentAppointments.length - 1 && <Divider />}
+                                    {index < recentAppointments.length - 1 && <Divider />}
                                 </React.Fragment>
                             ))}
                         </List>
@@ -292,7 +243,7 @@ const StaffDashboard: React.FC = () => {
                             </Button>
                         </Box>
                         <List>
-                            {mockPendingConsultations.map((consultation, index) => (
+                            {pendingConsultations.map((consultation, index) => (
                                 <React.Fragment key={consultation.id}>
                                     <ListItem>
                                         <ListItemIcon>
@@ -300,7 +251,7 @@ const StaffDashboard: React.FC = () => {
                                         </ListItemIcon>
                                         <ListItemText
                                             primary={consultation.question}
-                                            secondary={consultation.submittedAt}
+                                            secondary={new Date(consultation.createdAt).toLocaleString('vi-VN')}
                                         />
                                         <Chip
                                             label={consultation.priority === 'high' ? 'Cao' : consultation.priority === 'medium' ? 'Trung bình' : 'Thấp'}
@@ -308,7 +259,7 @@ const StaffDashboard: React.FC = () => {
                                             size="small"
                                         />
                                     </ListItem>
-                                    {index < mockPendingConsultations.length - 1 && <Divider />}
+                                    {index < pendingConsultations.length - 1 && <Divider />}
                                 </React.Fragment>
                             ))}
                         </List>

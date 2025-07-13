@@ -178,18 +178,7 @@ const AppointmentPage: React.FC = () => {
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
 
-    // Debug function
-    const handleDebug = () => {
-        console.log({
-            selectedService,
-            selectedDoctor,
-            selectedDate,
-            selectedTime,
-            notes,
-            appointmentType,
-            user
-        });
-    };
+
 
     const handleSubmit = async () => {
         try {
@@ -616,14 +605,6 @@ const AppointmentPage: React.FC = () => {
                     <Typography variant="h4" component="h1" gutterBottom>
                         Đặt Lịch Hẹn
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        color="info"
-                        onClick={handleDebug}
-                        size="small"
-                    >
-                        Debug
-                    </Button>
                 </Box>
 
                 <Stepper activeStep={activeStep} sx={{ mb: 4 }}>

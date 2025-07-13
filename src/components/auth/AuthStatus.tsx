@@ -28,7 +28,8 @@ import {
     Assessment as ReportsIcon,
     QuestionAnswer as ConsultationIcon,
     Article as BlogIcon,
-    People as PeopleIcon
+    People as PeopleIcon,
+    PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -198,23 +199,35 @@ const AuthStatus: React.FC = () => {
                 {/* Role-specific menu items */}
                 {user?.role === 'admin' && (
                     <>
+                        <MenuItem onClick={() => { navigate('/admin/dashboard'); handleClose(); }}>
+                            <ListItemIcon>
+                                <DashboardIcon fontSize="small" />
+                            </ListItemIcon>
+                            Dashboard
+                        </MenuItem>
                         <MenuItem onClick={() => { navigate('/admin/users'); handleClose(); }}>
                             <ListItemIcon>
                                 <PeopleIcon fontSize="small" />
                             </ListItemIcon>
                             Quản lý người dùng
                         </MenuItem>
-                        <MenuItem onClick={() => { navigate('/admin/blog'); handleClose(); }}>
+                        <MenuItem onClick={() => { navigate('/admin/doctors'); handleClose(); }}>
                             <ListItemIcon>
-                                <BlogIcon fontSize="small" />
+                                <PersonAddIcon fontSize="small" />
                             </ListItemIcon>
-                            Quản lý Blog
+                            Quản lý bác sĩ
                         </MenuItem>
-                        <MenuItem onClick={() => { navigate('/admin/consultations'); handleClose(); }}>
+                        <MenuItem onClick={() => { navigate('/admin/services'); handleClose(); }}>
                             <ListItemIcon>
-                                <ConsultationIcon fontSize="small" />
+                                <MedicalServicesIcon fontSize="small" />
                             </ListItemIcon>
-                            Quản lý tư vấn
+                            Quản lý dịch vụ
+                        </MenuItem>
+                        <MenuItem onClick={() => { navigate('/admin/settings'); handleClose(); }}>
+                            <ListItemIcon>
+                                <SettingsIcon fontSize="small" />
+                            </ListItemIcon>
+                            Cài đặt hệ thống
                         </MenuItem>
                     </>
                 )}

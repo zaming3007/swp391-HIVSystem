@@ -28,6 +28,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import SettingsIcon from '@mui/icons-material/Settings';
 import ForumIcon from '@mui/icons-material/Forum';
 import ArticleIcon from '@mui/icons-material/Article';
 import SchoolIcon from '@mui/icons-material/School';
@@ -646,7 +648,7 @@ const Header: React.FC = () => {
                                     <ListItemIcon>
                                         <DashboardIcon color="primary" />
                                     </ListItemIcon>
-                                    <ListItemText primary="Dashboard & Báo cáo" />
+                                    <ListItemText primary="Dashboard" />
                                 </ListItem>
                                 <ListItem component={RouterLink} to="/admin/users">
                                     <ListItemIcon>
@@ -654,11 +656,23 @@ const Header: React.FC = () => {
                                     </ListItemIcon>
                                     <ListItemText primary="Quản lý người dùng" />
                                 </ListItem>
+                                <ListItem component={RouterLink} to="/admin/doctors">
+                                    <ListItemIcon>
+                                        <PersonAddIcon color="primary" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Quản lý bác sĩ" />
+                                </ListItem>
                                 <ListItem component={RouterLink} to="/admin/services">
                                     <ListItemIcon>
                                         <MedicalServicesIcon color="primary" />
                                     </ListItemIcon>
                                     <ListItemText primary="Quản lý dịch vụ" />
+                                </ListItem>
+                                <ListItem component={RouterLink} to="/admin/settings">
+                                    <ListItemIcon>
+                                        <SettingsIcon color="primary" />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Cài đặt hệ thống" />
                                 </ListItem>
                             </>
                         )}

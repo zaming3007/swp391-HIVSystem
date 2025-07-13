@@ -138,7 +138,7 @@ namespace AuthApi.Services
             }
 
             var wasPublished = post.Status == BlogPostStatus.Published;
-            
+
             post.Title = updateDto.Title;
             post.Content = updateDto.Content;
             post.Summary = updateDto.Summary;
@@ -254,8 +254,8 @@ namespace AuthApi.Services
         public async Task<List<BlogPostDto>> SearchPostsAsync(string query)
         {
             var posts = await _context.BlogPosts
-                .Where(p => p.Status == BlogPostStatus.Published && 
-                           (p.Title.ToLower().Contains(query.ToLower()) || 
+                .Where(p => p.Status == BlogPostStatus.Published &&
+                           (p.Title.ToLower().Contains(query.ToLower()) ||
                             p.Content.ToLower().Contains(query.ToLower()) ||
                             p.Summary.ToLower().Contains(query.ToLower())))
                 .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
