@@ -424,3 +424,5 @@ D:\SWP-AGU\swp391-HIVSystem\AuthApi\obj\Debug\net8.0\refint\AuthApi.dll
 D:\SWP-AGU\swp391-HIVSystem\AuthApi\obj\Debug\net8.0\AuthApi.pdb
 D:\SWP-AGU\swp391-HIVSystem\AuthApi\obj\Debug\net8.0\AuthApi.genruntimeconfig.cache
 D:\SWP-AGU\swp391-HIVSystem\AuthApi\obj\Debug\net8.0\ref\AuthApi.dll
+D:\SWP-AGU\swp391-HIVSystem\AuthApi\bin\Debug\net8.0\appsettings.Development.json
+D:\SWP-AGU\swp391-HIVSystem\AuthApi\bin\Debug\net8.0\appsettings.Email.json

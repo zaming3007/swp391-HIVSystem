@@ -23,6 +23,7 @@ namespace AuthApi.Data
         public DbSet<Reminder> Reminders { get; set; }
         public DbSet<BlogPost> BlogPosts { get; set; }
         public DbSet<BlogComment> BlogComments { get; set; }
+        public DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
 
         // ARV Management DbSets
         public DbSet<ARVDrug> ARVDrugs { get; set; }

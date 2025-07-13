@@ -24,6 +24,7 @@ import {
     Email as EmailIcon,
     Google as GoogleIcon,
     Facebook as FacebookIcon,
+    Home as HomeIcon,
 } from '@mui/icons-material';
 import type { RootState } from '../../store';
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
@@ -97,6 +98,23 @@ const LoginPage: React.FC = () => {
                 width: '100%',
             }}
         >
+            {/* Back to Home Button */}
+            <Box sx={{ alignSelf: 'flex-start', mb: 2 }}>
+                <Button
+                    component={RouterLink}
+                    to="/"
+                    startIcon={<HomeIcon />}
+                    variant="outlined"
+                    sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 500,
+                    }}
+                >
+                    Về trang chủ
+                </Button>
+            </Box>
+
             {/* Header */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Avatar
@@ -236,7 +254,7 @@ const LoginPage: React.FC = () => {
                     />
                     <Link
                         component={RouterLink}
-                        to="/auth/reset-password"
+                        to="/auth/forgot-password"
                         variant="body2"
                         sx={{
                             textDecoration: 'none',

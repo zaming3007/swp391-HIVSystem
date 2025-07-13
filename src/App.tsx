@@ -21,6 +21,9 @@ import ContactPage from './pages/contact/ContactPage';
 import TeamPage from './pages/team/TeamPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import VerifyCodePage from './pages/auth/VerifyCodePage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 // import DashboardPage from './pages/admin/DashboardPage';
 import ConsultationsPage from './pages/admin/ConsultationsPage';
 import ProfilePage from './pages/profile/ProfilePage';
@@ -152,7 +155,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/auth" element={<AuthLayout />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
-        <Route path="reset-password" element={<div>Reset Password Page</div>} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="verify-code" element={<VerifyCodePage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="anonymous" element={<div>Đăng ký Ẩn danh</div>} />
       </Route>
 

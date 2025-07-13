@@ -33,8 +33,27 @@ authApi.interceptors.request.use(
 authApi.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Extract error message from response
+        let errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại sau.';
+
+        if (error.response?.data) {
+            if (typeof error.response.data === 'string') {
+                errorMessage = error.response.data;
+            } else if (error.response.data.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response.data.error) {
+                errorMessage = error.response.data.error;
+            }
+        }
+
         // Handle common errors
         if (error.response) {
+            // Client errors (400-499)
+            if (error.response.status >= 400 && error.response.status < 500) {
+                console.error('Auth API - Client error:', error.response.data);
+                error.message = errorMessage;
+            }
+
             // Unauthorized - token expired or invalid
             if (error.response.status === 401) {
                 console.error('Auth API - 401 Unauthorized error:', error.response.data);
@@ -52,13 +71,21 @@ authApi.interceptors.response.use(
                 } else {
                     console.log('Profile update failed with 401, but not logging out user');
                 }
+
+                error.message = errorMessage;
             }
 
-            // Server error
+            // Server error (500+)
             if (error.response.status >= 500) {
                 console.error('Auth API - Server error:', error.response.data);
+                error.message = 'Lỗi máy chủ. Vui lòng thử lại sau.';
             }
+        } else if (error.request) {
+            // Network error
+            console.error('Auth API - Network error:', error.request);
+            error.message = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
         }
+
         return Promise.reject(error);
     }
 );

@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Email configuration (contains sensitive data)
+AuthApi/appsettings.Email.json
+AuthApi/appsettings.Production.json

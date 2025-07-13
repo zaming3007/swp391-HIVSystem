@@ -448,7 +448,76 @@ export const authService = {
         return response.data;
     },
 
+    // Send reset code to email
+    sendResetCode: async (email: string) => {
+        if (USE_MOCK_DATA) {
+            // Mock implementation
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return {
+                success: true,
+                message: "Nếu email tồn tại trong hệ thống, mã xác minh đã được gửi",
+                expiresIn: 300
+            };
+        }
+
+        const response = await authApi.post<{
+            success: boolean;
+            message: string;
+            expiresIn: number;
+        }>('/Auth/send-reset-code', { email });
+        return response.data;
+    },
+
+    // Verify reset code
+    verifyResetCode: async (email: string, code: string) => {
+        if (USE_MOCK_DATA) {
+            // Mock implementation
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (code === '123456') {
+                return {
+                    success: true,
+                    token: 'mock-temp-token',
+                    message: "Mã xác minh đúng"
+                };
+            } else {
+                throw new Error('Mã xác minh không đúng');
+            }
+        }
+
+        const response = await authApi.post<{
+            success: boolean;
+            token: string;
+            message: string;
+        }>('/Auth/verify-reset-code', { email, code });
+        return response.data;
+    },
+
     // Reset password with token
+    resetPasswordWithToken: async (token: string, newPassword: string, confirmPassword: string) => {
+        if (USE_MOCK_DATA) {
+            // Mock implementation
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (newPassword !== confirmPassword) {
+                throw new Error('Mật khẩu xác nhận không khớp');
+            }
+            return {
+                success: true,
+                message: "Mật khẩu đã được cập nhật thành công"
+            };
+        }
+
+        const response = await authApi.post<{
+            success: boolean;
+            message: string;
+        }>('/Auth/reset-password-with-token', {
+            token,
+            newPassword,
+            confirmPassword
+        });
+        return response.data;
+    },
+
+    // Legacy reset password method (keep for backward compatibility)
     resetPassword: async (token: string, newPassword: string) => {
         if (USE_MOCK_DATA) {
             // Mock implementation

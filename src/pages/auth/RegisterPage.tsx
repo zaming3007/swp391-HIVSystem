@@ -26,6 +26,7 @@ import {
     PersonAdd as PersonAddIcon,
     Visibility as VisibilityIcon,
     VisibilityOff as VisibilityOffIcon,
+    Home as HomeIcon,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
 import { registerStart, registerSuccess, registerFailure } from '../../store/slices/authSlice';
@@ -166,6 +167,23 @@ const RegisterPage: React.FC = () => {
                 pb: 3,
             }}
         >
+            {/* Back to Home Button */}
+            <Box sx={{ alignSelf: 'flex-start', mb: 2 }}>
+                <Button
+                    component={RouterLink}
+                    to="/"
+                    startIcon={<HomeIcon />}
+                    variant="outlined"
+                    sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 500,
+                    }}
+                >
+                    Về trang chủ
+                </Button>
+            </Box>
+
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
                 <PersonAddIcon />
             </Avatar>
