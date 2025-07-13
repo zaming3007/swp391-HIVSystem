@@ -3,6 +3,7 @@ using System;
 using AuthApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuthApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250713112533_RemoveImageUrlFromServices")]
+    partial class RemoveImageUrlFromServices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1602,7 +1605,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "1",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(1949),
+                            CreatedAt = new DateTime(2025, 7, 13, 11, 25, 33, 60, DateTimeKind.Utc).AddTicks(5597),
                             DateOfBirth = "1990-01-01",
                             Email = "admin@example.com",
                             FirstName = "Admin",
@@ -1616,7 +1619,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "2",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(5652),
+                            CreatedAt = new DateTime(2025, 7, 13, 11, 25, 33, 60, DateTimeKind.Utc).AddTicks(7313),
                             DateOfBirth = "1985-05-15",
                             Email = "doctor@example.com",
                             FirstName = "Doctor",
@@ -1630,7 +1633,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "3",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(5660),
+                            CreatedAt = new DateTime(2025, 7, 13, 11, 25, 33, 60, DateTimeKind.Utc).AddTicks(7366),
                             DateOfBirth = "1992-10-20",
                             Email = "staff@example.com",
                             FirstName = "Staff",

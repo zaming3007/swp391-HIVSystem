@@ -3,6 +3,7 @@ using System;
 using AuthApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AuthApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250713104921_AddIsActiveToServices")]
+    partial class AddIsActiveToServices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1402,6 +1405,11 @@ namespace AuthApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("duration");
 
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("is_active");
@@ -1431,6 +1439,7 @@ namespace AuthApi.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Khám sức khỏe tổng quát định kỳ",
                             Duration = 60,
+                            ImageUrl = "/services/general-checkup.jpg",
                             IsActive = true,
                             Name = "Khám tổng quát",
                             Price = 300000m
@@ -1442,6 +1451,7 @@ namespace AuthApi.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Tư vấn chế độ dinh dưỡng phù hợp",
                             Duration = 45,
+                            ImageUrl = "/services/nutrition-consulting.jpg",
                             IsActive = true,
                             Name = "Tư vấn dinh dưỡng",
                             Price = 250000m
@@ -1453,6 +1463,7 @@ namespace AuthApi.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Khám và điều trị các vấn đề về da",
                             Duration = 30,
+                            ImageUrl = "/services/dermatology.jpg",
                             IsActive = true,
                             Name = "Khám da liễu",
                             Price = 350000m
@@ -1602,7 +1613,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "1",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(1949),
+                            CreatedAt = new DateTime(2025, 7, 13, 10, 49, 21, 161, DateTimeKind.Utc).AddTicks(3101),
                             DateOfBirth = "1990-01-01",
                             Email = "admin@example.com",
                             FirstName = "Admin",
@@ -1616,7 +1627,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "2",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(5652),
+                            CreatedAt = new DateTime(2025, 7, 13, 10, 49, 21, 161, DateTimeKind.Utc).AddTicks(5604),
                             DateOfBirth = "1985-05-15",
                             Email = "doctor@example.com",
                             FirstName = "Doctor",
@@ -1630,7 +1641,7 @@ namespace AuthApi.Migrations
                         new
                         {
                             Id = "3",
-                            CreatedAt = new DateTime(2025, 7, 13, 12, 6, 2, 450, DateTimeKind.Utc).AddTicks(5660),
+                            CreatedAt = new DateTime(2025, 7, 13, 10, 49, 21, 161, DateTimeKind.Utc).AddTicks(5613),
                             DateOfBirth = "1992-10-20",
                             Email = "staff@example.com",
                             FirstName = "Staff",

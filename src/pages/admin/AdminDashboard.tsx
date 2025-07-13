@@ -22,13 +22,11 @@ import {
     People as PeopleIcon,
     PersonAdd as PersonAddIcon,
     LocalHospital as DoctorIcon,
-    EventNote as AppointmentIcon,
     TrendingUp as TrendingUpIcon,
     Assessment as AnalyticsIcon,
-    Schedule as ScheduleIcon,
     CheckCircle as CheckCircleIcon,
-    Pending as PendingIcon,
-    Warning as WarningIcon
+    Warning as WarningIcon,
+    MedicalServices as MedicalServicesIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -39,12 +37,7 @@ interface SystemOverview {
     totalStaff: number;
     activeDoctors: number;
     newUsersThisMonth: number;
-    totalAppointments: number;
-    todayAppointments: number;
-    thisWeekAppointments: number;
-    pendingAppointments: number;
     userGrowthData: MonthlyUserGrowth[];
-    appointmentsByDoctor: DoctorAppointmentCount[];
     systemHealth: SystemHealth;
 }
 
@@ -56,14 +49,7 @@ interface MonthlyUserGrowth {
     newDoctors: number;
 }
 
-interface DoctorAppointmentCount {
-    doctorId: string;
-    doctorName: string;
-    appointmentCount: number;
-    pendingCount: number;
-    confirmedCount: number;
-    completedCount: number;
-}
+
 
 interface SystemHealth {
     databaseStatus: string;
@@ -180,65 +166,89 @@ const AdminDashboard: React.FC = () => {
     return (
         <Box sx={{ flexGrow: 1 }}>
             {/* Header */}
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Dashboard Quản trị
+            <Box sx={{ mb: 4 }}>
+                <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                    🏥 Dashboard Quản trị
                 </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                    Tổng quan hệ thống HIV Treatment Management
+                <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+                    Quản lý toàn diện hệ thống HIV Treatment & Medical Services
                 </Typography>
             </Box>
 
             {/* Quick Actions */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12}>
-                    <Paper sx={{ p: 2 }}>
-                        <Typography variant="h6" gutterBottom>
-                            Thao tác nhanh
+                    <Paper sx={{ p: 3, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+                            ⚡ Thao tác nhanh
                         </Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={3}>
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    startIcon={<PersonAddIcon />}
-                                    onClick={() => navigate('/admin/doctors')}
-                                    sx={{ py: 1.5 }}
-                                >
-                                    Quản lý bác sĩ
-                                </Button>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Button
-                                    variant="outlined"
-                                    fullWidth
-                                    startIcon={<AppointmentIcon />}
-                                    onClick={() => navigate('/admin/appointments')}
-                                    sx={{ py: 1.5 }}
-                                >
-                                    Quản lý lịch hẹn
-                                </Button>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Button
-                                    variant="outlined"
-                                    fullWidth
                                     startIcon={<PeopleIcon />}
                                     onClick={() => navigate('/admin/users')}
-                                    sx={{ py: 1.5 }}
+                                    sx={{
+                                        py: 1.5,
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                                        backdropFilter: 'blur(10px)',
+                                        border: '1px solid rgba(255,255,255,0.3)'
+                                    }}
                                 >
                                     Quản lý người dùng
                                 </Button>
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <Button
-                                    variant="outlined"
+                                    variant="contained"
+                                    fullWidth
+                                    startIcon={<PersonAddIcon />}
+                                    onClick={() => navigate('/admin/doctors')}
+                                    sx={{
+                                        py: 1.5,
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                                        backdropFilter: 'blur(10px)',
+                                        border: '1px solid rgba(255,255,255,0.3)'
+                                    }}
+                                >
+                                    Quản lý bác sĩ
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="contained"
+                                    fullWidth
+                                    startIcon={<MedicalServicesIcon />}
+                                    onClick={() => navigate('/admin/services')}
+                                    sx={{
+                                        py: 1.5,
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                                        backdropFilter: 'blur(10px)',
+                                        border: '1px solid rgba(255,255,255,0.3)'
+                                    }}
+                                >
+                                    Quản lý dịch vụ
+                                </Button>
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={3}>
+                                <Button
+                                    variant="contained"
                                     fullWidth
                                     startIcon={<AnalyticsIcon />}
-                                    onClick={() => navigate('/admin/analytics')}
-                                    sx={{ py: 1.5 }}
+                                    onClick={() => navigate('/admin/reports')}
+                                    sx={{
+                                        py: 1.5,
+                                        bgcolor: 'rgba(255,255,255,0.2)',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                                        backdropFilter: 'blur(10px)',
+                                        border: '1px solid rgba(255,255,255,0.3)'
+                                    }}
                                 >
-                                    Báo cáo chi tiết
+                                    Báo cáo & Thống kê
                                 </Button>
                             </Grid>
                         </Grid>
@@ -247,22 +257,30 @@ const AdminDashboard: React.FC = () => {
             </Grid>
 
             {/* Main Statistics */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3, color: 'text.primary' }}>
+                📊 Thống kê tổng quan
+            </Typography>
+            <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card>
+                    <Card sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': { transform: 'translateY(-5px)' }
+                    }}>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                                    <PeopleIcon />
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2, backdropFilter: 'blur(10px)' }}>
+                                    <PeopleIcon sx={{ color: 'white' }} />
                                 </Avatar>
                                 <Box>
-                                    <Typography color="text.secondary" gutterBottom>
+                                    <Typography color="rgba(255,255,255,0.8)" gutterBottom>
                                         Tổng người dùng
                                     </Typography>
-                                    <Typography variant="h5">
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                                         {overview.totalUsers}
                                     </Typography>
-                                    <Typography variant="caption" color="success.main">
+                                    <Typography variant="caption" sx={{ color: '#90EE90' }}>
                                         +{overview.newUsersThisMonth} tháng này
                                     </Typography>
                                 </Box>
@@ -271,20 +289,25 @@ const AdminDashboard: React.FC = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card>
+                    <Card sx={{
+                        background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                        color: 'white',
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': { transform: 'translateY(-5px)' }
+                    }}>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
-                                    <DoctorIcon />
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2, backdropFilter: 'blur(10px)' }}>
+                                    <DoctorIcon sx={{ color: 'white' }} />
                                 </Avatar>
                                 <Box>
-                                    <Typography color="text.secondary" gutterBottom>
+                                    <Typography color="rgba(255,255,255,0.8)" gutterBottom>
                                         Bác sĩ hoạt động
                                     </Typography>
-                                    <Typography variant="h5">
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                                         {overview.activeDoctors}/{overview.totalDoctors}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" sx={{ color: '#90EE90' }}>
                                         {Math.round((overview.activeDoctors / overview.totalDoctors) * 100)}% hoạt động
                                     </Typography>
                                 </Box>
@@ -293,21 +316,26 @@ const AdminDashboard: React.FC = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card>
+                    <Card sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': { transform: 'translateY(-5px)' }
+                    }}>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
-                                    <AppointmentIcon />
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2, backdropFilter: 'blur(10px)' }}>
+                                    <PeopleIcon sx={{ color: 'white' }} />
                                 </Avatar>
                                 <Box>
-                                    <Typography color="text.secondary" gutterBottom>
-                                        Lịch hẹn hôm nay
+                                    <Typography color="rgba(255,255,255,0.8)" gutterBottom>
+                                        Khách hàng
                                     </Typography>
-                                    <Typography variant="h5">
-                                        {overview.todayAppointments}
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                                        {overview.totalCustomers}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {overview.thisWeekAppointments} tuần này
+                                    <Typography variant="caption" sx={{ color: '#90EE90' }}>
+                                        Đang sử dụng dịch vụ
                                     </Typography>
                                 </Box>
                             </Box>
@@ -315,81 +343,57 @@ const AdminDashboard: React.FC = () => {
                     </Card>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
-                    <Card>
+                    <Card sx={{
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        color: 'white',
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': { transform: 'translateY(-5px)' }
+                    }}>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
-                                    <PendingIcon />
+                                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', mr: 2, backdropFilter: 'blur(10px)' }}>
+                                    <PeopleIcon sx={{ color: 'white' }} />
                                 </Avatar>
                                 <Box>
-                                    <Typography color="text.secondary" gutterBottom>
-                                        Chờ xác nhận
+                                    <Typography color="rgba(255,255,255,0.8)" gutterBottom>
+                                        Nhân viên
                                     </Typography>
-                                    <Typography variant="h5">
-                                        {overview.pendingAppointments}
+                                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                                        {overview.totalStaff}
                                     </Typography>
-                                    <Typography variant="caption" color="warning.main">
-                                        Cần xử lý
+                                    <Typography variant="caption" sx={{ color: '#90EE90' }}>
+                                        Đang làm việc
                                     </Typography>
                                 </Box>
                             </Box>
                         </CardContent>
                     </Card>
                 </Grid>
+
             </Grid>
 
             {/* Detailed Information */}
             <Grid container spacing={3}>
-                {/* Doctor Performance */}
+                {/* Doctor Management */}
                 <Grid item xs={12} md={6}>
                     <Card>
                         <CardContent>
                             <Typography variant="h6" gutterBottom>
-                                Hiệu suất bác sĩ
+                                Quản lý bác sĩ
                             </Typography>
-                            <List>
-                                {overview.appointmentsByDoctor.slice(0, 5).map((doctor, index) => (
-                                    <React.Fragment key={doctor.doctorId}>
-                                        <ListItem>
-                                            <ListItemIcon>
-                                                <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                                                    {index + 1}
-                                                </Avatar>
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary={doctor.doctorName}
-                                                secondary={
-                                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                                                        <Chip
-                                                            label={`${doctor.appointmentCount} lịch hẹn`}
-                                                            size="small"
-                                                            color="primary"
-                                                        />
-                                                        <Chip
-                                                            label={`${doctor.pendingCount} chờ`}
-                                                            size="small"
-                                                            color="warning"
-                                                        />
-                                                        <Chip
-                                                            label={`${doctor.completedCount} hoàn thành`}
-                                                            size="small"
-                                                            color="success"
-                                                        />
-                                                    </Box>
-                                                }
-                                            />
-                                        </ListItem>
-                                        {index < Math.min(overview.appointmentsByDoctor.length, 5) - 1 && <Divider />}
-                                    </React.Fragment>
-                                ))}
-                            </List>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Tổng số bác sĩ: {overview.totalDoctors}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Bác sĩ đang hoạt động: {overview.activeDoctors}
+                            </Typography>
                             <Button
                                 fullWidth
                                 variant="outlined"
                                 sx={{ mt: 2 }}
                                 onClick={() => navigate('/admin/doctors')}
                             >
-                                Xem tất cả bác sĩ
+                                Quản lý bác sĩ
                             </Button>
                         </CardContent>
                     </Card>
@@ -421,7 +425,7 @@ const AdminDashboard: React.FC = () => {
                                 <Divider />
                                 <ListItem>
                                     <ListItemIcon>
-                                        <ScheduleIcon color="info" />
+                                        <CheckCircleIcon color="info" />
                                     </ListItemIcon>
                                     <ListItemText
                                         primary="Sao lưu gần nhất"

@@ -25,7 +25,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import VerifyCodePage from './pages/auth/VerifyCodePage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 // import DashboardPage from './pages/admin/DashboardPage';
-import ConsultationsPage from './pages/admin/ConsultationsPage';
+
 import ProfilePage from './pages/profile/ProfilePage';
 import AppointmentPage from './pages/appointment/AppointmentPage';
 import MyAppointmentsPage from './pages/appointment/MyAppointmentsPage';
@@ -39,6 +39,7 @@ import TestResultsPage from './pages/medical/TestResultsPage';
 import BlogPage from './pages/blog/BlogPage';
 import BlogDetailPage from './pages/blog/BlogDetailPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import StaffAppointments from './pages/staff/StaffAppointments';
 import StaffConsultationManagement from './pages/staff/StaffConsultationManagement';
@@ -56,6 +57,7 @@ import DoctorScheduleManagement from './pages/doctor/DoctorScheduleManagement';
 import AdminDoctorManagement from './pages/admin/AdminDoctorManagement';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
+import ServiceManagementPage from './pages/admin/ServiceManagementPage';
 
 import AuthGuard from './components/auth/AuthGuard';
 import { Provider } from 'react-redux';
@@ -188,10 +190,10 @@ const AppRoutes: React.FC = () => {
         }>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="appointments" element={<div>Quản lý lịch hẹn</div>} />
-          <Route path="consultations" element={<ConsultationsPage />} />
-          <Route path="services" element={<div>Quản lý dịch vụ</div>} />
-          <Route path="users" element={<div>Quản lý người dùng</div>} />
+
+
+          <Route path="services" element={<ServiceManagementPage />} />
+          <Route path="users" element={<UserManagementPage />} />
           <Route path="blog" element={<BlogManagementPage />} />
           <Route path="doctors" element={<AdminDoctorManagement />} />
           <Route path="arv-regimen" element={<div>Quản lý phác đồ ARV</div>} />

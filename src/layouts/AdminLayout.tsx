@@ -21,16 +21,17 @@ import {
 import {
     Dashboard as DashboardIcon,
     People as PeopleIcon,
-    EventNote as EventNoteIcon,
     MedicalServices as MedicalServicesIcon,
-    Message as MessageIcon,
     Settings as SettingsIcon,
     Logout as LogoutIcon,
     Assessment as AssessmentIcon,
     Menu as MenuIcon,
     ChevronLeft as ChevronLeftIcon,
     ChevronRight as ChevronRightIcon,
-    Home as HomeIcon
+    Home as HomeIcon,
+    PersonAdd as PersonAddIcon,
+    Article as ArticleIcon,
+    SupervisorAccount as SupervisorAccountIcon
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { logout } from '../store/slices/authSlice';
@@ -266,7 +267,7 @@ const AdminLayout: React.FC = () => {
                     <ListItem disablePadding>
                         <ListItemButton
                             component={RouterLink}
-                            to="/admin/appointments"
+                            to="/admin/users"
                             sx={{
                                 minHeight: 48,
                                 justifyContent: open ? 'initial' : 'center',
@@ -284,14 +285,15 @@ const AdminLayout: React.FC = () => {
                                     color: '#7E57C2'
                                 }}
                             >
-                                <EventNoteIcon />
+                                <SupervisorAccountIcon />
                             </ListItemIcon>
                             <ListItemText
-                                primary="Quản lý lịch hẹn"
+                                primary="Quản lý người dùng"
                                 sx={{ opacity: open ? 1 : 0 }}
                             />
                         </ListItemButton>
                     </ListItem>
+
                     <ListItem disablePadding>
                         <ListItemButton
                             component={RouterLink}
@@ -321,35 +323,8 @@ const AdminLayout: React.FC = () => {
                             />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={RouterLink}
-                            to="/admin/consultations"
-                            sx={{
-                                minHeight: 48,
-                                justifyContent: open ? 'initial' : 'center',
-                                px: 2.5,
-                                py: 1.5,
-                                '&:hover': { bgcolor: 'rgba(126, 87, 194, 0.08)' },
-                                '&.Mui-selected': { bgcolor: 'rgba(126, 87, 194, 0.16)' }
-                            }}
-                        >
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    mr: open ? 3 : 'auto',
-                                    justifyContent: 'center',
-                                    color: '#7E57C2'
-                                }}
-                            >
-                                <MessageIcon />
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Quản lý tư vấn"
-                                sx={{ opacity: open ? 1 : 0 }}
-                            />
-                        </ListItemButton>
-                    </ListItem>
+
+
                     <ListItem disablePadding>
                         <ListItemButton
                             component={RouterLink}

@@ -19,9 +19,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load email configuration
-builder.Configuration.AddJsonFile("appsettings.Email.json", optional: true, reloadOnChange: true);
-
 // Add services to the container.
 builder.Services.AddControllers();
 

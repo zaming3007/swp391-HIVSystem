@@ -60,35 +60,7 @@ namespace AuthApi.Controllers
                 overview.NewUsersThisMonth = await _context.Users
                     .CountAsync(u => u.CreatedAt >= thirtyDaysAgo);
 
-                // Get appointment statistics from AppointmentApi
-                try
-                {
-                    var appointmentClient = _httpClientFactory.CreateClient();
-                    var appointmentApiUrl = _configuration["ApiUrls:AppointmentApi"] ?? "http://localhost:5002";
-
-                    var response = await appointmentClient.GetAsync($"{appointmentApiUrl}/api/AdminAppointment/statistics");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var appointmentStats = JsonSerializer.Deserialize<ApiResponse<AppointmentStatistics>>(content, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-
-                        if (appointmentStats?.Success == true && appointmentStats.Data != null)
-                        {
-                            overview.TotalAppointments = appointmentStats.Data.TotalAppointments;
-                            overview.TodayAppointments = appointmentStats.Data.TodayAppointments;
-                            overview.ThisWeekAppointments = appointmentStats.Data.ThisWeekAppointments;
-                            overview.PendingAppointments = appointmentStats.Data.PendingAppointments;
-                            overview.AppointmentsByDoctor = appointmentStats.Data.AppointmentsByDoctor;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Could not fetch appointment statistics");
-                }
+                // Note: Appointment statistics removed as per admin requirements
 
                 // User growth data (last 12 months)
                 var userGrowthData = new List<MonthlyUserGrowth>();
@@ -294,12 +266,7 @@ namespace AuthApi.Controllers
         public int TotalStaff { get; set; }
         public int ActiveDoctors { get; set; }
         public int NewUsersThisMonth { get; set; }
-        public int TotalAppointments { get; set; }
-        public int TodayAppointments { get; set; }
-        public int ThisWeekAppointments { get; set; }
-        public int PendingAppointments { get; set; }
         public List<MonthlyUserGrowth> UserGrowthData { get; set; } = new();
-        public List<DoctorAppointmentCount> AppointmentsByDoctor { get; set; } = new();
         public SystemHealth SystemHealth { get; set; } = new();
     }
 
@@ -378,27 +345,5 @@ namespace AuthApi.Controllers
         public int Count { get; set; }
     }
 
-    // External API response models
-    public class AppointmentStatistics
-    {
-        public int TotalAppointments { get; set; }
-        public int TodayAppointments { get; set; }
-        public int ThisWeekAppointments { get; set; }
-        public int ThisMonthAppointments { get; set; }
-        public int PendingAppointments { get; set; }
-        public int ConfirmedAppointments { get; set; }
-        public int CompletedAppointments { get; set; }
-        public int CancelledAppointments { get; set; }
-        public List<DoctorAppointmentCount> AppointmentsByDoctor { get; set; } = new();
-    }
-
-    public class DoctorAppointmentCount
-    {
-        public string DoctorId { get; set; } = string.Empty;
-        public string DoctorName { get; set; } = string.Empty;
-        public int AppointmentCount { get; set; }
-        public int PendingCount { get; set; }
-        public int ConfirmedCount { get; set; }
-        public int CompletedCount { get; set; }
-    }
+    // Note: Appointment-related models removed as per admin requirements
 }

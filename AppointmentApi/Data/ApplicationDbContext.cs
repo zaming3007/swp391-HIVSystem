@@ -410,10 +410,6 @@ namespace AppointmentApi.Data
                 .HasColumnName("duration");
 
             modelBuilder.Entity<Service>()
-                .Property(s => s.ImageUrl)
-                .HasColumnName("image_url");
-
-            modelBuilder.Entity<Service>()
                 .Property(s => s.CreatedAt)
                 .HasColumnName("created_at");
 

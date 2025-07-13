@@ -477,7 +477,6 @@ namespace AuthApi.Data
                     Duration = 60,
                     Price = 300000,
                     Category = "Khám tổng quát",
-                    ImageUrl = "/services/general-checkup.jpg",
                     CreatedAt = currentDate
                 },
                 new Service
@@ -488,7 +487,6 @@ namespace AuthApi.Data
                     Duration = 45,
                     Price = 250000,
                     Category = "Dinh dưỡng",
-                    ImageUrl = "/services/nutrition-consulting.jpg",
                     CreatedAt = currentDate
                 },
                 new Service
@@ -499,7 +497,6 @@ namespace AuthApi.Data
                     Duration = 30,
                     Price = 350000,
                     Category = "Da liễu",
-                    ImageUrl = "/services/dermatology.jpg",
                     CreatedAt = currentDate
                 }
             );
