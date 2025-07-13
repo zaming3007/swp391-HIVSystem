@@ -293,6 +293,31 @@ const DoctorLayout: React.FC = () => {
                     <ListItem disablePadding>
                         <ListItemButton
                             component="a"
+                            href="/doctor/arv-management"
+                            sx={{
+                                minHeight: 48,
+                                justifyContent: open ? 'initial' : 'center',
+                                px: 2.5,
+                            }}
+                        >
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    mr: open ? 3 : 'auto',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <PharmacyIcon />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary="Quản lý phác đồ ARV"
+                                sx={{ opacity: open ? 1 : 0 }}
+                            />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component="a"
                             href="/doctor/schedule"
                             sx={{
                                 minHeight: 48,

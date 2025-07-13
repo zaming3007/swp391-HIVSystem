@@ -10,6 +10,7 @@ const menuItems = [
     { name: 'Dịch vụ', path: '/services' },
     { name: 'Đặt lịch', path: '/appointment' },
     { name: 'Tư vấn', path: '/consultation' },
+    { name: 'Phác đồ ARV', path: '/app/arv-treatment' },
     { name: 'Nhắc nhở', path: '/reminder' },
     { name: 'Hồ sơ', path: '/profile' },
     { name: 'Liên hệ', path: '/contact' },

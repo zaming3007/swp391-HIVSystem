@@ -34,12 +34,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     // Đọc chuỗi kết nối từ biến môi trường nếu có
-    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
+    var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ??
                            builder.Configuration.GetConnectionString("DefaultConnection");
-    
+
     Console.WriteLine($"Connection string source: {(Environment.GetEnvironmentVariable("DATABASE_URL") != null ? "Environment variable" : "Configuration file")}");
     Console.WriteLine($"Connection string: {connectionString}");
-    
+
     options.UseNpgsql(connectionString);
 });
 
@@ -63,7 +63,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"] ?? string.Empty))
         };
-        
+
         // Thêm event handlers để debug JWT
         options.Events = new JwtBearerEvents
         {
@@ -79,7 +79,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
             OnChallenge = context =>
             {
-                Console.WriteLine($"Challenge: {context.AuthenticateFailure?.Message}");
+                Console.WriteLine($"Challenge:");
+                Console.WriteLine($"  Error: {context.Error}");
+                Console.WriteLine($"  ErrorDescription: {context.ErrorDescription}");
+                Console.WriteLine($"  AuthenticateFailure: {context.AuthenticateFailure?.Message}");
+                Console.WriteLine($"  Request Path: {context.Request.Path}");
                 return System.Threading.Tasks.Task.CompletedTask;
             },
             OnMessageReceived = context =>
@@ -130,7 +134,8 @@ builder.Services.AddScoped<IServiceManager, ServiceManager>();
 var app = builder.Build();
 
 // Thêm endpoint root đơn giản cho healthcheck
-app.MapGet("/", () => {
+app.MapGet("/", () =>
+{
     Console.WriteLine("Root endpoint accessed");
     return "AppointmentApi is running!";
 });
@@ -187,4 +192,4 @@ app.MapControllers();
 Console.WriteLine($"AppointmentApi is starting in {app.Environment.EnvironmentName} environment");
 Console.WriteLine($"ASPNETCORE_URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");
 
-app.Run(); 
+app.Run();

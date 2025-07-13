@@ -45,7 +45,9 @@ import DoctorPatientManagement from './pages/doctor/DoctorPatientManagement';
 import ARVRegimenManagement from './pages/doctor/ARVRegimenManagement';
 import DoctorAppointmentManagement from './pages/doctor/DoctorAppointmentManagement';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
+import DoctorARVManagement from './pages/doctor/DoctorARVManagement';
 import DoctorConsultationManagement from './pages/doctor/DoctorConsultationManagement';
+import PatientARVManagement from './pages/customer/PatientARVManagement';
 import PatientMedicalRecord from './pages/doctor/PatientMedicalRecord';
 import DoctorScheduleManagement from './pages/doctor/DoctorScheduleManagement';
 import AdminDoctorManagement from './pages/admin/AdminDoctorManagement';
@@ -162,6 +164,7 @@ const AppRoutes: React.FC = () => {
         }>
           <Route path="profile" element={<ProfilePage />} />
           <Route path="appointments" element={<MyAppointmentsPage />} />
+          <Route path="arv-treatment" element={<PatientARVManagement />} />
           <Route path="consultations" element={<ConsultationPage />} />
           <Route path="reminder" element={<ReminderPage />} />
           <Route path="test-results" element={<TestResultsPage />} />
@@ -217,6 +220,7 @@ const AppRoutes: React.FC = () => {
           <Route path="patients" element={<DoctorPatientManagement />} />
           <Route path="patients/:patientId/medical-record" element={<PatientMedicalRecord />} />
           <Route path="regimens" element={<ARVRegimenManagement />} />
+          <Route path="arv-management" element={<DoctorARVManagement />} />
           <Route path="schedule" element={<DoctorScheduleManagement />} />
         </Route>
       </Route>

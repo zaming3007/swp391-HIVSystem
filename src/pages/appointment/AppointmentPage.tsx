@@ -19,7 +19,9 @@ import {
     getDoctors,
     getDoctorsByServiceId,
     getAvailableSlots,
-    createAppointment
+    getDetailedTimeSlots,
+    createAppointment,
+    TimeSlotStatus
 } from '../../services/appointmentService';
 import { Service, Doctor, AppointmentType, AppointmentCreateDto } from '../../types';
 import { toast } from 'react-toastify';
@@ -47,11 +49,13 @@ const AppointmentPage: React.FC = () => {
     const [selectedDoctor, setSelectedDoctor] = useState<string>('');
     const [selectedDate, setSelectedDate] = useState<Date | null>(addDays(new Date(), 1));
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [detailedTimeSlots, setDetailedTimeSlots] = useState<TimeSlotStatus[]>([]);
     const [selectedTime, setSelectedTime] = useState<string>('');
     const [notes, setNotes] = useState<string>('');
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
     const [appointmentType, setAppointmentType] = useState<string>('offline');
+    const [showTimeSlotInfo, setShowTimeSlotInfo] = useState<boolean>(true);
 
     // Handle service selection
     const handleServiceChange = (event: SelectChangeEvent) => {
@@ -127,16 +131,26 @@ const AppointmentPage: React.FC = () => {
             if (selectedDoctor && selectedDate && selectedService) {
                 try {
                     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-                    const slots = await getAvailableSlots(
+
+                    // Lấy thông tin chi tiết về tất cả khung giờ
+                    const detailedSlots = await getDetailedTimeSlots(
                         selectedDoctor,
                         formattedDate,
                         selectedService.id
                     );
-                    setAvailableSlots(slots);
+                    setDetailedTimeSlots(detailedSlots);
+
+                    // Lấy chỉ các khung giờ có sẵn để tương thích với code cũ
+                    const availableOnly = detailedSlots
+                        .filter(slot => slot.isAvailable)
+                        .map(slot => slot.time);
+                    setAvailableSlots(availableOnly);
+
                     setSelectedTime(''); // Reset selected time when slots change
                 } catch (error) {
                     console.error('Failed to fetch available slots', error);
                     setAvailableSlots([]);
+                    setDetailedTimeSlots([]);
                 }
             }
         };
@@ -253,12 +267,16 @@ const AppointmentPage: React.FC = () => {
 
             // Nếu lỗi trùng lịch, tự động làm mới danh sách khung giờ
             if (errorMessage.includes('trùng lịch') || errorMessage.includes('không có lịch trống')) {
-                // Làm mới danh sách khung giờ
+                // Làm mới danh sách khung giờ với thông tin chi tiết
                 if (selectedDoctor && selectedDate && selectedService) {
                     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-                    getAvailableSlots(selectedDoctor, formattedDate, selectedService.id)
-                        .then(slots => {
-                            setAvailableSlots(slots);
+                    getDetailedTimeSlots(selectedDoctor, formattedDate, selectedService.id)
+                        .then(detailedSlots => {
+                            setDetailedTimeSlots(detailedSlots);
+                            const availableOnly = detailedSlots
+                                .filter(slot => slot.isAvailable)
+                                .map(slot => slot.time);
+                            setAvailableSlots(availableOnly);
                             setSelectedTime(''); // Đặt lại thời gian đã chọn
                         })
                         .catch(err => console.error('Failed to refresh available slots', err));
@@ -347,24 +365,117 @@ const AppointmentPage: React.FC = () => {
                         </Grid>
                         <Grid item xs={12}>
                             <FormControl fullWidth disabled={!selectedDoctor || !selectedDate}>
+                                <Typography variant="h6" gutterBottom>
+                                    Chọn khung giờ khám
+                                </Typography>
+
+                                {/* Info Alert */}
+                                {showTimeSlotInfo && (
+                                    <Alert
+                                        severity="info"
+                                        onClose={() => setShowTimeSlotInfo(false)}
+                                        sx={{ mb: 2 }}
+                                    >
+                                        <Typography variant="body2">
+                                            <strong>🎯 Cải tiến mới:</strong> Bây giờ bạn có thể thấy TẤT CẢ khung giờ làm việc của bác sĩ!
+                                            Khung giờ màu đỏ đã được đặt (không thể chọn), khung giờ màu xanh còn trống (có thể đặt).
+                                        </Typography>
+                                    </Alert>
+                                )}
+
+                                {/* Legend */}
+                                <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{
+                                            width: 16,
+                                            height: 16,
+                                            backgroundColor: 'success.main',
+                                            border: '1px solid',
+                                            borderColor: 'success.main',
+                                            borderRadius: 1
+                                        }} />
+                                        <Typography variant="caption">🟢 Có sẵn - Có thể đặt</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{
+                                            width: 16,
+                                            height: 16,
+                                            backgroundColor: '#ffebee',
+                                            border: '1px solid #e57373',
+                                            borderRadius: 1
+                                        }} />
+                                        <Typography variant="caption">🔴 Đã đặt - Không thể chọn</Typography>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Box sx={{
+                                            width: 16,
+                                            height: 16,
+                                            backgroundColor: 'primary.main',
+                                            border: '1px solid',
+                                            borderColor: 'primary.main',
+                                            borderRadius: 1
+                                        }} />
+                                        <Typography variant="caption">Đã chọn</Typography>
+                                    </Box>
+                                </Box>
                                 <Grid container spacing={2}>
-                                    {availableSlots.length === 0 ? (
+                                    {detailedTimeSlots.length === 0 ? (
                                         <Grid item xs={12}>
                                             <Alert severity="info">
-                                                Không có khung giờ khả dụng cho ngày này. Vui lòng chọn ngày khác.
+                                                Bác sĩ không có lịch làm việc vào ngày này. Vui lòng chọn ngày khác.
                                             </Alert>
                                         </Grid>
-                                    ) : (
-                                        availableSlots.map((time) => (
-                                            <Grid item xs={6} sm={4} md={3} key={time}>
+                                    ) : availableSlots.length === 0 ? (
+                                        <Grid item xs={12}>
+                                            <Alert severity="warning">
+                                                Tất cả khung giờ trong ngày này đã được đặt. Vui lòng chọn ngày khác hoặc xem các khung giờ đã đặt bên dưới.
+                                            </Alert>
+                                        </Grid>
+                                    ) : null}
+
+                                    {detailedTimeSlots.length > 0 && (
+                                        detailedTimeSlots.map((slot) => (
+                                            <Grid item xs={6} sm={4} md={3} key={slot.time}>
                                                 <Button
-                                                    variant={selectedTime === time ? 'contained' : 'outlined'}
-                                                    color={selectedTime === time ? 'primary' : 'inherit'}
+                                                    variant={selectedTime === slot.time ? 'contained' : 'outlined'}
+                                                    color={
+                                                        selectedTime === slot.time
+                                                            ? 'primary'
+                                                            : slot.isBooked
+                                                                ? 'error'
+                                                                : 'success'
+                                                    }
                                                     fullWidth
-                                                    onClick={() => handleTimeChange({ target: { value: time } } as SelectChangeEvent)}
-                                                    sx={{ mb: 1 }}
+                                                    disabled={slot.isBooked}
+                                                    onClick={() => slot.isAvailable && handleTimeChange({ target: { value: slot.time } } as SelectChangeEvent)}
+                                                    sx={{
+                                                        mb: 1,
+                                                        position: 'relative',
+                                                        '&.Mui-disabled': {
+                                                            backgroundColor: '#ffebee',
+                                                            color: '#c62828',
+                                                            border: '1px solid #e57373'
+                                                        }
+                                                    }}
                                                 >
-                                                    {time}
+                                                    <Box sx={{ textAlign: 'center' }}>
+                                                        <Typography variant="body2" fontWeight="medium">
+                                                            {slot.time}
+                                                        </Typography>
+                                                        {slot.isBooked && (
+                                                            <Typography variant="caption" display="block">
+                                                                Đã đặt
+                                                                {slot.patientName && (
+                                                                    <span> - {slot.patientName}</span>
+                                                                )}
+                                                            </Typography>
+                                                        )}
+                                                        {slot.isAvailable && (
+                                                            <Typography variant="caption" display="block" color="success.main">
+                                                                Có sẵn
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
                                                 </Button>
                                             </Grid>
                                         ))

@@ -39,6 +39,7 @@ import {
     Notifications as NotificationIcon
 } from '@mui/icons-material';
 import { RootState } from '../../store';
+import arvService, { Patient } from '../../services/arvService';
 
 // Mock data - sẽ được thay thế bằng API calls
 const mockDoctorStats = {
@@ -115,6 +116,12 @@ const DoctorDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [appointments, setAppointments] = useState<any[]>([]);
     const [consultations, setConsultations] = useState<any[]>([]);
+    const [patients, setPatients] = useState<Patient[]>([]);
+    const [arvStats, setArvStats] = useState({
+        totalPatients: 0,
+        activeRegimens: 0,
+        needingReview: 0
+    });
 
     useEffect(() => {
         loadDashboardData();
@@ -138,10 +145,33 @@ const DoctorDashboard: React.FC = () => {
             //     setConsultations(consultationResponse.data.data || []);
             // }
 
+            // Load ARV patients data
+            await loadARVData();
+
         } catch (error) {
             console.error('Error loading dashboard data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadARVData = async () => {
+        try {
+            const patientsData = await arvService.getDoctorPatients();
+            setPatients(patientsData);
+
+            // Calculate ARV statistics
+            const totalPatients = patientsData.length;
+            const activeRegimens = patientsData.filter(p => p.currentRegimen).length;
+            const needingReview = patientsData.filter(p => !p.currentRegimen).length;
+
+            setArvStats({
+                totalPatients,
+                activeRegimens,
+                needingReview
+            });
+        } catch (error) {
+            console.error('Error loading ARV data:', error);
         }
     };
 
@@ -261,10 +291,10 @@ const DoctorDashboard: React.FC = () => {
                                 </Avatar>
                                 <Box>
                                     <Typography color="text.secondary" gutterBottom>
-                                        Tổng bệnh nhân
+                                        Tổng bệnh nhân ARV
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockDoctorStats.totalPatients}
+                                        {arvStats.totalPatients}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -280,10 +310,10 @@ const DoctorDashboard: React.FC = () => {
                                 </Avatar>
                                 <Box>
                                     <Typography color="text.secondary" gutterBottom>
-                                        Đánh giá trung bình
+                                        Đang điều trị ARV
                                     </Typography>
                                     <Typography variant="h5">
-                                        {mockDoctorStats.averageRating}/5.0
+                                        {arvStats.activeRegimens}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -465,6 +495,73 @@ const DoctorDashboard: React.FC = () => {
                                     {index < mockTodayAppointments.length - 1 && <Divider />}
                                 </React.Fragment>
                             ))}
+                        </List>
+                    </Paper>
+                </Grid>
+
+                {/* ARV Patients Needing Review */}
+                <Grid item xs={12} md={7}>
+                    <Paper sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                            <Typography variant="h6">
+                                Bệnh nhân ARV cần theo dõi
+                            </Typography>
+                            <Button
+                                size="small"
+                                onClick={() => navigate('/doctor/regimens')}
+                                variant="outlined"
+                            >
+                                Xem tất cả
+                            </Button>
+                        </Box>
+                        <List>
+                            {patients.filter(p => !p.currentRegimen).slice(0, 3).map((patient, index) => (
+                                <React.Fragment key={patient.patientId}>
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            <PatientsIcon />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary={
+                                                <Typography variant="body1" fontWeight="medium">
+                                                    {patient.patientName}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                                                    <Chip
+                                                        label="Chưa có phác đồ"
+                                                        color="warning"
+                                                        size="small"
+                                                    />
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Lần khám cuối: {new Date(patient.lastAppointment).toLocaleDateString('vi-VN')}
+                                                    </Typography>
+                                                </Box>
+                                            }
+                                        />
+                                        <Button
+                                            size="small"
+                                            variant="outlined"
+                                            onClick={() => navigate('/doctor/regimens')}
+                                        >
+                                            Kê đơn
+                                        </Button>
+                                    </ListItem>
+                                    {index < patients.filter(p => !p.currentRegimen).slice(0, 3).length - 1 && <Divider />}
+                                </React.Fragment>
+                            ))}
+                            {patients.filter(p => !p.currentRegimen).length === 0 && (
+                                <ListItem>
+                                    <ListItemText
+                                        primary={
+                                            <Typography variant="body2" color="text.secondary" align="center">
+                                                Tất cả bệnh nhân đều đã có phác đồ điều trị
+                                            </Typography>
+                                        }
+                                    />
+                                </ListItem>
+                            )}
                         </List>
                     </Paper>
                 </Grid>

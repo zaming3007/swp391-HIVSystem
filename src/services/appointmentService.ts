@@ -736,6 +736,13 @@ export const cancelAppointment = async (id: string): Promise<boolean> => {
     }
 };
 
+export interface TimeSlotStatus {
+    time: string;
+    isAvailable: boolean;
+    isBooked: boolean;
+    patientName?: string;
+}
+
 export const getAvailableSlots = async (doctorId: string, date: string, serviceId: string): Promise<string[]> => {
     if (USE_MOCK_DATA) {
         // Return mock available slots
@@ -784,6 +791,60 @@ export const getAvailableSlots = async (doctorId: string, date: string, serviceI
     } catch (error) {
         console.error("Error fetching available slots:", error);
         return generateMockTimeSlots(date); // Fallback to mock data
+    }
+};
+
+export const getDetailedTimeSlots = async (doctorId: string, date: string, serviceId: string): Promise<TimeSlotStatus[]> => {
+    try {
+        console.log(`Fetching detailed time slots for doctorId=${doctorId}, date=${date}`);
+
+        // Lấy tất cả khung giờ làm việc của bác sĩ (bao gồm cả đã đặt và chưa đặt)
+        const response = await appointmentApi.get<ApiResponse<AvailableSlot[]>>(
+            `/appointments/available-slots?doctorId=${doctorId}&date=${date}`
+        );
+
+        // Lấy các lịch hẹn đã được đặt
+        const existingAppointmentsResponse = await appointmentApi.get<ApiResponse<Appointment[]>>(
+            `/appointments/doctor/${doctorId}/date/${date}`
+        );
+
+        const allTimeSlots: TimeSlotStatus[] = [];
+
+        if (response.data.data && response.data.data.length > 0) {
+            // Lấy tất cả khung giờ làm việc (chỉ những khung giờ available)
+            const availableWorkingTimes = response.data.data[0].availableTimes || [];
+            const bookedAppointments = existingAppointmentsResponse.data.data || [];
+
+            // Tạo Set để lưu tất cả khung giờ (cả available và booked)
+            const allWorkingTimes = new Set<string>();
+
+            // Thêm các khung giờ available
+            availableWorkingTimes.forEach(time => allWorkingTimes.add(time));
+
+            // Thêm các khung giờ đã đặt
+            bookedAppointments.forEach(app => allWorkingTimes.add(app.startTime));
+
+            // Sắp xếp theo thời gian
+            const sortedTimes = Array.from(allWorkingTimes).sort();
+
+            // Tạo danh sách tất cả khung giờ với trạng thái
+            sortedTimes.forEach(time => {
+                const bookedAppointment = bookedAppointments.find(app => app.startTime === time);
+
+                allTimeSlots.push({
+                    time: time,
+                    isAvailable: !bookedAppointment,
+                    isBooked: !!bookedAppointment,
+                    patientName: bookedAppointment?.patientName
+                });
+            });
+        }
+
+        console.log(`Found ${allTimeSlots.length} total time slots (available + booked)`);
+        return allTimeSlots;
+    } catch (error) {
+        console.error('Error fetching detailed time slots:', error);
+        return [];
     }
 };
 
