@@ -35,6 +35,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import SchoolIcon from '@mui/icons-material/School';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AuthStatus from '../auth/AuthStatus';
+import NotificationBell from '../NotificationBell';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 
@@ -553,6 +554,11 @@ const Header: React.FC = () => {
 
                     {/* AuthStatus và Menu mobile */}
                     <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 2 }}>
+                        {/* Notification Bell - chỉ hiển thị khi đã đăng nhập */}
+                        {user && (
+                            <NotificationBell userId={user.id || user.email || 'unknown'} />
+                        )}
+
                         {/* Thêm AuthStatus */}
                         <AuthStatus />
 

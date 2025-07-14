@@ -21,54 +21,7 @@ namespace AppointmentApi.Controllers
             _notificationService = notificationService;
         }
 
-        // Lấy danh sách bệnh nhân của doctor (từ appointments)
-        [HttpGet("doctor-patients")]
-        [Authorize(Roles = "doctor")]
-        public async Task<IActionResult> GetDoctorPatients()
-        {
-            try
-            {
-                var doctorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(doctorId))
-                {
-                    return Unauthorized(new { success = false, message = "Không thể xác định doctor" });
-                }
 
-                // Lấy danh sách bệnh nhân từ appointments
-                var patients = await _context.Appointments
-                    .Where(a => a.DoctorId == doctorId && a.Status == AppointmentStatus.Confirmed) // Chỉ lấy appointments đã được xác nhận
-                    .GroupBy(a => new { a.PatientId, a.PatientName })
-                    .Select(g => new
-                    {
-                        patientId = g.Key.PatientId,
-                        patientName = g.Key.PatientName,
-                        lastAppointment = g.Max(a => a.Date).ToString("yyyy-MM-dd"),
-                        totalAppointments = g.Count(),
-                        currentRegimen = _context.PatientRegimens
-                            .Where(pr => pr.PatientId == g.Key.PatientId && pr.Status == "Đang điều trị")
-                            .Select(pr => new
-                            {
-                                id = pr.Id,
-                                name = _context.ARVRegimens.Where(r => r.Id == pr.RegimenId).Select(r => r.Name).FirstOrDefault(),
-                                status = pr.Status
-                            })
-                            .FirstOrDefault()
-                    })
-                    .OrderByDescending(p => p.lastAppointment)
-                    .ToListAsync();
-
-                return Ok(new
-                {
-                    success = true,
-                    data = patients,
-                    count = patients.Count
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi khi lấy danh sách bệnh nhân", error = ex.Message });
-            }
-        }
 
         // Lấy danh sách phác đồ ARV
         [HttpGet("regimens")]
@@ -298,17 +251,188 @@ namespace AppointmentApi.Controllers
             }
         }
 
+
+
+        // Lấy danh sách bệnh nhân của doctor
+        [HttpGet("doctor-patients")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> GetDoctorPatients()
+        {
+            try
+            {
+                var doctorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Unauthorized(new { success = false, message = "Không thể xác định doctor" });
+                }
+
+                // Lấy danh sách bệnh nhân từ appointments
+                var patients = await _context.Appointments
+                    .Where(a => a.DoctorId == doctorId)
+                    .GroupBy(a => a.PatientId)
+                    .Select(g => new
+                    {
+                        PatientId = g.Key,
+                        PatientName = g.First().PatientName,
+                        LastAppointment = g.Max(a => a.Date).ToString("yyyy-MM-dd"),
+                        TotalAppointments = g.Count()
+                    })
+                    .ToListAsync();
+
+                // Lấy thông tin phác đồ hiện tại cho mỗi bệnh nhân
+                var patientsWithRegimens = new List<object>();
+                foreach (var patient in patients)
+                {
+                    var currentRegimen = await _context.PatientRegimens
+                        .Where(pr => pr.PatientId == patient.PatientId && pr.Status == "Đang điều trị")
+                        .Include(pr => pr.Regimen)
+                        .FirstOrDefaultAsync();
+
+                    patientsWithRegimens.Add(new
+                    {
+                        patientId = patient.PatientId,
+                        patientName = patient.PatientName,
+                        lastAppointment = patient.LastAppointment,
+                        totalAppointments = patient.TotalAppointments,
+                        currentRegimen = currentRegimen != null ? new
+                        {
+                            id = currentRegimen.Id,
+                            name = currentRegimen.Regimen?.Name ?? "Không xác định",
+                            status = currentRegimen.Status
+                        } : null
+                    });
+                }
+
+                return Ok(new { success = true, data = patientsWithRegimens });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetDoctorPatients Error: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi khi lấy danh sách bệnh nhân", error = ex.Message });
+            }
+        }
+
+        // Tạo phác đồ ARV mới
+        [HttpPost("regimens")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> CreateRegimen([FromBody] CreateRegimenRequest request)
+        {
+            try
+            {
+                var doctorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Unauthorized(new { success = false, message = "Không thể xác định doctor" });
+                }
+
+                // Validate input
+                if (string.IsNullOrEmpty(request.Name) || string.IsNullOrEmpty(request.Description))
+                {
+                    return BadRequest(new { success = false, message = "Tên và mô tả phác đồ không được để trống" });
+                }
+
+                // Tạo regimen mới
+                var newRegimen = new ARVRegimen
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = request.Name,
+                    Description = request.Description,
+                    Category = request.Category,
+                    LineOfTreatment = request.LineOfTreatment,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.ARVRegimens.Add(newRegimen);
+
+                // Tạo medications cho regimen
+                if (request.SelectedDrugs != null && request.SelectedDrugs.Any())
+                {
+                    for (int i = 0; i < request.SelectedDrugs.Count; i++)
+                    {
+                        var drugId = request.SelectedDrugs[i];
+                        var drug = await _context.ARVDrugs.FindAsync(drugId);
+
+                        if (drug != null)
+                        {
+                            var medication = new ARVMedication
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                RegimenId = newRegimen.Id,
+                                MedicationName = drug.Name,
+                                ActiveIngredient = drug.GenericName,
+                                Dosage = drug.Dosage,
+                                Frequency = "1 lần/ngày", // Default frequency
+                                Instructions = drug.Instructions ?? "Theo chỉ định bác sĩ",
+                                SideEffects = drug.SideEffects ?? "",
+                                SortOrder = i + 1
+                            };
+
+                            _context.ARVMedications.Add(medication);
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Tạo phác đồ thành công", data = newRegimen });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"CreateRegimen Error: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi khi tạo phác đồ", error = ex.Message });
+            }
+        }
+
+        // Lấy danh sách thuốc ARV
+        [HttpGet("drugs")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> GetARVDrugs()
+        {
+            try
+            {
+                var drugs = await _context.ARVDrugs
+                    .Where(d => d.IsActive)
+                    .Select(d => new
+                    {
+                        id = d.Id,
+                        name = d.Name,
+                        genericName = d.GenericName,
+                        dosage = d.Dosage,
+                        category = d.DrugClass,
+                        instructions = d.Instructions,
+                        sideEffects = d.SideEffects
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, data = drugs });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetARVDrugs Error: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi khi lấy danh sách thuốc", error = ex.Message });
+            }
+        }
+
         // Helper method để lấy tên phác đồ
         private string GetRegimenNameById(string regimenId)
         {
-            return regimenId switch
+            try
             {
-                "regimen-001" => "TDF/3TC/EFV",
-                "regimen-002" => "AZT/3TC/NVP",
-                "regimen-003" => "ABC/3TC/DTG",
-                "regimen-004" => "TAF/FTC/BIC",
-                _ => "Phác đồ không xác định"
-            };
+                var regimen = _context.ARVRegimens.FirstOrDefault(r => r.Id == regimenId);
+                return regimen?.Name ?? "Phác đồ không xác định";
+            }
+            catch
+            {
+                return regimenId switch
+                {
+                    "regimen-001" => "TDF/3TC/EFV",
+                    "regimen-002" => "AZT/3TC/NVP",
+                    "regimen-003" => "ABC/3TC/DTG",
+                    "regimen-004" => "TAF/FTC/BIC",
+                    _ => "Phác đồ không xác định"
+                };
+            }
         }
 
         // Lấy lịch sử phác đồ của bệnh nhân
@@ -544,117 +668,9 @@ namespace AppointmentApi.Controllers
             }
         }
 
-        // POST: api/ARVPrescription/regimens - Create new ARV regimen
-        [HttpPost("regimens")]
-        [Authorize(Roles = "doctor")]
-        public async Task<IActionResult> CreateRegimen([FromBody] CreateRegimenRequest request)
-        {
-            try
-            {
-                // Create new regimen
-                var regimen = new ARVRegimen
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = request.Name,
-                    Description = request.Description,
-                    Category = request.Category,
-                    LineOfTreatment = request.LineOfTreatment,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
 
-                _context.ARVRegimens.Add(regimen);
 
-                // Add medications to regimen
-                var medications = new List<ARVMedication>();
-                for (int i = 0; i < request.Medications.Count; i++)
-                {
-                    var medRequest = request.Medications[i];
-                    var medication = new ARVMedication
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        RegimenId = regimen.Id,
-                        MedicationName = medRequest.MedicationName,
-                        ActiveIngredient = medRequest.ActiveIngredient,
-                        Dosage = medRequest.Dosage,
-                        Frequency = medRequest.Frequency,
-                        Instructions = medRequest.Instructions,
-                        SideEffects = medRequest.SideEffects,
-                        SortOrder = i + 1,
-                        CreatedAt = DateTime.UtcNow
-                    };
 
-                    medications.Add(medication);
-                    _context.ARVMedications.Add(medication);
-                }
-
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Phác đồ ARV đã được tạo thành công",
-                    data = new
-                    {
-                        regimen.Id,
-                        regimen.Name,
-                        regimen.Description,
-                        regimen.Category,
-                        regimen.LineOfTreatment,
-                        medications = medications.Select(m => new
-                        {
-                            m.Id,
-                            m.MedicationName,
-                            m.ActiveIngredient,
-                            m.Dosage,
-                            m.Frequency,
-                            m.Instructions,
-                            m.SideEffects,
-                            m.SortOrder
-                        })
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Error creating regimen", error = ex.Message });
-            }
-        }
-
-        // GET: api/ARVPrescription/drugs - Get available ARV drugs
-        [HttpGet("drugs")]
-        [Authorize(Roles = "doctor")]
-        public async Task<IActionResult> GetARVDrugs()
-        {
-            try
-            {
-                var drugs = await _context.ARVDrugs
-                    .Where(d => d.IsActive)
-                    .OrderBy(d => d.DrugClass)
-                    .ThenBy(d => d.Name)
-                    .Select(d => new
-                    {
-                        d.Id,
-                        d.Name,
-                        ActiveIngredient = d.GenericName,
-                        d.DrugClass,
-                        d.SideEffects,
-                        d.Contraindications
-                    })
-                    .ToListAsync();
-
-                return Ok(new
-                {
-                    success = true,
-                    data = drugs,
-                    count = drugs.Count
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Error retrieving ARV drugs", error = ex.Message });
-            }
-        }
     }
 
     // DTOs
@@ -709,7 +725,7 @@ namespace AppointmentApi.Controllers
         public string Description { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string LineOfTreatment { get; set; } = string.Empty;
-        public List<CreateMedicationRequest> Medications { get; set; } = new List<CreateMedicationRequest>();
+        public List<string> SelectedDrugs { get; set; } = new List<string>();
     }
 
     public class CreateMedicationRequest
@@ -721,4 +737,5 @@ namespace AppointmentApi.Controllers
         public string Instructions { get; set; } = string.Empty;
         public string SideEffects { get; set; } = string.Empty;
     }
+
 }

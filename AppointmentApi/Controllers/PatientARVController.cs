@@ -20,11 +20,16 @@ namespace AppointmentApi.Controllers
 
         // Lấy phác đồ hiện tại của bệnh nhân
         [HttpGet("current-regimen")]
+        [Authorize]
         public async Task<IActionResult> GetCurrentRegimen()
         {
             try
             {
                 var patientId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(patientId))
+                {
+                    return Unauthorized(new { success = false, message = "Không thể xác định bệnh nhân" });
+                }
 
                 var currentRegimen = await _context.PatientRegimens
                     .Where(pr => pr.PatientId == patientId && pr.Status == "Đang điều trị")
@@ -74,6 +79,7 @@ namespace AppointmentApi.Controllers
 
         // Lấy lịch sử phác đồ của bệnh nhân
         [HttpGet("regimen-history")]
+        [Authorize]
         public async Task<IActionResult> GetRegimenHistory()
         {
             try

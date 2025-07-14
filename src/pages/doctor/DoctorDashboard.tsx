@@ -507,7 +507,7 @@ const DoctorDashboard: React.FC = () => {
                                             </Tooltip>
                                         </Box>
                                     </ListItem>
-                                    {index < mockTodayAppointments.length - 1 && <Divider />}
+                                    {index < todayAppointments.length - 1 && <Divider />}
                                 </React.Fragment>
                             )) : (
                                 <ListItem>

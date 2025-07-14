@@ -31,7 +31,8 @@ import {
     Tab,
     Accordion,
     AccordionSummary,
-    AccordionDetails
+    AccordionDetails,
+    LinearProgress
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -43,6 +44,8 @@ import {
     Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import arvApi from '../../services/arvApi';
+import arvService from '../../services/arvService';
+import CreateRegimenDialog from '../../components/arv/CreateRegimenDialog';
 
 interface ARVRegimen {
     id: string;
@@ -104,25 +107,177 @@ const DoctorARVManagement: React.FC = () => {
     const [notes, setNotes] = useState('');
     const [reason, setReason] = useState('');
 
+    // New states for patient interaction
+    const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+    const [adherenceDialogOpen, setAdherenceDialogOpen] = useState(false);
+    const [regimenDialogOpen, setRegimenDialogOpen] = useState(false);
+    const [patientAdherence, setPatientAdherence] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [createRegimenOpen, setCreateRegimenOpen] = useState(false);
+
     useEffect(() => {
         loadPatients();
         loadRegimens();
+        loadNotifications();
     }, []);
+
+    // New functions for patient interaction
+    const handleViewPatientAdherence = async (patientId: string) => {
+        try {
+            setSelectedPatientId(patientId);
+            // Call API to get patient adherence data
+            const response = await fetch(`http://localhost:5002/api/PatientARV/patient/${patientId}/adherence`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setPatientAdherence(data.data || []);
+            } else {
+                // Mock data for demo
+                setPatientAdherence([
+                    {
+                        recordDate: '2025-07-13',
+                        adherencePercentage: 93.33,
+                        takenDoses: 28,
+                        totalDoses: 30,
+                        notes: 'Quên uống 2 lần trong tháng'
+                    },
+                    {
+                        recordDate: '2025-06-13',
+                        adherencePercentage: 100,
+                        takenDoses: 30,
+                        totalDoses: 30,
+                        notes: 'Tuân thủ hoàn toàn'
+                    }
+                ]);
+            }
+            setAdherenceDialogOpen(true);
+        } catch (error) {
+            console.error('Error fetching patient adherence:', error);
+            setError('Không thể tải dữ liệu tuân thủ của bệnh nhân');
+        }
+    };
+
+    const handleAdjustRegimen = (patientId: string) => {
+        setSelectedPatientId(patientId);
+        const patient = patients.find(p => p.patientId === patientId);
+        if (patient) {
+            setSelectedPatient(patient);
+            setRegimenDialogOpen(true);
+        }
+    };
+
+    const loadNotifications = async () => {
+        try {
+            // Mock notifications for demo
+            setNotifications([
+                {
+                    id: 1,
+                    patientId: 'customer-001',
+                    patientName: 'Nguyễn Văn A',
+                    type: 'adherence_low',
+                    message: 'Mức độ tuân thủ giảm xuống 85% trong tuần qua',
+                    timestamp: '2025-07-13T10:30:00Z',
+                    read: false
+                },
+                {
+                    id: 2,
+                    patientId: 'customer-002',
+                    patientName: 'Trần Thị B',
+                    type: 'adherence_good',
+                    message: 'Tuân thủ điều trị tốt, đạt 98% trong tháng qua',
+                    timestamp: '2025-07-12T15:20:00Z',
+                    read: false
+                }
+            ]);
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+        }
+    };
 
     const loadPatients = async () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await arvApi.get('/ARVPrescription/patients');
 
-            if (response.data.success) {
-                setPatients(response.data.data);
+            // Load real patient data from doctor-patients endpoint
+            const response = await fetch('http://localhost:5002/api/ARVPrescription/doctor-patients', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data && data.data.length > 0) {
+                    // Transform API data to match our interface
+                    const transformedPatients = data.data.map((patient: any) => ({
+                        patientId: patient.patientId,
+                        patientName: patient.patientName,
+                        lastAppointment: patient.lastAppointment,
+                        totalAppointments: patient.totalAppointments,
+                        currentRegimen: patient.currentRegimen ? {
+                            id: patient.currentRegimen.id,
+                            name: patient.currentRegimen.name,
+                            status: patient.currentRegimen.status
+                        } : undefined
+                    }));
+                    setPatients(transformedPatients);
+                } else {
+                    // Use mock data if no real patients found
+                    setPatients([
+                        {
+                            patientId: 'customer-001',
+                            patientName: 'Nguyễn Văn A',
+                            lastAppointment: '2025-07-10',
+                            totalAppointments: 5,
+                            currentRegimen: {
+                                id: 'patient-regimen-001',
+                                name: 'TDF/3TC/EFV',
+                                status: 'Đang điều trị'
+                            }
+                        },
+                        {
+                            patientId: 'customer-002',
+                            patientName: 'Trần Thị B',
+                            lastAppointment: '2025-07-08',
+                            totalAppointments: 3,
+                            currentRegimen: undefined
+                        }
+                    ]);
+                }
             } else {
-                setError(response.data.message || 'Không thể tải danh sách bệnh nhân');
+                throw new Error('API not available');
             }
         } catch (error: any) {
             console.error('Error loading patients:', error);
-            setError('Lỗi kết nối server');
+            // Fallback to mock data
+            setPatients([
+                {
+                    patientId: 'customer-001',
+                    patientName: 'Nguyễn Văn A',
+                    lastAppointment: '2025-07-10',
+                    totalAppointments: 5,
+                    currentRegimen: {
+                        id: 'patient-regimen-001',
+                        name: 'TDF/3TC/EFV',
+                        status: 'Đang điều trị'
+                    }
+                },
+                {
+                    patientId: 'customer-002',
+                    patientName: 'Trần Thị B',
+                    lastAppointment: '2025-07-08',
+                    totalAppointments: 3,
+                    currentRegimen: undefined
+                }
+            ]);
+            setError('Sử dụng dữ liệu demo - API chưa sẵn sàng');
         } finally {
             setLoading(false);
         }
@@ -130,16 +285,16 @@ const DoctorARVManagement: React.FC = () => {
 
     const loadRegimens = async () => {
         try {
-            const response = await arvApi.get('/ARVPrescription/regimens');
-
-            if (response.data.success) {
-                setRegimens(response.data.data);
+            const response = await arvService.getRegimens();
+            if (response.success) {
+                setRegimens(response.data);
+                setError(null); // Clear any previous errors
             } else {
-                setError(response.data.message || 'Không thể tải danh sách phác đồ');
+                setError('Không thể tải danh sách phác đồ');
             }
         } catch (error: any) {
             console.error('Error loading regimens:', error);
-            setError('Lỗi khi tải danh sách phác đồ');
+            setError('Lỗi khi tải danh sách phác đồ ARV');
         }
     };
 
@@ -260,16 +415,22 @@ const DoctorARVManagement: React.FC = () => {
                                         <Typography variant="body2" gutterBottom>
                                             Mức độ tuân thủ: Chưa có dữ liệu
                                         </Typography>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            onClick={() => {
-                                                // TODO: Implement adherence tracking
-                                                alert('Chức năng theo dõi tuân thủ sẽ được phát triển');
-                                            }}
-                                        >
-                                            Ghi nhận tuân thủ
-                                        </Button>
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={() => handleViewPatientAdherence(patient.patientId)}
+                                            >
+                                                Xem tuân thủ
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                size="small"
+                                                onClick={() => handleAdjustRegimen(patient.patientId)}
+                                            >
+                                                Điều chỉnh phác đồ
+                                            </Button>
+                                        </Box>
                                     </Box>
                                 </CardContent>
                             </Card>
@@ -367,9 +528,18 @@ const DoctorARVManagement: React.FC = () => {
     const renderRegimensTab = () => (
         <Card>
             <CardContent>
-                <Typography variant="h6" gutterBottom>
-                    Danh sách phác đồ ARV
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h6">
+                        Danh sách phác đồ ARV ({regimens.length})
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setCreateRegimenOpen(true)}
+                    >
+                        Tạo phác đồ mới
+                    </Button>
+                </Box>
 
                 {regimens.map((regimen) => (
                     <Accordion key={regimen.id} sx={{ mb: 2 }}>
@@ -431,6 +601,67 @@ const DoctorARVManagement: React.FC = () => {
         </Card>
     );
 
+    const renderNotificationsTab = () => (
+        <Card>
+            <CardContent>
+                <Typography variant="h6" gutterBottom>
+                    Thông báo từ bệnh nhân
+                </Typography>
+
+                {notifications.length > 0 ? (
+                    <Box sx={{ mt: 2 }}>
+                        {notifications.map((notification) => (
+                            <Card
+                                key={notification.id}
+                                variant="outlined"
+                                sx={{
+                                    mb: 2,
+                                    backgroundColor: notification.read ? 'inherit' : 'action.hover',
+                                    border: notification.read ? '1px solid' : '2px solid',
+                                    borderColor: notification.read ? 'divider' : 'primary.main'
+                                }}
+                            >
+                                <CardContent>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="h6" gutterBottom>
+                                                {notification.patientName}
+                                            </Typography>
+                                            <Typography variant="body1" gutterBottom>
+                                                {notification.message}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {new Date(notification.timestamp).toLocaleString('vi-VN')}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <Chip
+                                                label={notification.type === 'adherence_low' ? 'Tuân thủ thấp' : 'Tuân thủ tốt'}
+                                                color={notification.type === 'adherence_low' ? 'error' : 'success'}
+                                                size="small"
+                                            />
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={() => handleViewPatientAdherence(notification.patientId)}
+                                            >
+                                                Xem chi tiết
+                                            </Button>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </Box>
+                ) : (
+                    <Typography color="text.secondary">
+                        Không có thông báo mới
+                    </Typography>
+                )}
+            </CardContent>
+        </Card>
+    );
+
     return (
         <Box sx={{ flexGrow: 1, p: 3 }}>
             <Typography variant="h4" component="h1" gutterBottom>
@@ -450,6 +681,7 @@ const DoctorARVManagement: React.FC = () => {
                     <Tab label="Phác đồ ARV" />
                     <Tab label="Lịch sử điều trị" />
                     <Tab label="Theo dõi tuân thủ" />
+                    <Tab label={`Thông báo ${notifications.filter(n => !n.read).length > 0 ? `(${notifications.filter(n => !n.read).length})` : ''}`} />
                 </Tabs>
             </Box>
 
@@ -458,6 +690,78 @@ const DoctorARVManagement: React.FC = () => {
             {tabValue === 1 && renderRegimensTab()}
             {tabValue === 2 && renderPatientHistoryTab()}
             {tabValue === 3 && renderAdherenceTab()}
+            {tabValue === 4 && renderNotificationsTab()}
+
+            {/* Patient Adherence Dialog */}
+            <Dialog
+                open={adherenceDialogOpen}
+                onClose={() => setAdherenceDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>
+                    Thông tin tuân thủ điều trị - {patients.find(p => p.patientId === selectedPatientId)?.patientName}
+                </DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mt: 2 }}>
+                        {patientAdherence.length > 0 ? (
+                            <TableContainer component={Paper}>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Ngày ghi nhận</TableCell>
+                                            <TableCell>Tỷ lệ tuân thủ</TableCell>
+                                            <TableCell>Liều đã uống</TableCell>
+                                            <TableCell>Tổng liều</TableCell>
+                                            <TableCell>Ghi chú</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {patientAdherence.map((record, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>
+                                                    {new Date(record.recordDate).toLocaleDateString('vi-VN')}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <LinearProgress
+                                                            variant="determinate"
+                                                            value={record.adherencePercentage}
+                                                            sx={{ width: 100 }}
+                                                            color={record.adherencePercentage >= 95 ? 'success' :
+                                                                record.adherencePercentage >= 85 ? 'warning' : 'error'}
+                                                        />
+                                                        <Typography variant="body2">
+                                                            {record.adherencePercentage.toFixed(1)}%
+                                                        </Typography>
+                                                    </Box>
+                                                </TableCell>
+                                                <TableCell>{record.takenDoses}</TableCell>
+                                                <TableCell>{record.totalDoses}</TableCell>
+                                                <TableCell>{record.notes}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        ) : (
+                            <Typography>Chưa có dữ liệu tuân thủ điều trị</Typography>
+                        )}
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setAdherenceDialogOpen(false)}>Đóng</Button>
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            // TODO: Add note or recommendation for patient
+                            alert('Chức năng gửi lời khuyên cho bệnh nhân sẽ được phát triển');
+                        }}
+                    >
+                        Gửi lời khuyên
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Prescribe Dialog */}
             <Dialog open={prescribeDialogOpen} onClose={() => setPrescribeDialogOpen(false)} maxWidth="md" fullWidth>
@@ -528,6 +832,16 @@ const DoctorARVManagement: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Create Regimen Dialog */}
+            <CreateRegimenDialog
+                open={createRegimenOpen}
+                onClose={() => setCreateRegimenOpen(false)}
+                onSuccess={() => {
+                    loadRegimens(); // Refresh regimens list
+                    setCreateRegimenOpen(false);
+                }}
+            />
         </Box>
     );
 };

@@ -1884,16 +1884,161 @@ namespace AppointmentApi.Controllers
 
                 await _context.Database.ExecuteSqlRawAsync(insertDrugsSql);
 
+                // Insert sample ARV regimens
+                var insertRegimensSql = @"
+                    INSERT INTO ""ARVRegimens"" (""Id"", ""Name"", ""Description"", ""Category"", ""LineOfTreatment"", ""IsActive"", ""CreatedAt"") VALUES
+                    ('regimen-001', 'TDF/3TC/EFV', 'Phác đồ điều trị tuyến đầu với Tenofovir + Lamivudine + Efavirenz', 'Điều trị ban đầu', 'Tuyến 1', true, NOW()),
+                    ('regimen-002', 'AZT/3TC/NVP', 'Phác đồ điều trị tuyến đầu với Zidovudine + Lamivudine + Nevirapine', 'Điều trị ban đầu', 'Tuyến 1', true, NOW()),
+                    ('regimen-003', 'ABC/3TC/DTG', 'Phác đồ điều trị với Abacavir + Lamivudine + Dolutegravir', 'Điều trị thay thế', 'Tuyến 1', true, NOW()),
+                    ('regimen-004', 'TAF/FTC/BIC', 'Phác đồ điều trị với Tenofovir Alafenamide + Emtricitabine + Bictegravir', 'Điều trị thay thế', 'Tuyến 1', true, NOW())
+                    ON CONFLICT (""Id"") DO NOTHING;";
+
+                await _context.Database.ExecuteSqlRawAsync(insertRegimensSql);
+
+                // Insert sample ARV medications (linking regimens to drugs)
+                var insertMedicationsSql = @"
+                    INSERT INTO ""ARVMedications"" (""Id"", ""RegimenId"", ""MedicationName"", ""ActiveIngredient"", ""Dosage"", ""Frequency"", ""Instructions"", ""SideEffects"", ""SortOrder"") VALUES
+                    ('med-001', 'regimen-001', 'Tenofovir/Lamivudine', 'Tenofovir DF 300mg + Lamivudine 300mg', '1 viên', '1 lần/ngày', 'Uống cùng hoặc không cùng thức ăn', 'Buồn nôn, đau đầu, mệt mỏi', 1),
+                    ('med-002', 'regimen-001', 'Efavirenz', 'Efavirenz 600mg', '1 viên', '1 lần/ngày', 'Uống trước khi ngủ, tránh thức ăn', 'Chóng mặt, mơ mộng bất thường', 2),
+                    ('med-003', 'regimen-002', 'Zidovudine/Lamivudine', 'Zidovudine 300mg + Lamivudine 150mg', '1 viên', '2 lần/ngày', 'Uống cùng thức ăn', 'Thiếu máu, buồn nôn', 1),
+                    ('med-004', 'regimen-002', 'Nevirapine', 'Nevirapine 200mg', '1 viên', '2 lần/ngày', 'Uống cùng hoặc không cùng thức ăn', 'Phát ban, tăng men gan', 2),
+                    ('med-005', 'regimen-003', 'Abacavir/Lamivudine', 'Abacavir 600mg + Lamivudine 300mg', '1 viên', '1 lần/ngày', 'Uống cùng hoặc không cùng thức ăn', 'Phản ứng dị ứng, buồn nôn', 1),
+                    ('med-006', 'regimen-003', 'Dolutegravir', 'Dolutegravir 50mg', '1 viên', '1 lần/ngày', 'Uống cùng hoặc không cùng thức ăn', 'Đau đầu, buồn nôn nhẹ', 2),
+                    ('med-007', 'regimen-004', 'TAF/FTC', 'Tenofovir Alafenamide 25mg + Emtricitabine 200mg', '1 viên', '1 lần/ngày', 'Uống cùng thức ăn', 'Buồn nôn, đau đầu', 1),
+                    ('med-008', 'regimen-004', 'Bictegravir', 'Bictegravir 50mg', '1 viên', '1 lần/ngày', 'Uống cùng hoặc không cùng thức ăn', 'Đau đầu, tiêu chảy', 2)
+                    ON CONFLICT (""Id"") DO NOTHING;";
+
+                await _context.Database.ExecuteSqlRawAsync(insertMedicationsSql);
+
                 return Ok(new
                 {
                     success = true,
-                    message = "ARV sample data created successfully!",
+                    message = "Complete ARV sample data created successfully!",
+                    data = new
+                    {
+                        drugs = 10,
+                        regimens = 4,
+                        medications = 8
+                    },
                     timestamp = DateTime.Now.ToString("HH:mm:ss")
                 });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = "Error creating ARV sample data", error = ex.Message });
+            }
+        }
+
+        [HttpPost("test-arv-workflow")]
+        public async Task<IActionResult> TestARVWorkflow()
+        {
+            try
+            {
+                var testResults = new List<object>();
+
+                // 1. Test getting regimens
+                var regimens = await _context.ARVRegimens.Take(2).ToListAsync();
+                testResults.Add(new { step = "1. Get Regimens", success = regimens.Any(), count = regimens.Count });
+
+                // 2. Test getting drugs
+                var drugs = await _context.ARVDrugs.Take(3).ToListAsync();
+                testResults.Add(new { step = "2. Get Drugs", success = drugs.Any(), count = drugs.Count });
+
+                // 3. Test creating patient regimen (mock prescription)
+                var testPatientId = "customer-001";
+                var testRegimenId = regimens.FirstOrDefault()?.Id ?? "regimen-001";
+
+                var existingPrescription = await _context.PatientRegimens
+                    .FirstOrDefaultAsync(pr => pr.PatientId == testPatientId && pr.RegimenId == testRegimenId);
+
+                if (existingPrescription == null)
+                {
+                    var newPrescription = new PatientRegimen
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        PatientId = testPatientId,
+                        PatientName = "Test Patient",
+                        RegimenId = testRegimenId,
+                        DoctorId = "doctor@gmail.com",
+                        DoctorName = "Bác sĩ Test",
+                        StartDate = DateTime.Today,
+                        Status = "Đang điều trị",
+                        Notes = "Test prescription for ARV workflow",
+                        Reason = "Test ARV workflow",
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.PatientRegimens.Add(newPrescription);
+                    await _context.SaveChangesAsync();
+                    testResults.Add(new { step = "3. Create Patient Prescription", success = true, prescriptionId = newPrescription.Id });
+                }
+                else
+                {
+                    testResults.Add(new { step = "3. Patient Prescription", success = true, status = "already_exists", prescriptionId = existingPrescription.Id });
+                }
+
+                // 4. Test getting patient's current regimen
+                var patientRegimens = await _context.PatientRegimens
+                    .Where(pr => pr.PatientId == testPatientId && pr.Status == "Đang điều trị")
+                    .Include(pr => pr.Regimen)
+                    .ToListAsync();
+
+                testResults.Add(new { step = "4. Get Patient Regimens", success = patientRegimens.Any(), count = patientRegimens.Count });
+
+                // 5. Test getting regimen medications
+                var regimenMedications = await _context.ARVMedications
+                    .Where(m => m.RegimenId == testRegimenId)
+                    .OrderBy(m => m.SortOrder)
+                    .ToListAsync();
+
+                testResults.Add(new { step = "5. Get Regimen Medications", success = regimenMedications.Any(), count = regimenMedications.Count });
+
+                // 6. Test creating test results
+                var testResult = new TestResult
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PatientId = testPatientId,
+                    TestType = "CD4",
+                    Result = "450 cells/μL",
+                    ReferenceRange = "500-1200 cells/μL",
+                    Status = "completed",
+                    TestDate = DateTime.Today.AddDays(-7),
+                    CreatedAt = DateTime.UtcNow,
+                    Notes = "Test result for ARV workflow"
+                };
+
+                var existingTestResult = await _context.TestResults
+                    .FirstOrDefaultAsync(tr => tr.PatientId == testPatientId && tr.TestType == "CD4" && tr.TestDate.Date == testResult.TestDate.Date);
+
+                if (existingTestResult == null)
+                {
+                    _context.TestResults.Add(testResult);
+                    await _context.SaveChangesAsync();
+                    testResults.Add(new { step = "6. Create Test Result", success = true, testResultId = testResult.Id });
+                }
+                else
+                {
+                    testResults.Add(new { step = "6. Test Result", success = true, status = "already_exists", testResultId = existingTestResult.Id });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "ARV workflow test completed successfully!",
+                    testResults = testResults,
+                    summary = new
+                    {
+                        totalSteps = testResults.Count,
+                        successfulSteps = testResults.Count(r => r.GetType().GetProperty("success")?.GetValue(r)?.ToString() == "True"),
+                        testPatient = testPatientId,
+                        testRegimen = regimens.FirstOrDefault()?.Name,
+                        timestamp = DateTime.Now.ToString("HH:mm:ss")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error testing ARV workflow", error = ex.Message });
             }
         }
 

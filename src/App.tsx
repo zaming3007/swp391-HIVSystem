@@ -36,6 +36,11 @@ import BasicHivInfoPage from './pages/education/BasicHivInfoPage';
 import LivingWithHivPage from './pages/education/LivingWithHivPage';
 import StigmaReductionPage from './pages/education/StigmaReductionPage';
 import TestResultsPage from './pages/medical/TestResultsPage';
+import TestResults from './pages/customer/TestResults';
+import ARVManagement from './pages/customer/ARVManagement';
+import HIVSystemDemo from './pages/demo/HIVSystemDemo';
+import NotificationDemo from './pages/demo/NotificationDemo';
+import NotificationPage from './pages/notifications/NotificationPage';
 import BlogPage from './pages/blog/BlogPage';
 import BlogDetailPage from './pages/blog/BlogDetailPage';
 import BlogManagementPage from './pages/admin/BlogManagementPage';
@@ -55,6 +60,7 @@ import PatientARVManagement from './pages/customer/PatientARVManagement';
 import PatientMedicalRecord from './pages/doctor/PatientMedicalRecord';
 import DoctorScheduleManagement from './pages/doctor/DoctorScheduleManagement';
 import AdminDoctorManagement from './pages/admin/AdminDoctorManagement';
+
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
 import ServiceManagementPage from './pages/admin/ServiceManagementPage';
@@ -148,6 +154,9 @@ const AppRoutes: React.FC = () => {
 
         <Route path="blog" element={<BlogPage />} />
         <Route path="blog/:id" element={<BlogDetailPage />} />
+        <Route path="demo" element={<HIVSystemDemo />} />
+        <Route path="demo/notifications" element={<NotificationDemo />} />
+        <Route path="notifications" element={<NotificationPage />} />
       </Route>
 
       {/* Protected Route for Reminder */}
@@ -173,9 +182,10 @@ const AppRoutes: React.FC = () => {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="appointments" element={<MyAppointmentsPage />} />
           <Route path="arv-treatment" element={<PatientARVManagement />} />
+          <Route path="arv-management" element={<ARVManagement />} />
           <Route path="consultations" element={<ConsultationPage />} />
           <Route path="reminder" element={<ReminderPage />} />
-          <Route path="test-results" element={<TestResultsPage />} />
+          <Route path="test-results" element={<TestResults />} />
           <Route path="medical-history" element={<div>Lịch sử khám và điều trị</div>} />
 
           <Route path="qa" element={<ConsultationQAPage />} />

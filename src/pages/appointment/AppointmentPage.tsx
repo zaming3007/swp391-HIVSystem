@@ -25,6 +25,7 @@ import {
 } from '../../services/appointmentService';
 import { Service, Doctor, AppointmentType, AppointmentCreateDto } from '../../types';
 import { toast } from 'react-toastify';
+import { NotificationHelpers } from '../../services/notificationHelpers';
 
 const AppointmentPage: React.FC = () => {
     const navigate = useNavigate();
@@ -237,6 +238,31 @@ const AppointmentPage: React.FC = () => {
             if (result) {
                 setSubmitSuccess(true);
                 toast.success('Đặt lịch thành công! Đang chuyển hướng...');
+
+                // Tạo notification cho patient
+                try {
+                    const selectedDoctorInfo = doctors.find(d => d.id === selectedDoctor);
+                    const doctorName = selectedDoctorInfo ? `${selectedDoctorInfo.firstName} ${selectedDoctorInfo.lastName}` : 'Bác sĩ';
+                    const appointmentDateTime = `${format(selectedDate!, 'dd/MM/yyyy')} lúc ${selectedTime}`;
+
+                    await NotificationHelpers.notifyAppointmentBooked(
+                        user?.id || user?.email || 'unknown',
+                        result.id || 'unknown',
+                        doctorName,
+                        appointmentDateTime
+                    );
+
+                    // Tạo notification cho doctor
+                    await NotificationHelpers.notifyDoctorNewAppointment(
+                        selectedDoctor,
+                        result.id || 'unknown',
+                        user?.email || 'Bệnh nhân',
+                        appointmentDateTime
+                    );
+                } catch (notificationError) {
+                    console.error('Error creating notifications:', notificationError);
+                    // Không hiển thị lỗi notification cho user vì appointment đã thành công
+                }
 
                 // Chuyển hướng đến trang xem lịch hẹn sau 2 giây
                 setTimeout(() => {
