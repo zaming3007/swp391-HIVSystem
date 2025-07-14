@@ -23,6 +23,25 @@ dist-ssr
 *.sln
 *.sw?
 
-# Email configuration (contains sensitive data)
+# Email configuration and sensitive data
 AuthApi/appsettings.Email.json
 AuthApi/appsettings.Production.json
+AuthApi/appsettings.Development.json
+AuthApi/appsettings.json
+
+# .NET Core build outputs
+AuthApi/bin/
+AuthApi/obj/
+AppointmentApi/bin/
+AppointmentApi/obj/
+
+# Database connection strings and secrets
+**/appsettings.*.json
+!**/appsettings.Example.json
+!**/appsettings.*.Example.json
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
