@@ -21,6 +21,7 @@ namespace AppointmentApi.Data
         public DbSet<ARVDrug> ARVDrugs { get; set; }
         public DbSet<ARVRegimen> ARVRegimens { get; set; }
         public DbSet<ARVMedication> ARVMedications { get; set; }
+        public DbSet<ARVRegimenDrug> ARVRegimenDrugs { get; set; }
         public DbSet<PatientRegimen> PatientRegimens { get; set; }
         public DbSet<AdherenceRecord> AdherenceRecords { get; set; }
         public DbSet<SideEffectRecord> SideEffectRecords { get; set; }

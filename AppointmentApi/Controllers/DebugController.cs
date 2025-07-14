@@ -1946,26 +1946,32 @@ namespace AppointmentApi.Controllers
 
                 // 3. Test creating patient regimen (mock prescription)
                 var testPatientId = "customer-001";
-                var testRegimenId = regimens.FirstOrDefault()?.Id ?? "regimen-001";
+                var testRegimenId = regimens.FirstOrDefault()?.Id ?? "regimen-1";
+
+                // Convert string to int for RegimenId comparison
+                if (!int.TryParse(testRegimenId, out int regimenIdInt))
+                {
+                    regimenIdInt = 1; // Default regimen ID
+                }
 
                 var existingPrescription = await _context.PatientRegimens
-                    .FirstOrDefaultAsync(pr => pr.PatientId == testPatientId && pr.RegimenId == testRegimenId);
+                    .FirstOrDefaultAsync(pr => pr.PatientId == testPatientId && pr.RegimenId == regimenIdInt);
 
                 if (existingPrescription == null)
                 {
                     var newPrescription = new PatientRegimen
                     {
-                        Id = Guid.NewGuid().ToString(),
                         PatientId = testPatientId,
-                        PatientName = "Test Patient",
-                        RegimenId = testRegimenId,
-                        DoctorId = "doctor@gmail.com",
-                        DoctorName = "Bác sĩ Test",
+                        RegimenId = regimenIdInt,
+                        PrescribedBy = "doctor@gmail.com",
+                        PrescribedDate = DateTime.UtcNow,
                         StartDate = DateTime.Today,
-                        Status = "Đang điều trị",
+                        Status = "Active",
                         Notes = "Test prescription for ARV workflow",
-                        Reason = "Test ARV workflow",
-                        CreatedAt = DateTime.UtcNow
+                        DiscontinuationReason = "",
+                        ReviewedBy = "doctor@gmail.com",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
 
                     _context.PatientRegimens.Add(newPrescription);
@@ -1980,7 +1986,7 @@ namespace AppointmentApi.Controllers
                 // 4. Test getting patient's current regimen
                 var patientRegimens = await _context.PatientRegimens
                     .Where(pr => pr.PatientId == testPatientId && pr.Status == "Đang điều trị")
-                    .Include(pr => pr.Regimen)
+                    // Regimen navigation removed due to schema mismatch
                     .ToListAsync();
 
                 testResults.Add(new { step = "4. Get Patient Regimens", success = patientRegimens.Any(), count = patientRegimens.Count });

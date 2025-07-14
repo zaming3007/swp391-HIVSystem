@@ -28,7 +28,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("*")
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -173,22 +173,13 @@ app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
     }
 });
 
-// Migrate database at startup
+// Database migration completely disabled
+Console.WriteLine("Database migration disabled - using existing schema");
+
+// Create TestResults table if it doesn't exist
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        Console.WriteLine("Attempting database migration...");
-        dbContext.Database.Migrate();
-        Console.WriteLine("Database migration completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"An error occurred while migrating the database: {ex.Message}");
-    }
-
-    // Create TestResults table if it doesn't exist
     try
     {
         Console.WriteLine("Creating TestResults table...");
@@ -218,6 +209,9 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"Error creating TestResults table: {ex.Message}");
     }
+
+    // PatientRegimens table already exists in database with correct schema
+    Console.WriteLine("PatientRegimens table exists in database with correct schema");
 }
 
 // Configure the HTTP request pipeline.

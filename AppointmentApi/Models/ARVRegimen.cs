@@ -84,7 +84,7 @@ namespace AppointmentApi.Models
 
         // Navigation properties
         public virtual ICollection<ARVMedication> Medications { get; set; } = new List<ARVMedication>();
-        public virtual ICollection<PatientRegimen> PatientRegimens { get; set; } = new List<PatientRegimen>();
+        // PatientRegimens navigation removed due to schema mismatch (int vs string ID)
     }
 
     // Thuốc trong phác đồ
@@ -122,56 +122,77 @@ namespace AppointmentApi.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
-        [ForeignKey("RegimenId")]
-        public virtual ARVRegimen? Regimen { get; set; }
+        // Navigation properties removed due to schema mismatch
     }
 
     // Phác đồ được chỉ định cho bệnh nhân
     public class PatientRegimen
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        [Column("Id")]
+        public int Id { get; set; } // Match database integer type
 
         [Required]
+        [Column("PatientId")]
+        [StringLength(50)]
         public required string PatientId { get; set; } // ID bệnh nhân
 
         [Required]
-        public required string PatientName { get; set; } // Tên bệnh nhân
+        [Column("RegimenId")]
+        public int RegimenId { get; set; } // ID phác đồ - integer to match database
 
         [Required]
-        public required string DoctorId { get; set; } // ID bác sĩ kê đơn
+        [Column("PrescribedBy")]
+        [StringLength(50)]
+        public required string PrescribedBy { get; set; } // ID bác sĩ kê đơn
 
         [Required]
-        public required string DoctorName { get; set; } // Tên bác sĩ
+        [Column("PrescribedDate")]
+        public DateTime PrescribedDate { get; set; } // Ngày kê đơn
 
-        [Required]
-        public required string RegimenId { get; set; } // ID phác đồ
+        [Column("StartDate")]
+        public DateTime? StartDate { get; set; } // Ngày bắt đầu
 
-        [Required]
-        public DateTime StartDate { get; set; } // Ngày bắt đầu
-
+        [Column("EndDate")]
         public DateTime? EndDate { get; set; } // Ngày kết thúc (nếu có)
 
         [Required]
+        [Column("Status")]
+        [StringLength(20)]
+        public string Status { get; set; } = "Active"; // Match database schema
+
+        [Required]
+        [Column("Notes")]
+        [StringLength(1000)]
+        public string Notes { get; set; } = ""; // Ghi chú của bác sĩ
+
+        [Required]
+        [Column("DiscontinuationReason")]
+        [StringLength(500)]
+        public string DiscontinuationReason { get; set; } = ""; // Lý do ngừng điều trị
+
+        [Column("LastReviewDate")]
+        public DateTime? LastReviewDate { get; set; }
+
+        [Column("NextReviewDate")]
+        public DateTime? NextReviewDate { get; set; }
+
+        [Required]
+        [Column("ReviewedBy")]
         [StringLength(50)]
-        public string Status { get; set; } = "Đang điều trị"; // "Đang điều trị", "Hoàn thành", "Ngừng điều trị"
+        public string ReviewedBy { get; set; } = "";
 
-        [StringLength(1000)]
-        public required string Notes { get; set; } // Ghi chú của bác sĩ
-
-        [StringLength(1000)]
-        public required string Reason { get; set; } // Lý do kê đơn
-
+        [Required]
+        [Column("CreatedAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
 
-        // Navigation properties
-        [ForeignKey("RegimenId")]
-        public virtual ARVRegimen? Regimen { get; set; }
+        [Required]
+        [Column("UpdatedAt")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public virtual ICollection<AdherenceRecord> AdherenceRecords { get; set; } = new List<AdherenceRecord>();
-        public virtual ICollection<SideEffectRecord> SideEffectRecords { get; set; } = new List<SideEffectRecord>();
+        // Navigation properties removed due to schema mismatch
+        // RegimenId (int) cannot link to ARVRegimen.Id (string)
+        // Use manual joins when needed
     }
 
     // Ghi nhận tuân thủ điều trị
@@ -181,7 +202,7 @@ namespace AppointmentApi.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required]
-        public required string PatientRegimenId { get; set; }
+        public int PatientRegimenId { get; set; }
 
         [Required]
         public DateTime RecordDate { get; set; } // Ngày ghi nhận
@@ -209,9 +230,7 @@ namespace AppointmentApi.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation properties
-        [ForeignKey("PatientRegimenId")]
-        public virtual PatientRegimen? PatientRegimen { get; set; }
+        // Navigation properties removed due to schema mismatch
     }
 
     // Ghi nhận tác dụng phụ
@@ -221,7 +240,7 @@ namespace AppointmentApi.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required]
-        public required string PatientRegimenId { get; set; }
+        public int PatientRegimenId { get; set; }
 
         [Required]
         [StringLength(200)]
@@ -252,8 +271,50 @@ namespace AppointmentApi.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
-        // Navigation properties
-        [ForeignKey("PatientRegimenId")]
-        public virtual PatientRegimen? PatientRegimen { get; set; }
+        // Navigation properties removed due to schema mismatch
+    }
+
+    // ARV Regimen Drugs mapping table (matches database schema)
+    public class ARVRegimenDrug
+    {
+        [Key]
+        [Column("Id")]
+        public int Id { get; set; }
+
+        [Required]
+        [Column("RegimenId")]
+        public int RegimenId { get; set; }
+
+        [Required]
+        [Column("DrugId")]
+        public int DrugId { get; set; }
+
+        [Required]
+        [Column("Dosage")]
+        [StringLength(100)]
+        public string Dosage { get; set; } = "";
+
+        [Required]
+        [Column("Frequency")]
+        [StringLength(50)]
+        public string Frequency { get; set; } = "";
+
+        [Required]
+        [Column("Timing")]
+        [StringLength(50)]
+        public string Timing { get; set; } = "";
+
+        [Required]
+        [Column("SpecialInstructions")]
+        [StringLength(500)]
+        public string SpecialInstructions { get; set; } = "";
+
+        [Required]
+        [Column("SortOrder")]
+        public int SortOrder { get; set; }
+
+        [Required]
+        [Column("CreatedAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
