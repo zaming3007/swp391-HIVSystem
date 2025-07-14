@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using AppointmentApi.Data;
 using AppointmentApi.Models;
 using AppointmentApi.Hubs;
+using AppointmentApi.Services;
 using Microsoft.AspNetCore.SignalR;
 
 namespace AppointmentApi.Controllers
@@ -13,11 +14,13 @@ namespace AppointmentApi.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly INotificationService _notificationService;
 
-        public NotificationController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext)
+        public NotificationController(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, INotificationService notificationService)
         {
             _context = context;
             _hubContext = hubContext;
+            _notificationService = notificationService;
         }
 
         // GET: api/Notification/user/{userId} - Get notifications for user
@@ -329,5 +332,166 @@ namespace AppointmentApi.Controllers
                 return StatusCode(500, new { success = false, message = "Error creating test notification", error = ex.Message });
             }
         }
+
+        // POST: api/Notification/appointment/{appointmentId}/created - Trigger appointment created notification
+        [HttpPost("appointment/{appointmentId}/created")]
+        public async Task<IActionResult> NotifyAppointmentCreated(string appointmentId)
+        {
+            try
+            {
+                await _notificationService.NotifyAppointmentCreatedAsync(appointmentId);
+                return Ok(new { success = true, message = "Appointment created notification sent" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending appointment notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/appointment/{appointmentId}/cancelled - Trigger appointment cancelled notification
+        [HttpPost("appointment/{appointmentId}/cancelled")]
+        public async Task<IActionResult> NotifyAppointmentCancelled(string appointmentId, [FromBody] CancelNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyAppointmentCancelledAsync(appointmentId, request.CancelledBy);
+                return Ok(new { success = true, message = "Appointment cancelled notification sent" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending cancellation notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/appointment/{appointmentId}/confirmed - Trigger appointment confirmed notification
+        [HttpPost("appointment/{appointmentId}/confirmed")]
+        public async Task<IActionResult> NotifyAppointmentConfirmed(string appointmentId)
+        {
+            try
+            {
+                await _notificationService.NotifyAppointmentConfirmedAsync(appointmentId);
+                return Ok(new { success = true, message = "Appointment confirmed notification sent" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending confirmation notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/appointment/{appointmentId}/rescheduled - Trigger appointment rescheduled notification
+        [HttpPost("appointment/{appointmentId}/rescheduled")]
+        public async Task<IActionResult> NotifyAppointmentRescheduled(string appointmentId, [FromBody] RescheduleNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyAppointmentRescheduledAsync(appointmentId, request.OldDateTime, request.NewDateTime);
+                return Ok(new { success = true, message = "Appointment rescheduled notification sent" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending reschedule notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/doctor/{doctorId}/schedule-changed - Trigger doctor schedule changed notification
+        [HttpPost("doctor/{doctorId}/schedule-changed")]
+        public async Task<IActionResult> NotifyDoctorScheduleChanged(string doctorId, [FromBody] ScheduleChangeNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyDoctorScheduleChangedAsync(doctorId, request.ChangeDetails);
+                return Ok(new { success = true, message = "Doctor schedule change notification sent" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending schedule change notification", error = ex.Message });
+            }
+        }
+
+        // GET: api/Notification/demo - Demo notification system
+        [HttpGet("demo")]
+        public async Task<IActionResult> DemoNotificationSystem()
+        {
+            try
+            {
+                // Create demo appointment notification
+                await _notificationService.CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = "customer-001",
+                    Title = "Demo: Lịch hẹn mới được tạo",
+                    Message = "Bạn có lịch hẹn mới với Bác sĩ Nguyễn Văn A vào 15/07/2025 lúc 09:00",
+                    Type = NotificationTypes.APPOINTMENT,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = "/appointments",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityId = "demo-appointment-001",
+                    RelatedEntityType = "appointment",
+                    CreatedBy = "system"
+                });
+
+                // Create demo cancellation notification
+                await _notificationService.CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = "customer-001",
+                    Title = "Demo: Lịch hẹn đã bị hủy",
+                    Message = "Lịch hẹn vào 16/07/2025 lúc 14:00 đã bị hủy bởi bác sĩ",
+                    Type = NotificationTypes.APPOINTMENT,
+                    Priority = NotificationPriorities.HIGH,
+                    ActionUrl = "/appointments",
+                    ActionText = "Xem lịch hẹn",
+                    RelatedEntityId = "demo-appointment-002",
+                    RelatedEntityType = "appointment",
+                    CreatedBy = "system"
+                });
+
+                // Create demo reminder notification
+                await _notificationService.CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = "customer-001",
+                    Title = "Demo: Nhắc nhở lịch hẹn",
+                    Message = "Bạn có lịch hẹn vào ngày mai 15/07/2025 lúc 09:00. Vui lòng đến đúng giờ.",
+                    Type = NotificationTypes.REMINDER,
+                    Priority = NotificationPriorities.HIGH,
+                    ActionUrl = "/appointments",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityId = "demo-appointment-003",
+                    RelatedEntityType = "appointment",
+                    CreatedBy = "system"
+                });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Demo notifications created successfully!",
+                    instructions = new
+                    {
+                        step1 = "Check notifications: GET /api/Notification/user/customer-001",
+                        step2 = "Mark as read: PUT /api/Notification/{id}/read",
+                        step3 = "Get unread count: GET /api/Notification/user/customer-001?unreadOnly=true"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error creating demo notifications", error = ex.Message });
+            }
+        }
+    }
+
+    // Request DTOs
+    public class CancelNotificationRequest
+    {
+        public required string CancelledBy { get; set; }
+    }
+
+    public class RescheduleNotificationRequest
+    {
+        public required string OldDateTime { get; set; }
+        public required string NewDateTime { get; set; }
+    }
+
+    public class ScheduleChangeNotificationRequest
+    {
+        public required string ChangeDetails { get; set; }
     }
 }

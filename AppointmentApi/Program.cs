@@ -134,6 +134,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IDoctorService, AppointmentApi.Services.DoctorService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Đăng ký background service cho reminder
+builder.Services.AddHostedService<AppointmentReminderService>();
 
 var app = builder.Build();
 

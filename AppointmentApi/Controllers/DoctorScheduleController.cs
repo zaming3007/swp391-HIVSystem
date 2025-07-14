@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using AppointmentApi.Models;
 using AppointmentApi.Data;
+using AppointmentApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentApi.Controllers
@@ -10,10 +11,12 @@ namespace AppointmentApi.Controllers
     public class DoctorScheduleController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public DoctorScheduleController(ApplicationDbContext context)
+        public DoctorScheduleController(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // GET: api/DoctorSchedule/{doctorId}
@@ -105,6 +108,18 @@ namespace AppointmentApi.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Send notification to affected patients
+                try
+                {
+                    var changeDetails = "Lịch làm việc đã được cập nhật";
+                    await _notificationService.NotifyDoctorScheduleChangedAsync(request.DoctorId, changeDetails);
+                }
+                catch (Exception notifEx)
+                {
+                    // Log but don't fail the update
+                    Console.WriteLine($"Error sending schedule change notification: {notifEx.Message}");
+                }
 
                 return Ok(new { success = true, message = "Cập nhật lịch làm việc thành công!" });
             }

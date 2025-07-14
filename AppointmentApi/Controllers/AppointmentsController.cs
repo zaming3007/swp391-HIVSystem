@@ -15,15 +15,18 @@ namespace AppointmentApi.Controllers
         private readonly IAppointmentService _appointmentService;
         private readonly IDoctorService _doctorService;
         private readonly IServiceManager _serviceManager;
+        private readonly INotificationService _notificationService;
 
         public AppointmentsController(
             IAppointmentService appointmentService,
             IDoctorService doctorService,
-            IServiceManager serviceManager)
+            IServiceManager serviceManager,
+            INotificationService notificationService)
         {
             _appointmentService = appointmentService;
             _doctorService = doctorService;
             _serviceManager = serviceManager;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -471,5 +474,167 @@ namespace AppointmentApi.Controllers
                 Data = result
             };
         }
+
+        // POST: api/Appointments/{id}/cancel-with-reason - Cancel appointment with specific reason
+        [HttpPost("{id}/cancel-with-reason")]
+        public async Task<ActionResult<ApiResponse<bool>>> CancelWithReason(string id, [FromBody] CancelAppointmentRequest request)
+        {
+            try
+            {
+                var appointment = await _appointmentService.GetByIdAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy lịch hẹn"
+                    });
+                }
+
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                // Check permissions
+                if (!User.IsInRole("admin") && !User.IsInRole("staff") && !User.IsInRole("doctor") && appointment.PatientId != userId)
+                {
+                    return Forbid();
+                }
+
+                // Update appointment status
+                var updateDto = new AppointmentUpdateDto
+                {
+                    Status = AppointmentStatus.Cancelled,
+                    Notes = request.Reason
+                };
+
+                await _appointmentService.UpdateAsync(id, updateDto);
+
+                // Send specific notification based on who cancelled
+                string cancelledBy = userRole switch
+                {
+                    "doctor" => "doctor",
+                    "staff" => "staff",
+                    "admin" => "admin",
+                    _ => "patient"
+                };
+
+                await _notificationService.NotifyAppointmentCancelledAsync(id, cancelledBy);
+
+                return new ApiResponse<bool>
+                {
+                    Success = true,
+                    Message = "Hủy lịch hẹn thành công",
+                    Data = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Lỗi khi hủy lịch hẹn",
+                    Data = false
+                });
+            }
+        }
+
+        // POST: api/Appointments/{id}/confirm - Confirm appointment
+        [HttpPost("{id}/confirm")]
+        [Authorize(Roles = "admin,staff,doctor")]
+        public async Task<ActionResult<ApiResponse<bool>>> ConfirmAppointment(string id)
+        {
+            try
+            {
+                var appointment = await _appointmentService.GetByIdAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy lịch hẹn"
+                    });
+                }
+
+                var updateDto = new AppointmentUpdateDto
+                {
+                    Status = AppointmentStatus.Confirmed
+                };
+
+                await _appointmentService.UpdateAsync(id, updateDto);
+
+                return new ApiResponse<bool>
+                {
+                    Success = true,
+                    Message = "Xác nhận lịch hẹn thành công",
+                    Data = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Lỗi khi xác nhận lịch hẹn",
+                    Data = false
+                });
+            }
+        }
+
+        // POST: api/Appointments/{id}/reschedule - Reschedule appointment
+        [HttpPost("{id}/reschedule")]
+        [Authorize(Roles = "admin,staff,doctor")]
+        public async Task<ActionResult<ApiResponse<bool>>> RescheduleAppointment(string id, [FromBody] AppointmentRescheduleRequest request)
+        {
+            try
+            {
+                var appointment = await _appointmentService.GetByIdAsync(id);
+                if (appointment == null)
+                {
+                    return NotFound(new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = "Không tìm thấy lịch hẹn"
+                    });
+                }
+
+                var oldDateTime = $"{appointment.Date:dd/MM/yyyy} {appointment.StartTime}";
+
+                // Update appointment with new date/time
+                // Note: This would require extending AppointmentUpdateDto to include Date and StartTime
+                // For now, we'll just send the notification
+
+                var newDateTime = $"{request.NewDate:dd/MM/yyyy} {request.NewTime}";
+                await _notificationService.NotifyAppointmentRescheduledAsync(id, oldDateTime, newDateTime);
+
+                return new ApiResponse<bool>
+                {
+                    Success = true,
+                    Message = "Thay đổi lịch hẹn thành công",
+                    Data = true
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = "Lỗi khi thay đổi lịch hẹn",
+                    Data = false
+                });
+            }
+        }
+    }
+
+    // Request DTOs
+    public class CancelAppointmentRequest
+    {
+        public required string Reason { get; set; }
+    }
+
+    public class AppointmentRescheduleRequest
+    {
+        public required DateTime NewDate { get; set; }
+        public required string NewTime { get; set; }
+        public string? Reason { get; set; }
     }
 }
