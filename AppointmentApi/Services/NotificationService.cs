@@ -15,6 +15,25 @@ namespace AppointmentApi.Services
         Task NotifyAppointmentRescheduledAsync(string appointmentId, string oldDateTime, string newDateTime);
         Task NotifyAppointmentReminderAsync(string appointmentId);
         Task NotifyDoctorScheduleChangedAsync(string doctorId, string changeDetails);
+
+        // Patient Notifications
+        Task NotifyMedicationReminderAsync(string patientId, string medicationName, string dosage, string frequency);
+        Task NotifyTestResultAvailableAsync(string patientId, string testType, string resultSummary);
+        Task NotifyNewBlogPostAsync(string userId, string blogTitle, string category);
+        Task NotifyAccountSecurityAsync(string userId, string securityEvent, string details);
+
+        // Doctor Notifications
+        Task NotifyNewConsultationQuestionAsync(string doctorId, string consultationId, string patientName, string questionPreview);
+
+        // Staff Notifications
+        Task NotifyStaffAppointmentUpdateAsync(string staffId, string appointmentId, string updateType, string details);
+        Task NotifyStaffConsultationAsync(string staffId, string consultationId, string eventType, string details);
+
+        // Admin Notifications
+        Task NotifyNewUserRegistrationAsync(string adminId, string newUserId, string userRole, string userEmail);
+        Task NotifySystemReportAsync(string adminId, string reportType, string summary);
+        Task NotifyUserManagementEventAsync(string adminId, string targetUserId, string eventType, string details);
+
         Task<List<NotificationResponse>> GetUserNotificationsAsync(string userId, bool unreadOnly = false);
         Task MarkAsReadAsync(string notificationId);
         Task MarkAllAsReadAsync(string userId);
@@ -309,6 +328,401 @@ namespace AppointmentApi.Services
                 notification.IsDeleted = true;
                 notification.DeletedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+            }
+        }
+
+        // ============ PATIENT NOTIFICATIONS ============
+
+        public async Task NotifyMedicationReminderAsync(string patientId, string medicationName, string dosage, string frequency)
+        {
+            try
+            {
+                var title = "💊 Nhắc nhở uống thuốc";
+                var message = $"Đã đến giờ uống thuốc {medicationName} ({dosage}). Tần suất: {frequency}";
+
+                var metadata = new
+                {
+                    medicationName,
+                    dosage,
+                    frequency,
+                    reminderTime = DateTime.Now.ToString("HH:mm"),
+                    eventType = "medication_reminder"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = patientId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.ARV,
+                    Priority = NotificationPriorities.HIGH,
+                    ActionUrl = "/arv-management",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityType = "medication",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"Medication reminder sent to patient {patientId} for {medicationName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending medication reminder: {ex.Message}");
+            }
+        }
+
+        public async Task NotifyTestResultAvailableAsync(string patientId, string testType, string resultSummary)
+        {
+            try
+            {
+                var title = "🧪 Kết quả xét nghiệm có sẵn";
+                var message = $"Kết quả xét nghiệm {testType} đã có. {resultSummary}";
+
+                var metadata = new
+                {
+                    testType,
+                    resultSummary,
+                    availableDate = DateTime.Now.ToString("dd/MM/yyyy"),
+                    eventType = "test_result_available"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = patientId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.TEST_RESULT,
+                    Priority = NotificationPriorities.HIGH,
+                    ActionUrl = "/test-results",
+                    ActionText = "Xem kết quả",
+                    RelatedEntityType = "test_result",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"Test result notification sent to patient {patientId} for {testType}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending test result notification: {ex.Message}");
+            }
+        }
+
+        public async Task NotifyNewBlogPostAsync(string userId, string blogTitle, string category)
+        {
+            try
+            {
+                var title = "📚 Bài viết mới";
+                var message = $"Bài viết mới trong danh mục {category}: {blogTitle}";
+
+                var metadata = new
+                {
+                    blogTitle,
+                    category,
+                    publishDate = DateTime.Now.ToString("dd/MM/yyyy"),
+                    eventType = "new_blog_post"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = userId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.BLOG,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = "/blog",
+                    ActionText = "Đọc bài viết",
+                    RelatedEntityType = "blog_post",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"New blog post notification sent to user {userId}: {blogTitle}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending blog post notification: {ex.Message}");
+            }
+        }
+
+        public async Task NotifyAccountSecurityAsync(string userId, string securityEvent, string details)
+        {
+            try
+            {
+                var title = "🔐 Cảnh báo bảo mật tài khoản";
+                var message = $"Sự kiện bảo mật: {securityEvent}. {details}";
+
+                var priority = securityEvent.ToLower().Contains("login") ? NotificationPriorities.NORMAL : NotificationPriorities.HIGH;
+
+                var metadata = new
+                {
+                    securityEvent,
+                    details,
+                    timestamp = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    eventType = "account_security"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = userId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.SYSTEM,
+                    Priority = priority,
+                    ActionUrl = "/profile/security",
+                    ActionText = "Kiểm tra bảo mật",
+                    RelatedEntityType = "security_event",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"Security notification sent to user {userId}: {securityEvent}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending security notification: {ex.Message}");
+            }
+        }
+
+        // ============ DOCTOR NOTIFICATIONS ============
+
+        public async Task NotifyNewConsultationQuestionAsync(string doctorId, string consultationId, string patientName, string questionPreview)
+        {
+            try
+            {
+                var title = "💬 Câu hỏi tư vấn mới";
+                var message = $"Bệnh nhân {patientName} đã gửi câu hỏi tư vấn: {questionPreview}";
+
+                var metadata = new
+                {
+                    consultationId,
+                    patientName,
+                    questionPreview,
+                    receivedTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    eventType = "new_consultation_question"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = doctorId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.CONSULTATION,
+                    Priority = NotificationPriorities.HIGH,
+                    ActionUrl = $"/doctor/consultations/{consultationId}",
+                    ActionText = "Trả lời tư vấn",
+                    RelatedEntityId = consultationId,
+                    RelatedEntityType = "consultation",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"New consultation notification sent to doctor {doctorId} for consultation {consultationId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending consultation notification to doctor: {ex.Message}");
+            }
+        }
+
+        // ============ STAFF NOTIFICATIONS ============
+
+        public async Task NotifyStaffAppointmentUpdateAsync(string staffId, string appointmentId, string updateType, string details)
+        {
+            try
+            {
+                var title = "📅 Cập nhật lịch hẹn";
+                var message = $"Lịch hẹn {appointmentId} - {updateType}: {details}";
+
+                var metadata = new
+                {
+                    appointmentId,
+                    updateType,
+                    details,
+                    updateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    eventType = "staff_appointment_update"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = staffId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.APPOINTMENT,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = $"/staff/appointments/{appointmentId}",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityId = appointmentId,
+                    RelatedEntityType = "appointment",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"Staff appointment update notification sent to {staffId} for appointment {appointmentId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending staff appointment notification: {ex.Message}");
+            }
+        }
+
+        public async Task NotifyStaffConsultationAsync(string staffId, string consultationId, string eventType, string details)
+        {
+            try
+            {
+                var title = "💬 Cập nhật tư vấn";
+                var message = $"Tư vấn {consultationId} - {eventType}: {details}";
+
+                var metadata = new
+                {
+                    consultationId,
+                    eventType,
+                    details,
+                    updateTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    staffEventType = "staff_consultation_update"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = staffId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.CONSULTATION,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = $"/staff/consultations/{consultationId}",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityId = consultationId,
+                    RelatedEntityType = "consultation",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"Staff consultation notification sent to {staffId} for consultation {consultationId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending staff consultation notification: {ex.Message}");
+            }
+        }
+
+        // ============ ADMIN NOTIFICATIONS ============
+
+        public async Task NotifyNewUserRegistrationAsync(string adminId, string newUserId, string userRole, string userEmail)
+        {
+            try
+            {
+                var title = "👤 Người dùng mới đăng ký";
+                var message = $"Người dùng mới đăng ký: {userEmail} với vai trò {userRole}";
+
+                var metadata = new
+                {
+                    newUserId,
+                    userRole,
+                    userEmail,
+                    registrationTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    eventType = "new_user_registration"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = adminId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.SYSTEM,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = $"/admin/users/{newUserId}",
+                    ActionText = "Xem người dùng",
+                    RelatedEntityId = newUserId,
+                    RelatedEntityType = "user",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"New user registration notification sent to admin {adminId} for user {newUserId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending new user registration notification: {ex.Message}");
+            }
+        }
+
+        public async Task NotifySystemReportAsync(string adminId, string reportType, string summary)
+        {
+            try
+            {
+                var title = "📊 Báo cáo hệ thống";
+                var message = $"Báo cáo {reportType}: {summary}";
+
+                var metadata = new
+                {
+                    reportType,
+                    summary,
+                    reportTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    eventType = "system_report"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = adminId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.SYSTEM,
+                    Priority = NotificationPriorities.NORMAL,
+                    ActionUrl = "/admin/reports",
+                    ActionText = "Xem báo cáo",
+                    RelatedEntityType = "system_report",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"System report notification sent to admin {adminId}: {reportType}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending system report notification: {ex.Message}");
+            }
+        }
+
+        public async Task NotifyUserManagementEventAsync(string adminId, string targetUserId, string eventType, string details)
+        {
+            try
+            {
+                var title = "👥 Quản lý người dùng";
+                var message = $"Sự kiện quản lý người dùng: {eventType} - {details}";
+
+                var priority = eventType.ToLower().Contains("delete") || eventType.ToLower().Contains("suspend")
+                    ? NotificationPriorities.HIGH
+                    : NotificationPriorities.NORMAL;
+
+                var metadata = new
+                {
+                    targetUserId,
+                    eventType,
+                    details,
+                    eventTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    managementEventType = "user_management_event"
+                };
+
+                await CreateNotificationAsync(new CreateNotificationRequest
+                {
+                    UserId = adminId,
+                    Title = title,
+                    Message = message,
+                    Type = NotificationTypes.SYSTEM,
+                    Priority = priority,
+                    ActionUrl = $"/admin/users/{targetUserId}",
+                    ActionText = "Xem chi tiết",
+                    RelatedEntityId = targetUserId,
+                    RelatedEntityType = "user_management",
+                    CreatedBy = "system",
+                    Metadata = System.Text.Json.JsonSerializer.Serialize(metadata)
+                });
+
+                Console.WriteLine($"User management notification sent to admin {adminId}: {eventType} for user {targetUserId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending user management notification: {ex.Message}");
             }
         }
 

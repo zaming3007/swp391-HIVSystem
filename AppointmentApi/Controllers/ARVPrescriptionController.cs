@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AppointmentApi.Data;
 using AppointmentApi.Models;
+using AppointmentApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -12,10 +13,12 @@ namespace AppointmentApi.Controllers
     public class ARVPrescriptionController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public ARVPrescriptionController(ApplicationDbContext context)
+        public ARVPrescriptionController(ApplicationDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // Lấy danh sách bệnh nhân của doctor (từ appointments)
@@ -267,6 +270,24 @@ namespace AppointmentApi.Controllers
 
                 _context.PatientRegimens.Add(patientRegimen);
                 await _context.SaveChangesAsync();
+
+                // Send notification to patient about new ARV prescription
+                try
+                {
+                    var regimenName = GetRegimenNameById(request.RegimenId);
+                    await _notificationService.NotifyMedicationReminderAsync(
+                        request.PatientId,
+                        regimenName,
+                        "Theo chỉ định bác sĩ",
+                        "Hàng ngày"
+                    );
+                    Console.WriteLine($"ARV prescription notification sent to patient {request.PatientId}");
+                }
+                catch (Exception notifEx)
+                {
+                    Console.WriteLine($"Error sending ARV prescription notification: {notifEx.Message}");
+                    // Don't fail the prescription creation
+                }
 
                 return Ok(new { success = true, message = "Đã kê đơn phác đồ thành công", data = patientRegimen });
             }

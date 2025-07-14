@@ -107,6 +107,9 @@ namespace AppointmentApi.Models
         public const string SYSTEM = "system";
         public const string REMINDER = "reminder";
         public const string TEST_RESULT = "test_result";
+        public const string MEDICATION = "medication";
+        public const string SECURITY = "security";
+        public const string USER_MANAGEMENT = "user_management";
     }
 
     // Notification priorities

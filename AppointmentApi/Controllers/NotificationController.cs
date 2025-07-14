@@ -476,6 +476,125 @@ namespace AppointmentApi.Controllers
                 return StatusCode(500, new { success = false, message = "Error creating demo notifications", error = ex.Message });
             }
         }
+
+        // ============ MANUAL TRIGGER ENDPOINTS ============
+
+        // POST: api/Notification/medication-reminder - Manual medication reminder
+        [HttpPost("medication-reminder")]
+        public async Task<IActionResult> TriggerMedicationReminder([FromBody] MedicationReminderRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyMedicationReminderAsync(
+                    request.PatientId,
+                    request.MedicationName,
+                    request.Dosage,
+                    request.Frequency
+                );
+                return Ok(new { success = true, message = "Medication reminder sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending medication reminder", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/test-result - Manual test result notification
+        [HttpPost("test-result")]
+        public async Task<IActionResult> TriggerTestResultNotification([FromBody] TestResultNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyTestResultAvailableAsync(
+                    request.PatientId,
+                    request.TestType,
+                    request.ResultSummary
+                );
+                return Ok(new { success = true, message = "Test result notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending test result notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/blog-post - Manual blog post notification
+        [HttpPost("blog-post")]
+        public async Task<IActionResult> TriggerBlogPostNotification([FromBody] BlogPostNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyNewBlogPostAsync(
+                    request.UserId,
+                    request.BlogTitle,
+                    request.Category
+                );
+                return Ok(new { success = true, message = "Blog post notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending blog post notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/consultation-question - Manual consultation notification
+        [HttpPost("consultation-question")]
+        public async Task<IActionResult> TriggerConsultationNotification([FromBody] ConsultationNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyNewConsultationQuestionAsync(
+                    request.DoctorId,
+                    request.ConsultationId,
+                    request.PatientName,
+                    request.QuestionPreview
+                );
+                return Ok(new { success = true, message = "Consultation notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending consultation notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/security-alert - Manual security notification
+        [HttpPost("security-alert")]
+        public async Task<IActionResult> TriggerSecurityNotification([FromBody] SecurityNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyAccountSecurityAsync(
+                    request.UserId,
+                    request.SecurityEvent,
+                    request.Details
+                );
+                return Ok(new { success = true, message = "Security notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending security notification", error = ex.Message });
+            }
+        }
+
+        // POST: api/Notification/user-registration - Manual user registration notification
+        [HttpPost("user-registration")]
+        public async Task<IActionResult> TriggerUserRegistrationNotification([FromBody] UserRegistrationNotificationRequest request)
+        {
+            try
+            {
+                await _notificationService.NotifyNewUserRegistrationAsync(
+                    request.AdminId,
+                    request.NewUserId,
+                    request.UserRole,
+                    request.UserEmail
+                );
+                return Ok(new { success = true, message = "User registration notification sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error sending user registration notification", error = ex.Message });
+            }
+        }
     }
 
     // Request DTOs
@@ -493,5 +612,50 @@ namespace AppointmentApi.Controllers
     public class ScheduleChangeNotificationRequest
     {
         public required string ChangeDetails { get; set; }
+    }
+
+    public class MedicationReminderRequest
+    {
+        public required string PatientId { get; set; }
+        public required string MedicationName { get; set; }
+        public required string Dosage { get; set; }
+        public required string Frequency { get; set; }
+    }
+
+    public class TestResultNotificationRequest
+    {
+        public required string PatientId { get; set; }
+        public required string TestType { get; set; }
+        public required string ResultSummary { get; set; }
+    }
+
+    public class BlogPostNotificationRequest
+    {
+        public required string UserId { get; set; }
+        public required string BlogTitle { get; set; }
+        public required string Category { get; set; }
+    }
+
+    public class ConsultationNotificationRequest
+    {
+        public required string DoctorId { get; set; }
+        public required string ConsultationId { get; set; }
+        public required string PatientName { get; set; }
+        public required string QuestionPreview { get; set; }
+    }
+
+    public class SecurityNotificationRequest
+    {
+        public required string UserId { get; set; }
+        public required string SecurityEvent { get; set; }
+        public required string Details { get; set; }
+    }
+
+    public class UserRegistrationNotificationRequest
+    {
+        public required string AdminId { get; set; }
+        public required string NewUserId { get; set; }
+        public required string UserRole { get; set; }
+        public required string UserEmail { get; set; }
     }
 }

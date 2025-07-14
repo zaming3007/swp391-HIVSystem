@@ -136,8 +136,12 @@ builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IServiceManager, ServiceManager>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
-// Đăng ký background service cho reminder
+// Đăng ký background services
 builder.Services.AddHostedService<AppointmentReminderService>();
+builder.Services.AddHostedService<MedicationReminderService>();
+builder.Services.AddHostedService<BlogNotificationService>();
+builder.Services.AddHostedService<ConsultationNotificationService>();
+builder.Services.AddHostedService<UserManagementNotificationService>();
 
 var app = builder.Build();
 
