@@ -25,6 +25,12 @@ namespace AppointmentApi.Data
         public DbSet<AdherenceRecord> AdherenceRecords { get; set; }
         public DbSet<SideEffectRecord> SideEffectRecords { get; set; }
 
+        // Test Results
+        public DbSet<TestResult> TestResults { get; set; }
+
+        // Notifications
+        public DbSet<Notification> Notifications { get; set; }
+
         // Doctor Schedule Management uses existing TimeSlots table
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -36,6 +42,31 @@ namespace AppointmentApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Ensure TestResults table is created
+            modelBuilder.Entity<TestResult>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).IsRequired();
+                entity.Property(e => e.PatientId).IsRequired();
+                entity.Property(e => e.DoctorId).IsRequired();
+                entity.Property(e => e.TestType).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TestName).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Result).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.Unit).HasMaxLength(50);
+                entity.Property(e => e.ReferenceRange).HasMaxLength(200);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.TestDate).IsRequired();
+                entity.Property(e => e.LabName).HasMaxLength(200);
+                entity.Property(e => e.Notes).HasMaxLength(1000);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.UpdatedAt);
+
+                entity.HasIndex(e => e.PatientId);
+                entity.HasIndex(e => e.DoctorId);
+                entity.HasIndex(e => e.TestType);
+                entity.HasIndex(e => e.TestDate);
+            });
 
             // Seed ARV Drugs - Temporarily commented out for migration
             /*modelBuilder.Entity<ARVDrug>().HasData(

@@ -9,7 +9,7 @@ namespace AppointmentApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PatientARVController : ControllerBase
+    public partial class PatientARVController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
@@ -347,6 +347,69 @@ namespace AppointmentApi.Controllers
             }
 
             return consecutiveDays;
+        }
+
+        // Additional endpoints for doctor access to patient data
+        // GET: api/PatientARV/patient/{patientId}/summary - For doctors to view patient summary
+        [HttpGet("patient/{patientId}/summary")]
+        public async Task<ActionResult> GetPatientARVSummaryForDoctor(string patientId)
+        {
+            try
+            {
+                // Get current regimen
+                var currentRegimen = await _context.PatientRegimens
+                    .Where(pr => pr.PatientId == patientId && pr.Status == "Đang điều trị")
+                    .Include(pr => pr.Regimen)
+                    .ThenInclude(r => r.Medications)
+                    .OrderByDescending(pr => pr.StartDate)
+                    .FirstOrDefaultAsync();
+
+                // Get regimen count
+                var totalRegimens = await _context.PatientRegimens
+                    .Where(pr => pr.PatientId == patientId)
+                    .CountAsync();
+
+                // Get latest adherence
+                var latestAdherence = await _context.AdherenceRecords
+                    .Where(ar => ar.PatientRegimen!.PatientId == patientId)
+                    .OrderByDescending(ar => ar.RecordDate)
+                    .FirstOrDefaultAsync();
+
+                // Get average adherence
+                var averageAdherence = await _context.AdherenceRecords
+                    .Where(ar => ar.PatientRegimen!.PatientId == patientId)
+                    .AverageAsync(ar => (double?)ar.AdherencePercentage) ?? 0;
+
+                var summary = new
+                {
+                    PatientId = patientId,
+                    CurrentRegimen = currentRegimen != null ? new
+                    {
+                        Id = currentRegimen.Id,
+                        RegimenName = currentRegimen.Regimen?.Name,
+                        StartDate = currentRegimen.StartDate,
+                        Duration = (DateTime.UtcNow - currentRegimen.StartDate).Days,
+                        Status = currentRegimen.Status,
+                        MedicationCount = currentRegimen.Regimen?.Medications?.Count ?? 0,
+                        DoctorName = currentRegimen.DoctorName
+                    } : null,
+                    TotalRegimens = totalRegimens,
+                    LatestAdherence = latestAdherence != null ? new
+                    {
+                        RecordDate = latestAdherence.RecordDate,
+                        AdherencePercentage = latestAdherence.AdherencePercentage,
+                        TakenDoses = latestAdherence.TakenDoses,
+                        TotalDoses = latestAdherence.TotalDoses
+                    } : null,
+                    AverageAdherence = Math.Round(averageAdherence, 2)
+                };
+
+                return Ok(new { success = true, data = summary });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error retrieving ARV summary", error = ex.Message });
+            }
         }
     }
 

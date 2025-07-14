@@ -2,6 +2,7 @@ using System.Text;
 using AppointmentApi.Models;
 using AppointmentApi.Services;
 using AppointmentApi.Data;
+using AppointmentApi.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Thêm SignalR
+builder.Services.AddSignalR();
 
 // Thêm CORS
 builder.Services.AddCors(options =>
@@ -175,6 +179,37 @@ using (var scope = app.Services.CreateScope())
     {
         Console.WriteLine($"An error occurred while migrating the database: {ex.Message}");
     }
+
+    // Create TestResults table if it doesn't exist
+    try
+    {
+        Console.WriteLine("Creating TestResults table...");
+        var sql = @"
+            CREATE TABLE IF NOT EXISTS ""TestResults"" (
+                ""Id"" text NOT NULL,
+                ""PatientId"" text NOT NULL,
+                ""DoctorId"" text NOT NULL,
+                ""TestType"" character varying(50) NOT NULL,
+                ""TestName"" character varying(200) NOT NULL,
+                ""Result"" character varying(500) NOT NULL,
+                ""Unit"" character varying(50),
+                ""ReferenceRange"" character varying(200),
+                ""Status"" character varying(50) NOT NULL,
+                ""TestDate"" timestamp with time zone NOT NULL,
+                ""LabName"" character varying(200),
+                ""Notes"" character varying(1000),
+                ""CreatedAt"" timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                ""UpdatedAt"" timestamp with time zone,
+                CONSTRAINT ""PK_TestResults"" PRIMARY KEY (""Id"")
+            );";
+
+        dbContext.Database.ExecuteSqlRaw(sql);
+        Console.WriteLine("TestResults table created successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error creating TestResults table: {ex.Message}");
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -188,6 +223,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Map SignalR Hub
+app.MapHub<NotificationHub>("/notificationHub");
 
 Console.WriteLine($"AppointmentApi is starting in {app.Environment.EnvironmentName} environment");
 Console.WriteLine($"ASPNETCORE_URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");

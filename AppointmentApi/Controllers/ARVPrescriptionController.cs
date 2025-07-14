@@ -522,6 +522,118 @@ namespace AppointmentApi.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi khi tải báo cáo tác dụng phụ", error = ex.Message });
             }
         }
+
+        // POST: api/ARVPrescription/regimens - Create new ARV regimen
+        [HttpPost("regimens")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> CreateRegimen([FromBody] CreateRegimenRequest request)
+        {
+            try
+            {
+                // Create new regimen
+                var regimen = new ARVRegimen
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = request.Name,
+                    Description = request.Description,
+                    Category = request.Category,
+                    LineOfTreatment = request.LineOfTreatment,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.ARVRegimens.Add(regimen);
+
+                // Add medications to regimen
+                var medications = new List<ARVMedication>();
+                for (int i = 0; i < request.Medications.Count; i++)
+                {
+                    var medRequest = request.Medications[i];
+                    var medication = new ARVMedication
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        RegimenId = regimen.Id,
+                        MedicationName = medRequest.MedicationName,
+                        ActiveIngredient = medRequest.ActiveIngredient,
+                        Dosage = medRequest.Dosage,
+                        Frequency = medRequest.Frequency,
+                        Instructions = medRequest.Instructions,
+                        SideEffects = medRequest.SideEffects,
+                        SortOrder = i + 1,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    medications.Add(medication);
+                    _context.ARVMedications.Add(medication);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Phác đồ ARV đã được tạo thành công",
+                    data = new
+                    {
+                        regimen.Id,
+                        regimen.Name,
+                        regimen.Description,
+                        regimen.Category,
+                        regimen.LineOfTreatment,
+                        medications = medications.Select(m => new
+                        {
+                            m.Id,
+                            m.MedicationName,
+                            m.ActiveIngredient,
+                            m.Dosage,
+                            m.Frequency,
+                            m.Instructions,
+                            m.SideEffects,
+                            m.SortOrder
+                        })
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error creating regimen", error = ex.Message });
+            }
+        }
+
+        // GET: api/ARVPrescription/drugs - Get available ARV drugs
+        [HttpGet("drugs")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> GetARVDrugs()
+        {
+            try
+            {
+                var drugs = await _context.ARVDrugs
+                    .Where(d => d.IsActive)
+                    .OrderBy(d => d.DrugClass)
+                    .ThenBy(d => d.Name)
+                    .Select(d => new
+                    {
+                        d.Id,
+                        d.Name,
+                        ActiveIngredient = d.GenericName,
+                        d.DrugClass,
+                        d.SideEffects,
+                        d.Contraindications
+                    })
+                    .ToListAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    data = drugs,
+                    count = drugs.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error retrieving ARV drugs", error = ex.Message });
+            }
+        }
     }
 
     // DTOs
@@ -567,5 +679,25 @@ namespace AppointmentApi.Controllers
         public string? Period { get; set; }
         public string? Notes { get; set; }
         public string? Challenges { get; set; }
+    }
+
+    // Request models for creating regimens
+    public class CreateRegimenRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string LineOfTreatment { get; set; } = string.Empty;
+        public List<CreateMedicationRequest> Medications { get; set; } = new List<CreateMedicationRequest>();
+    }
+
+    public class CreateMedicationRequest
+    {
+        public string MedicationName { get; set; } = string.Empty;
+        public string ActiveIngredient { get; set; } = string.Empty;
+        public string Dosage { get; set; } = string.Empty;
+        public string Frequency { get; set; } = string.Empty;
+        public string Instructions { get; set; } = string.Empty;
+        public string SideEffects { get; set; } = string.Empty;
     }
 }
