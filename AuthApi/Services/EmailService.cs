@@ -56,7 +56,9 @@ namespace AuthApi.Services
                 // Check if email settings are configured
                 if (string.IsNullOrEmpty(_emailSettings.SmtpUser) ||
                     string.IsNullOrEmpty(_emailSettings.SmtpPass) ||
-                    _emailSettings.SmtpUser == "your-email@gmail.com")
+                    _emailSettings.SmtpUser == "your-email@gmail.com" ||
+                    _emailSettings.SmtpUser == "YOUR_GMAIL@gmail.com" ||
+                    _emailSettings.SmtpPass == "YOUR_16_DIGIT_APP_PASSWORD")
                 {
                     _logger.LogWarning("Email settings not configured. Skipping email send.");
                     // For development, just log the email content
@@ -89,6 +91,8 @@ namespace AuthApi.Services
 
                 // For development, don't throw error, just log
                 if (_emailSettings.SmtpUser == "your-email@gmail.com" ||
+                    _emailSettings.SmtpUser == "YOUR_GMAIL@gmail.com" ||
+                    _emailSettings.SmtpPass == "YOUR_16_DIGIT_APP_PASSWORD" ||
                     string.IsNullOrEmpty(_emailSettings.SmtpUser))
                 {
                     _logger.LogWarning("Email not configured for development. Continuing without sending email.");
