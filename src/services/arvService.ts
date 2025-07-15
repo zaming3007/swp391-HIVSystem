@@ -284,7 +284,7 @@ const arvService = {
     },
 
     // Get ARV drugs from AppointmentApi for regimen creation
-    getARVDrugs: async (): Promise<any[]> => {
+    getARVDrugsForRegimen: async (): Promise<any[]> => {
         try {
             const response = await arvApi.get('/ARVPrescription/drugs');
             if (response.data.success) {
@@ -298,12 +298,20 @@ const arvService = {
     },
 
     // ARV Regimens - Use AppointmentApi endpoints
-    getRegimens: async (): Promise<ARVRegimen[]> => {
-        const response = await arvApi.get('/ARVPrescription/regimens');
-        if (response.data.success) {
-            return response.data.data;
+    getRegimens: async (): Promise<{ success: boolean; data: ARVRegimen[] }> => {
+        try {
+            const response = await arvApi.get('/ARVPrescription/regimens');
+            return {
+                success: response.data.success || false,
+                data: response.data.data || []
+            };
+        } catch (error) {
+            console.error('Error fetching regimens:', error);
+            return {
+                success: false,
+                data: []
+            };
         }
-        return [];
     },
 
     getRegimen: async (id: number): Promise<ARVRegimen> => {
@@ -330,24 +338,17 @@ const arvService = {
         return [];
     },
 
-    createRegimen: async (data: {
-        name: string;
-        description: string;
-        category: string;
-        lineOfTreatment: string;
-        selectedDrugs: string[];
-    }): Promise<ARVRegimen> => {
+    createRegimen: async (regimenData: any): Promise<any> => {
         try {
-            const response = await arvApi.post('/ARVPrescription/regimens', data);
-            if (response.data.success) {
-                return response.data.data;
-            }
-            throw new Error(response.data.message || 'Failed to create regimen');
+            const response = await arvApi.post('/ARVPrescription/regimens', regimenData);
+            return response.data;
         } catch (error) {
             console.error('Error creating regimen:', error);
             throw error;
         }
     },
+
+
 
     updateRegimen: async (id: number, data: CreateRegimenRequest): Promise<void> => {
         // Temporarily throw error - need to implement in AppointmentApi
@@ -646,24 +647,20 @@ const arvService = {
         }
     },
 
-    // Create new ARV regimen
-    createRegimen: async (regimenData: any): Promise<any> => {
+    // Prescribe regimen to patient
+    prescribeRegimen: async (prescriptionData: {
+        patientId: string;
+        patientName: string;
+        regimenId: string;
+        startDate?: Date;
+        notes?: string;
+        reason?: string;
+    }): Promise<any> => {
         try {
-            const response = await arvApi.post('/ARVPrescription/regimens', regimenData);
+            const response = await arvApi.post('/ARVPrescription/prescribe', prescriptionData);
             return response.data;
         } catch (error) {
-            console.error('Error creating regimen:', error);
-            throw error;
-        }
-    },
-
-    // Get available ARV drugs
-    getARVDrugs: async (): Promise<any> => {
-        try {
-            const response = await arvApi.get('/ARVPrescription/drugs');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching ARV drugs:', error);
+            console.error('Error prescribing regimen:', error);
             throw error;
         }
     }

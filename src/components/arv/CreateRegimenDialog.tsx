@@ -33,10 +33,11 @@ import arvService from '../../services/arvService';
 interface Drug {
     id: string;
     name: string;
-    activeIngredient: string;
-    drugClass: string;
+    genericName: string;
+    dosage: string;
+    category: string;
+    instructions: string;
     sideEffects: string;
-    contraindications: string;
 }
 
 interface Medication {
@@ -129,7 +130,7 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
                 updatedMedications[index] = {
                     ...updatedMedications[index],
                     medicationName: selectedDrug.name,
-                    activeIngredient: selectedDrug.activeIngredient,
+                    activeIngredient: selectedDrug.genericName,
                     sideEffects: selectedDrug.sideEffects
                 };
             }
@@ -162,12 +163,15 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
                 }
             }
 
+            // Chuyển đổi medications thành selectedDrugs format
+            const selectedDrugs = medications.map(med => med.medicationName);
+
             const response = await arvService.createRegimen({
                 name: formData.name,
                 description: formData.description,
                 category: formData.category,
                 lineOfTreatment: formData.lineOfTreatment,
-                medications
+                selectedDrugs
             });
 
             if (response.success) {
@@ -335,7 +339,7 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
                                             <Grid item xs={12} md={6}>
                                                 <Autocomplete
                                                     options={drugs}
-                                                    getOptionLabel={(option) => `${option.name} (${option.drugClass})`}
+                                                    getOptionLabel={(option) => `${option.name} (${option.category})`}
                                                     value={drugs.find(d => d.name === medication.medicationName) || null}
                                                     onChange={(_, newValue) => {
                                                         handleMedicationChange(index, 'medicationName', newValue?.name || '');
@@ -385,7 +389,7 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
                                                 <Grid item xs={12}>
                                                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                                                         <Chip
-                                                            label={drugs.find(d => d.name === medication.medicationName)?.drugClass}
+                                                            label={drugs.find(d => d.name === medication.medicationName)?.category}
                                                             size="small"
                                                             color="primary"
                                                             variant="outlined"

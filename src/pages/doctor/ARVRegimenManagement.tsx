@@ -61,6 +61,8 @@ const ARVRegimenManagement: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [currentTab, setCurrentTab] = useState(0);
+    const [prescribeDialogOpen, setPrescribeDialogOpen] = useState(false);
+    const [selectedPatient, setSelectedPatient] = useState<{ id: string, name: string } | null>(null);
 
     // Create regimen dialog states
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -243,6 +245,37 @@ const ARVRegimenManagement: React.FC = () => {
                 return 'success';
             default:
                 return 'default';
+        }
+    };
+
+    const handlePrescribeRegimen = (patientId: string, patientName: string) => {
+        setSelectedPatient({ id: patientId, name: patientName });
+        setPrescribeDialogOpen(true);
+    };
+
+    const handlePrescribeRegimenSubmit = async (regimenId: string) => {
+        if (!selectedPatient) return;
+
+        try {
+            setLoading(true);
+            await arvService.prescribeRegimen({
+                patientId: selectedPatient.id,
+                patientName: selectedPatient.name,
+                regimenId: regimenId,
+                startDate: new Date(),
+                notes: `Phác đồ được kê cho bệnh nhân ${selectedPatient.name}`,
+                reason: 'Điều trị HIV theo phác đồ ARV'
+            });
+
+            setPrescribeDialogOpen(false);
+            setSelectedPatient(null);
+            await loadData(); // Reload để cập nhật thông tin bệnh nhân
+            alert('Kê đơn phác đồ thành công!');
+        } catch (error) {
+            console.error('Error prescribing regimen:', error);
+            alert('Lỗi khi kê đơn phác đồ');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -749,6 +782,59 @@ const ARVRegimenManagement: React.FC = () => {
                             </Button>
                         </DialogActions>
                     </Dialog>
+
+                    {/* Prescribe Regimen Dialog */}
+                    <Dialog open={prescribeDialogOpen} onClose={() => setPrescribeDialogOpen(false)} maxWidth="md" fullWidth>
+                        <DialogTitle>
+                            Kê đơn phác đồ cho bệnh nhân: {selectedPatient?.name}
+                        </DialogTitle>
+                        <DialogContent>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Chọn phác đồ ARV phù hợp cho bệnh nhân
+                            </Typography>
+                            <Grid container spacing={2}>
+                                {regimens.filter(r => r.isActive).map((regimen) => (
+                                    <Grid item xs={12} sm={6} key={regimen.id}>
+                                        <Card
+                                            sx={{
+                                                cursor: 'pointer',
+                                                '&:hover': { boxShadow: 3 }
+                                            }}
+                                            onClick={() => handlePrescribeRegimenSubmit(regimen.id)}
+                                        >
+                                            <CardContent>
+                                                <Typography variant="h6" gutterBottom>
+                                                    {regimen.name}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" gutterBottom>
+                                                    {regimen.description}
+                                                </Typography>
+                                                <Chip
+                                                    label={regimen.category}
+                                                    size="small"
+                                                    color="primary"
+                                                    sx={{ mr: 1 }}
+                                                />
+                                                <Chip
+                                                    label={regimen.lineOfTreatment}
+                                                    size="small"
+                                                    color="secondary"
+                                                />
+                                                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                                    {regimen.medications?.length || 0} thuốc
+                                                </Typography>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setPrescribeDialogOpen(false)}>
+                                Hủy
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </>
             )}
 
@@ -793,7 +879,7 @@ const ARVRegimenManagement: React.FC = () => {
                                             <Button
                                                 size="small"
                                                 variant="outlined"
-                                                onClick={() => alert('Tính năng kê đơn sẽ được phát triển')}
+                                                onClick={() => handlePrescribeRegimen(patient.patientId, patient.patientName)}
                                             >
                                                 Kê đơn
                                             </Button>

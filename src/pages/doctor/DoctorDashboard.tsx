@@ -441,10 +441,10 @@ const DoctorDashboard: React.FC = () => {
                                     variant="outlined"
                                     fullWidth
                                     startIcon={<PharmacyIcon />}
-                                    onClick={() => navigate('/doctor/regimens')}
+                                    onClick={() => navigate('/doctor/arv-management')}
                                     sx={{ py: 1.5 }}
                                 >
-                                    Phác đồ ARV
+                                    Quản lý phác đồ ARV
                                 </Button>
                             </Grid>
                         </Grid>

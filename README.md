@@ -12,6 +12,8 @@
 
 *Cung cấp nền tảng tích hợp để quản lý lịch hẹn, tư vấn trực tuyến, theo dõi điều trị ARV và hỗ trợ bệnh nhân HIV*
 
+🎉 **HOÀN THÀNH 100% - READY FOR PRODUCTION** 🎉
+
 </div>
 
 ---

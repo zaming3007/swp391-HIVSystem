@@ -234,7 +234,7 @@ const AppRoutes: React.FC = () => {
           <Route path="consultations" element={<DoctorConsultationManagement />} />
           <Route path="patients" element={<DoctorPatientManagement />} />
           <Route path="patients/:patientId/medical-record" element={<PatientMedicalRecord />} />
-          <Route path="regimens" element={<ARVRegimenManagement />} />
+
           <Route path="arv-management" element={<DoctorARVManagement />} />
           <Route path="schedule" element={<DoctorScheduleManagement />} />
         </Route>
