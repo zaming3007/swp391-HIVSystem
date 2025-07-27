@@ -182,30 +182,90 @@ namespace AppointmentApi.Controllers
                     return BadRequest(new { success = false, message = "Doctor ID not found in token" });
                 }
 
+                // Debug: Log all PatientRegimens to see what's in database
+                var allRegimens = await _context.PatientRegimens.ToListAsync();
+                Console.WriteLine($"=== DOCTOR PAGE DEBUG ===");
+                Console.WriteLine($"Total PatientRegimens in database: {allRegimens.Count}");
+                Console.WriteLine($"Doctor ID: {doctorId}");
+
+                // Show first few regimens
+                foreach (var reg in allRegimens.Take(5))
+                {
+                    Console.WriteLine($"PatientRegimen: PatientId='{reg.PatientId}', RegimenId={reg.RegimenId}, Status={reg.Status}");
+                }
+
                 // Lấy danh sách bệnh nhân từ appointments
                 var patients = await _context.Appointments
                     .Where(a => a.DoctorId == doctorId && a.Status == AppointmentStatus.Confirmed) // Chỉ lấy appointments đã được xác nhận
                     .GroupBy(a => new { a.PatientId, a.PatientName })
-                    .Select(g => new
+                    .ToListAsync(); // Execute first to get patient list
+
+                Console.WriteLine($"Found {patients.Count} patient groups from appointments");
+                foreach (var p in patients.Take(3))
+                {
+                    Console.WriteLine($"Appointment Patient: PatientId='{p.Key.PatientId}', Name='{p.Key.PatientName}'");
+                }
+
+                // Then manually check for regimens
+                var result = new List<object>();
+                foreach (var g in patients)
+                {
+                    Console.WriteLine($"Checking patient: '{g.Key.PatientId}' - {g.Key.PatientName}");
+
+                    // Try exact match first
+                    var regimen = await _context.PatientRegimens
+                        .Where(pr => pr.PatientId == g.Key.PatientId && pr.Status == "Active")
+                        .FirstOrDefaultAsync();
+
+                    // If no exact match, try partial matches
+                    if (regimen == null)
+                    {
+                        regimen = allRegimens
+                            .Where(pr => pr.Status == "Active")
+                            .FirstOrDefault(pr =>
+                                pr.PatientId.Contains(g.Key.PatientId) ||
+                                g.Key.PatientId.Contains(pr.PatientId) ||
+                                pr.PatientId.Equals(g.Key.PatientId, StringComparison.OrdinalIgnoreCase)
+                            );
+                    }
+
+                    Console.WriteLine($"Found regimen for '{g.Key.PatientId}': {(regimen != null ? $"YES (ID: {regimen.Id})" : "NO")}");
+
+                    // Get regimen name if found
+                    string regimenName = "Chưa có phác đồ";
+                    if (regimen != null)
+                    {
+                        var regimenDetails = await _context.ARVRegimens
+                            .FirstOrDefaultAsync(r => r.Id == regimen.RegimenId.ToString());
+
+                        if (regimenDetails == null)
+                        {
+                            var allARVRegimens = await _context.ARVRegimens.OrderBy(r => r.Id).ToListAsync();
+                            if (regimen.RegimenId > 0 && regimen.RegimenId <= allARVRegimens.Count)
+                            {
+                                regimenDetails = allARVRegimens[regimen.RegimenId - 1];
+                            }
+                        }
+
+                        regimenName = regimenDetails?.Name ?? "Phác đồ ARV";
+                    }
+
+                    result.Add(new
                     {
                         patientId = g.Key.PatientId,
                         patientName = g.Key.PatientName,
                         lastAppointment = g.Max(a => a.Date).ToString("yyyy-MM-dd"),
                         totalAppointments = g.Count(),
-                        currentRegimen = _context.PatientRegimens
-                            .Where(pr => pr.PatientId == g.Key.PatientId && pr.Status == "Active")
-                            .Select(pr => new
-                            {
-                                id = pr.Id,
-                                name = "Phác đồ ARV", // Simplified for now
-                                status = pr.Status
-                            })
-                            .FirstOrDefault()
-                    })
-                    .OrderByDescending(p => p.lastAppointment)
-                    .ToListAsync();
+                        currentRegimen = regimen != null ? new
+                        {
+                            id = regimen.Id,
+                            name = regimenName,
+                            status = regimen.Status
+                        } : null
+                    });
+                }
 
-                return Ok(new { success = true, data = patients, count = patients.Count });
+                return Ok(new { success = true, data = result, count = result.Count });
             }
             catch (Exception ex)
             {
@@ -222,35 +282,45 @@ namespace AppointmentApi.Controllers
         {
             try
             {
-                // Simplified approach - use raw SQL to insert directly
-                var doctorId = "doctor@gmail.com";
+                Console.WriteLine($"PrescribeRegimen called with: PatientId={request.PatientId}, RegimenId={request.RegimenId}");
 
-                // Convert RegimenId from string to int for database
-                if (!int.TryParse(request.RegimenId, out int regimenIdInt))
+                // Use Entity Framework to create PatientRegimen
+                var doctorId = "doctor-001"; // Use consistent doctor ID
+
+                // Get regimen details using string ID
+                var regimen = await _context.ARVRegimens
+                    .FirstOrDefaultAsync(r => r.Id == request.RegimenId);
+
+                if (regimen == null)
                 {
-                    // If it's a text regimen ID, use a default integer value
-                    regimenIdInt = 1; // Default to regimen 1
+                    return BadRequest(new { success = false, message = "Không tìm thấy phác đồ" });
                 }
 
-                // Use raw SQL to insert into PatientRegimens table
-                var sql = @"
-                    INSERT INTO ""PatientRegimens""
-                    (""PatientId"", ""RegimenId"", ""PrescribedBy"", ""PrescribedDate"", ""StartDate"", ""Status"", ""Notes"", ""DiscontinuationReason"", ""ReviewedBy"", ""CreatedAt"", ""UpdatedAt"")
-                    VALUES (@PatientId, @RegimenId, @PrescribedBy, @PrescribedDate, @StartDate, @Status, @Notes, @DiscontinuationReason, @ReviewedBy, @CreatedAt, @UpdatedAt)";
+                // Convert string RegimenId to int for PatientRegimen table
+                if (!int.TryParse(request.RegimenId, out int regimenIdInt))
+                {
+                    // If regimen ID is not numeric, try to find a mapping or use default
+                    regimenIdInt = 1; // Default regimen ID
+                }
 
-                await _context.Database.ExecuteSqlRawAsync(sql,
-                    new Npgsql.NpgsqlParameter("@PatientId", request.PatientId),
-                    new Npgsql.NpgsqlParameter("@RegimenId", regimenIdInt),
-                    new Npgsql.NpgsqlParameter("@PrescribedBy", doctorId),
-                    new Npgsql.NpgsqlParameter("@PrescribedDate", DateTime.UtcNow),
-                    new Npgsql.NpgsqlParameter("@StartDate", request.StartDate ?? DateTime.UtcNow),
-                    new Npgsql.NpgsqlParameter("@Status", "Active"),
-                    new Npgsql.NpgsqlParameter("@Notes", request.Notes ?? ""),
-                    new Npgsql.NpgsqlParameter("@DiscontinuationReason", ""),
-                    new Npgsql.NpgsqlParameter("@ReviewedBy", doctorId),
-                    new Npgsql.NpgsqlParameter("@CreatedAt", DateTime.UtcNow),
-                    new Npgsql.NpgsqlParameter("@UpdatedAt", DateTime.UtcNow)
-                );
+                // Create new PatientRegimen using existing schema
+                var patientRegimen = new PatientRegimen
+                {
+                    PatientId = request.PatientId,
+                    RegimenId = regimenIdInt,
+                    PrescribedBy = doctorId,
+                    PrescribedDate = DateTime.UtcNow,
+                    StartDate = request.StartDate ?? DateTime.UtcNow,
+                    Status = "Active",
+                    Notes = request.Notes ?? "",
+                    DiscontinuationReason = "",
+                    ReviewedBy = doctorId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                _context.PatientRegimens.Add(patientRegimen);
+                await _context.SaveChangesAsync();
 
                 Console.WriteLine($"Successfully prescribed regimen {request.RegimenId} to patient {request.PatientId}");
 
@@ -260,11 +330,14 @@ namespace AppointmentApi.Controllers
                     message = "Kê đơn phác đồ thành công",
                     data = new
                     {
-                        patientId = request.PatientId,
-                        regimenId = request.RegimenId,
-                        prescribedBy = doctorId,
-                        startDate = request.StartDate ?? DateTime.UtcNow,
-                        status = "Active"
+                        id = patientRegimen.Id,
+                        patientId = patientRegimen.PatientId,
+                        regimenId = patientRegimen.RegimenId,
+                        regimenName = regimen.Name,
+                        prescribedBy = patientRegimen.PrescribedBy,
+                        startDate = patientRegimen.StartDate,
+                        status = patientRegimen.Status,
+                        notes = patientRegimen.Notes
                     }
                 });
             }
@@ -311,7 +384,7 @@ namespace AppointmentApi.Controllers
                     try
                     {
                         var currentRegimen = await _context.PatientRegimens
-                            .Where(pr => pr.PatientId == patient.PatientId && pr.Status == "Đang điều trị")
+                            .Where(pr => pr.PatientId == patient.PatientId && pr.Status == "Active")
                             // Regimen navigation removed due to schema mismatch
                             .FirstOrDefaultAsync();
 
@@ -1149,6 +1222,248 @@ namespace AppointmentApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { success = false, message = "Test prescription failed", error = ex.Message });
+            }
+        }
+
+        [HttpGet("patient/{patientId}/regimens")]
+        public async Task<IActionResult> GetPatientRegimens(string patientId)
+        {
+            try
+            {
+                Console.WriteLine($"GetPatientRegimens called for patientId: {patientId}");
+
+                // Debug: Show all PatientRegimens in database
+                var allRegimens = await _context.PatientRegimens.ToListAsync();
+                Console.WriteLine($"Total PatientRegimens in database: {allRegimens.Count}");
+                foreach (var reg in allRegimens.Take(5)) // Show first 5
+                {
+                    Console.WriteLine($"DB PatientRegimen: Id={reg.Id}, PatientId='{reg.PatientId}', Status={reg.Status}");
+                }
+
+                // Try exact match first
+                var regimens = await _context.PatientRegimens
+                    .Where(pr => pr.PatientId == patientId)
+                    .OrderByDescending(pr => pr.PrescribedDate)
+                    .ToListAsync();
+
+                Console.WriteLine($"Exact match found {regimens.Count} regimens for patient '{patientId}'");
+
+                if (regimens.Count == 0)
+                {
+                    Console.WriteLine($"No exact match. Checking partial matches...");
+                    var partialMatches = allRegimens.Where(r =>
+                        r.PatientId.Contains(patientId) ||
+                        patientId.Contains(r.PatientId) ||
+                        r.PatientId.Equals(patientId, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+
+                    Console.WriteLine($"Partial matches found: {partialMatches.Count}");
+                    foreach (var match in partialMatches.Take(3))
+                    {
+                        Console.WriteLine($"  Match: '{match.PatientId}' vs '{patientId}'");
+                    }
+
+                    // Use partial matches if found
+                    if (partialMatches.Any())
+                    {
+                        regimens = partialMatches.OrderByDescending(r => r.PrescribedDate).ToList();
+                        Console.WriteLine($"Using {regimens.Count} partial matches");
+                    }
+                }
+
+                var result = new List<object>();
+                foreach (var regimen in regimens)
+                {
+                    // Get regimen details - try multiple mapping strategies
+                    var regimenDetails = await _context.ARVRegimens
+                        .FirstOrDefaultAsync(r => r.Id == regimen.RegimenId.ToString());
+
+                    // If not found by string conversion, try to find by index (1-based)
+                    if (regimenDetails == null)
+                    {
+                        var allARVRegimens = await _context.ARVRegimens.OrderBy(r => r.Id).ToListAsync();
+                        if (regimen.RegimenId > 0 && regimen.RegimenId <= allARVRegimens.Count)
+                        {
+                            regimenDetails = allARVRegimens[regimen.RegimenId - 1]; // 1-based index
+                        }
+                    }
+
+                    Console.WriteLine($"Regimen lookup: RegimenId={regimen.RegimenId} -> Found: {regimenDetails?.Name ?? "NULL"}");
+
+                    // Get medications for this regimen - simplified query
+                    var medications = new List<object>(); // Temporarily empty until we fix schema
+
+                    // TODO: Fix ARVMedications schema mismatch
+                    // var medications = await _context.ARVMedications
+                    //     .Where(m => m.RegimenId == regimen.RegimenId.ToString())
+                    //     .ToListAsync();
+
+                    result.Add(new
+                    {
+                        id = regimen.Id,
+                        patientId = regimen.PatientId,
+                        regimenId = regimen.RegimenId,
+                        regimenName = regimenDetails?.Name ?? "Unknown Regimen",
+                        regimenDescription = regimenDetails?.Description ?? "",
+                        prescribedBy = regimen.PrescribedBy,
+                        prescribedDate = regimen.PrescribedDate,
+                        startDate = regimen.StartDate,
+                        endDate = regimen.EndDate,
+                        status = regimen.Status,
+                        notes = regimen.Notes,
+                        medications = new List<object>
+                        {
+                            // Mock medication data until schema is fixed
+                            new
+                            {
+                                id = "med-1",
+                                medicationName = "Tenofovir/Emtricitabine",
+                                activeIngredient = "Tenofovir 300mg + Emtricitabine 200mg",
+                                dosage = "1 viên",
+                                frequency = "1 lần/ngày",
+                                instructions = "Uống cùng hoặc không cùng thức ăn",
+                                sideEffects = "Buồn nôn, đau đầu nhẹ"
+                            }
+                        }
+                    });
+                }
+
+                return Ok(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetPatientRegimens: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi server khi lấy thông tin phác đồ" });
+            }
+        }
+
+        [HttpGet("debug/patient-regimens")]
+        public async Task<IActionResult> DebugPatientRegimens()
+        {
+            try
+            {
+                var allRegimens = await _context.PatientRegimens.ToListAsync();
+                Console.WriteLine($"=== DEBUG: All PatientRegimens ===");
+                Console.WriteLine($"Total count: {allRegimens.Count}");
+
+                foreach (var reg in allRegimens)
+                {
+                    Console.WriteLine($"ID: {reg.Id}, PatientId: '{reg.PatientId}', RegimenId: {reg.RegimenId}, Status: {reg.Status}");
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    count = allRegimens.Count,
+                    regimens = allRegimens.Select(r => new
+                    {
+                        id = r.Id,
+                        patientId = r.PatientId,
+                        regimenId = r.RegimenId,
+                        status = r.Status,
+                        prescribedDate = r.PrescribedDate
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Debug error: {ex.Message}");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpDelete("regimen/{regimenId}")]
+        public async Task<IActionResult> DeleteRegimen(string regimenId)
+        {
+            try
+            {
+                Console.WriteLine($"DeleteRegimen called for regimenId: {regimenId}");
+
+                var regimen = await _context.ARVRegimens
+                    .FirstOrDefaultAsync(r => r.Id == regimenId);
+
+                if (regimen == null)
+                {
+                    return NotFound(new { success = false, message = "Không tìm thấy phác đồ" });
+                }
+
+                // Check if regimen is being used by any patients
+                var isInUse = await _context.PatientRegimens
+                    .AnyAsync(pr => pr.RegimenId.ToString() == regimenId && pr.Status == "Active");
+
+                if (isInUse)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Không thể xóa phác đồ đang được sử dụng bởi bệnh nhân"
+                    });
+                }
+
+                _context.ARVRegimens.Remove(regimen);
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"Successfully deleted regimen: {regimen.Name}");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã xóa phác đồ thành công",
+                    deletedRegimen = new
+                    {
+                        id = regimen.Id,
+                        name = regimen.Name
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DeleteRegimen: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi server khi xóa phác đồ" });
+            }
+        }
+
+        [HttpDelete("patient-regimen/{patientRegimenId}")]
+        public async Task<IActionResult> DeletePatientRegimen(int patientRegimenId)
+        {
+            try
+            {
+                Console.WriteLine($"DeletePatientRegimen called for patientRegimenId: {patientRegimenId}");
+
+                var patientRegimen = await _context.PatientRegimens
+                    .FirstOrDefaultAsync(pr => pr.Id == patientRegimenId);
+
+                if (patientRegimen == null)
+                {
+                    return NotFound(new { success = false, message = "Không tìm thấy đơn kê phác đồ" });
+                }
+
+                // Instead of deleting, mark as discontinued
+                patientRegimen.Status = "Discontinued";
+                patientRegimen.EndDate = DateTime.UtcNow;
+                patientRegimen.DiscontinuationReason = "Bác sĩ hủy đơn kê phác đồ";
+                patientRegimen.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"Successfully discontinued patient regimen: {patientRegimen.Id}");
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đã hủy đơn kê phác đồ thành công",
+                    discontinuedRegimen = new
+                    {
+                        id = patientRegimen.Id,
+                        patientId = patientRegimen.PatientId,
+                        status = patientRegimen.Status
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DeletePatientRegimen: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Lỗi server khi hủy đơn kê phác đồ" });
             }
         }
     }
