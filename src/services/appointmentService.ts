@@ -300,7 +300,7 @@ export const getMyAppointments = async (): Promise<Appointment[]> => {
     try {
         // Kiểm tra nếu user đã đăng nhập trong Redux store
         const state = store.getState();
-        userId = state.auth.user?.id;
+        userId = state.auth.user?.id ?? null;
         console.log("Got user ID from Redux store:", userId);
     } catch (error) {
         console.error("Error accessing Redux store:", error);

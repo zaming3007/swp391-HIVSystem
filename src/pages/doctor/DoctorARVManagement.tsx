@@ -32,12 +32,14 @@ import {
     Accordion,
     AccordionSummary,
     AccordionDetails,
-    LinearProgress
+    LinearProgress,
+    Snackbar
 } from '@mui/material';
 import {
     Add as AddIcon,
     Visibility as ViewIcon,
     Edit as EditIcon,
+    Delete as DeleteIcon,
     LocalPharmacy as PharmacyIcon,
     ExpandMore as ExpandMoreIcon,
     Person as PersonIcon,
@@ -115,11 +117,87 @@ const DoctorARVManagement: React.FC = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [createRegimenOpen, setCreateRegimenOpen] = useState(false);
 
+    // Snackbar states
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+
+    // Delete states
+    const [deleteRegimenOpen, setDeleteRegimenOpen] = useState(false);
+    const [deletePatientRegimenOpen, setDeletePatientRegimenOpen] = useState(false);
+    const [selectedRegimenToDelete, setSelectedRegimenToDelete] = useState<any>(null);
+    const [selectedPatientRegimenToDelete, setSelectedPatientRegimenToDelete] = useState<any>(null);
+
     useEffect(() => {
         loadPatients();
         loadRegimens();
         loadNotifications();
     }, []);
+
+    // Helper function for showing notifications
+    const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    // Delete regimen function
+    const handleDeleteRegimen = async () => {
+        if (!selectedRegimenToDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:5002/api/ARVPrescription/regimen/${selectedRegimenToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Đã xóa phác đồ thành công!', 'success');
+                loadRegimens(); // Refresh regimen list
+                setDeleteRegimenOpen(false);
+                setSelectedRegimenToDelete(null);
+            } else {
+                showNotification(data.message || 'Không thể xóa phác đồ', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting regimen:', error);
+            showNotification('Có lỗi xảy ra khi xóa phác đồ', 'error');
+        }
+    };
+
+    // Delete patient regimen function
+    const handleDeletePatientRegimen = async () => {
+        if (!selectedPatientRegimenToDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:5002/api/ARVPrescription/patient-regimen/${selectedPatientRegimenToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showNotification('Đã hủy đơn kê phác đồ thành công!', 'success');
+                loadPatients(); // Refresh patient list
+                setDeletePatientRegimenOpen(false);
+                setSelectedPatientRegimenToDelete(null);
+            } else {
+                showNotification(data.message || 'Không thể hủy đơn kê phác đồ', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting patient regimen:', error);
+            showNotification('Có lỗi xảy ra khi hủy đơn kê phác đồ', 'error');
+        }
+    };
 
     // New functions for patient interaction
     const handleViewPatientAdherence = async (patientId: string) => {
@@ -173,7 +251,23 @@ const DoctorARVManagement: React.FC = () => {
 
     const loadNotifications = async () => {
         try {
-            // Mock notifications for demo
+            // Try to load real notifications from API
+            const response = await fetch('http://localhost:5002/api/Notifications/doctor', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data) {
+                    setNotifications(data.data);
+                    return;
+                }
+            }
+
+            // Fallback to mock notifications if API fails
             setNotifications([
                 {
                     id: 1,
@@ -196,6 +290,8 @@ const DoctorARVManagement: React.FC = () => {
             ]);
         } catch (error) {
             console.error('Error loading notifications:', error);
+            // Use mock data on error
+            setNotifications([]);
         }
     };
 
@@ -331,7 +427,7 @@ const DoctorARVManagement: React.FC = () => {
                 setNotes('');
                 setReason('');
                 loadPatients(); // Refresh patient list
-                alert('Đã kê đơn phác đồ thành công!');
+                showNotification('Đã kê đơn phác đồ thành công! Bệnh nhân sẽ nhận được thông báo.', 'success');
             } else {
                 setError(response.data.message || 'Không thể kê đơn phác đồ');
             }
@@ -366,6 +462,7 @@ const DoctorARVManagement: React.FC = () => {
                                     <TableCell>Ngày bắt đầu</TableCell>
                                     <TableCell>Trạng thái</TableCell>
                                     <TableCell>Ghi chú</TableCell>
+                                    <TableCell>Thao tác</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -382,6 +479,20 @@ const DoctorARVManagement: React.FC = () => {
                                             />
                                         </TableCell>
                                         <TableCell>{regimen.notes}</TableCell>
+                                        <TableCell>
+                                            <Tooltip title="Hủy đơn kê phác đồ">
+                                                <IconButton
+                                                    color="error"
+                                                    size="small"
+                                                    onClick={() => {
+                                                        setSelectedPatientRegimenToDelete(regimen);
+                                                        setDeletePatientRegimenOpen(true);
+                                                    }}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -559,6 +670,19 @@ const DoctorARVManagement: React.FC = () => {
                                     color={regimen.lineOfTreatment === 'Tuyến 1' ? 'primary' : 'secondary'}
                                     size="small"
                                 />
+                                <Tooltip title="Xóa phác đồ">
+                                    <IconButton
+                                        color="error"
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedRegimenToDelete(regimen);
+                                            setDeleteRegimenOpen(true);
+                                        }}
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Tooltip>
                             </Box>
                         </AccordionSummary>
                         <AccordionDetails>
@@ -842,6 +966,82 @@ const DoctorARVManagement: React.FC = () => {
                     setCreateRegimenOpen(false);
                 }}
             />
+
+            {/* Delete Regimen Confirmation Dialog */}
+            <Dialog
+                open={deleteRegimenOpen}
+                onClose={() => setDeleteRegimenOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Xác nhận xóa phác đồ</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Bạn có chắc chắn muốn xóa phác đồ "{selectedRegimenToDelete?.name}"?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Lưu ý: Không thể xóa phác đồ đang được sử dụng bởi bệnh nhân.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeleteRegimenOpen(false)}>
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleDeleteRegimen}
+                        color="error"
+                        variant="contained"
+                    >
+                        Xóa
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Patient Regimen Confirmation Dialog */}
+            <Dialog
+                open={deletePatientRegimenOpen}
+                onClose={() => setDeletePatientRegimenOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Xác nhận hủy đơn kê phác đồ</DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Bạn có chắc chắn muốn hủy đơn kê phác đồ cho bệnh nhân "{selectedPatientRegimenToDelete?.patientName}"?
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Đơn kê sẽ được đánh dấu là "Đã hủy" thay vì bị xóa hoàn toàn.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDeletePatientRegimenOpen(false)}>
+                        Hủy
+                    </Button>
+                    <Button
+                        onClick={handleDeletePatientRegimen}
+                        color="error"
+                        variant="contained"
+                    >
+                        Hủy đơn kê
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Success/Error Snackbar */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

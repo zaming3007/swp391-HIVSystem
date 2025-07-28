@@ -38,6 +38,7 @@ import StigmaReductionPage from './pages/education/StigmaReductionPage';
 import TestResultsPage from './pages/medical/TestResultsPage';
 import TestResults from './pages/customer/TestResults';
 import ARVManagement from './pages/customer/ARVManagement';
+import CustomerARVPage from './pages/customer/CustomerARVPage';
 import HIVSystemDemo from './pages/demo/HIVSystemDemo';
 import NotificationDemo from './pages/demo/NotificationDemo';
 import NotificationPage from './pages/notifications/NotificationPage';
@@ -183,6 +184,7 @@ const AppRoutes: React.FC = () => {
           <Route path="appointments" element={<MyAppointmentsPage />} />
           <Route path="arv-treatment" element={<PatientARVManagement />} />
           <Route path="arv-management" element={<ARVManagement />} />
+          <Route path="my-arv" element={<CustomerARVPage />} />
           <Route path="consultations" element={<ConsultationPage />} />
           <Route path="reminder" element={<ReminderPage />} />
           <Route path="test-results" element={<TestResults />} />

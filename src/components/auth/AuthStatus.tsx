@@ -312,6 +312,12 @@ const AuthStatus: React.FC = () => {
                             </ListItemIcon>
                             Kết quả xét nghiệm
                         </MenuItem>
+                        <MenuItem onClick={() => { navigate('/app/my-arv'); handleClose(); }}>
+                            <ListItemIcon>
+                                <MedicalServicesIcon fontSize="small" color="secondary" />
+                            </ListItemIcon>
+                            Phác đồ ARV của tôi
+                        </MenuItem>
                         <MenuItem onClick={() => { navigate('/app/reminder'); handleClose(); }}>
                             <ListItemIcon>
                                 <NotificationsIcon fontSize="small" />

@@ -29,7 +29,8 @@ import {
     Tab,
     Accordion,
     AccordionSummary,
-    AccordionDetails
+    AccordionDetails,
+    Snackbar
 } from '@mui/material';
 import {
     LocalPharmacy as PharmacyIcon,
@@ -90,7 +91,7 @@ const PatientARVManagement: React.FC = () => {
     const [adherenceStats, setAdherenceStats] = useState<AdherenceStatistics | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Dialog states
     const [medicationDialogOpen, setMedicationDialogOpen] = useState(false);
     const [sideEffectDialogOpen, setSideEffectDialogOpen] = useState(false);
@@ -98,24 +99,36 @@ const PatientARVManagement: React.FC = () => {
     const [totalDoses, setTotalDoses] = useState(1);
     const [takenDoses, setTakenDoses] = useState(1);
     const [medicationNotes, setMedicationNotes] = useState('');
-    
+
     // Side effect states
     const [sideEffect, setSideEffect] = useState('');
     const [severity, setSeverity] = useState('Nhẹ');
     const [onsetDate, setOnsetDate] = useState(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState('');
 
+    // Snackbar states
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('success');
+
     useEffect(() => {
         loadCurrentRegimen();
         loadAdherenceStatistics();
     }, []);
+
+    // Helper function for showing notifications
+    const showNotification = (message: string, severity: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
 
     const loadCurrentRegimen = async () => {
         try {
             setLoading(true);
             setError(null);
             const response = await arvApi.get('/PatientARV/current-regimen');
-            
+
             if (response.data.success) {
                 setCurrentRegimen(response.data.data);
             } else {
@@ -132,7 +145,7 @@ const PatientARVManagement: React.FC = () => {
     const loadAdherenceStatistics = async () => {
         try {
             const response = await arvApi.get('/PatientARV/adherence-statistics');
-            
+
             if (response.data.success) {
                 setAdherenceStats(response.data.data);
             }
@@ -158,7 +171,7 @@ const PatientARVManagement: React.FC = () => {
                 setMedicationDialogOpen(false);
                 setMedicationNotes('');
                 loadAdherenceStatistics();
-                alert('Đã ghi nhận việc uống thuốc thành công!');
+                showNotification('Đã ghi nhận việc uống thuốc thành công!', 'success');
             } else {
                 setError(response.data.message || 'Không thể ghi nhận uống thuốc');
             }
@@ -187,7 +200,7 @@ const PatientARVManagement: React.FC = () => {
                 setSideEffectDialogOpen(false);
                 setSideEffect('');
                 setDescription('');
-                alert('Đã báo cáo tác dụng phụ thành công! Bác sĩ sẽ theo dõi và tư vấn cho bạn.');
+                showNotification('Đã báo cáo tác dụng phụ thành công! Bác sĩ sẽ theo dõi và tư vấn cho bạn.', 'success');
             } else {
                 setError(response.data.message || 'Không thể báo cáo tác dụng phụ');
             }
@@ -596,9 +609,9 @@ const PatientARVManagement: React.FC = () => {
                     <Button onClick={() => setSideEffectDialogOpen(false)}>
                         Hủy
                     </Button>
-                    <Button 
-                        onClick={handleReportSideEffect} 
-                        variant="contained" 
+                    <Button
+                        onClick={handleReportSideEffect}
+                        variant="contained"
                         disabled={loading || !sideEffect}
                         color="warning"
                     >
@@ -606,6 +619,22 @@ const PatientARVManagement: React.FC = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Success/Error Snackbar */}
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

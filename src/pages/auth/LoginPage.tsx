@@ -14,16 +14,12 @@ import {
     IconButton,
     Alert,
     CircularProgress,
-    Divider,
-    Stack,
 } from '@mui/material';
 import {
     LockOutlined as LockOutlinedIcon,
     Visibility as VisibilityIcon,
     VisibilityOff as VisibilityOffIcon,
     Email as EmailIcon,
-    Google as GoogleIcon,
-    Facebook as FacebookIcon,
     Home as HomeIcon,
 } from '@mui/icons-material';
 import type { RootState } from '../../store';
@@ -302,58 +298,7 @@ const LoginPage: React.FC = () => {
                     )}
                 </Button>
 
-                {/* Divider */}
-                <Divider sx={{ my: 3 }}>
-                    <Typography variant="body2" color="text.secondary">
-                        hoặc
-                    </Typography>
-                </Divider>
 
-                {/* Social Login Buttons */}
-                <Stack spacing={2} sx={{ mb: 3 }}>
-                    <Button
-                        fullWidth
-                        variant="outlined"
-                        size="large"
-                        startIcon={<GoogleIcon />}
-                        disabled={isLoading}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            fontWeight: 500,
-                            borderColor: '#dadce0',
-                            color: '#3c4043',
-                            '&:hover': {
-                                borderColor: '#dadce0',
-                                backgroundColor: '#f8f9fa'
-                            }
-                        }}
-                    >
-                        Đăng nhập với Google
-                    </Button>
-                    <Button
-                        fullWidth
-                        variant="outlined"
-                        size="large"
-                        startIcon={<FacebookIcon />}
-                        disabled={isLoading}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            fontWeight: 500,
-                            borderColor: '#1877f2',
-                            color: '#1877f2',
-                            '&:hover': {
-                                borderColor: '#1877f2',
-                                backgroundColor: '#f0f2f5'
-                            }
-                        }}
-                    >
-                        Đăng nhập với Facebook
-                    </Button>
-                </Stack>
 
                 {/* Register Link */}
                 <Box sx={{ textAlign: 'center' }}>

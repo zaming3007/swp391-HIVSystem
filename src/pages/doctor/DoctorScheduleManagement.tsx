@@ -30,7 +30,8 @@ import {
     Tooltip,
     Alert,
     Divider,
-    Avatar
+    Avatar,
+    CircularProgress
 } from '@mui/material';
 import {
     Schedule as ScheduleIcon,
@@ -44,79 +45,88 @@ import {
     LocalHospital as SickIcon,
     BeachAccess as VacationIcon
 } from '@mui/icons-material';
-import { RootState } from '../../store/store';
+import { RootState } from '../../store';
+import doctorService, { DoctorScheduleDto } from '../../services/doctorService';
 
-// Mock schedule data
-const mockScheduleData = [
-    {
-        id: '1',
-        dayOfWeek: 'monday',
-        dayName: 'Thứ Hai',
-        shifts: [
-            { id: '1', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'available' },
-            { id: '2', startTime: '13:00', endTime: '17:00', type: 'afternoon', status: 'available' }
-        ]
-    },
-    {
-        id: '2',
-        dayOfWeek: 'tuesday',
-        dayName: 'Thứ Ba',
-        shifts: [
-            { id: '3', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'available' },
-            { id: '4', startTime: '13:00', endTime: '17:00', type: 'afternoon', status: 'unavailable' }
-        ]
-    },
-    {
-        id: '3',
-        dayOfWeek: 'wednesday',
-        dayName: 'Thứ Tư',
-        shifts: [
-            { id: '5', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'available' },
-            { id: '6', startTime: '13:00', endTime: '17:00', type: 'afternoon', status: 'available' }
-        ]
-    },
-    {
-        id: '4',
-        dayOfWeek: 'thursday',
-        dayName: 'Thứ Năm',
-        shifts: [
-            { id: '7', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'sick' },
-            { id: '8', startTime: '13:00', endTime: '17:00', type: 'afternoon', status: 'sick' }
-        ]
-    },
-    {
-        id: '5',
-        dayOfWeek: 'friday',
-        dayName: 'Thứ Sáu',
-        shifts: [
-            { id: '9', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'available' },
-            { id: '10', startTime: '13:00', endTime: '17:00', type: 'afternoon', status: 'vacation' }
-        ]
-    },
-    {
-        id: '6',
-        dayOfWeek: 'saturday',
-        dayName: 'Thứ Bảy',
-        shifts: [
-            { id: '11', startTime: '08:00', endTime: '12:00', type: 'morning', status: 'available' }
-        ]
-    },
-    {
-        id: '7',
-        dayOfWeek: 'sunday',
-        dayName: 'Chủ Nhật',
-        shifts: []
-    }
-];
+// Interface for schedule display
+interface ScheduleDay {
+    id: string;
+    dayOfWeek: number;
+    dayName: string;
+    shifts: ScheduleShift[];
+}
+
+interface ScheduleShift {
+    id: string;
+    startTime: string;
+    endTime: string;
+    type: 'morning' | 'afternoon' | 'evening';
+    status: 'available' | 'unavailable';
+}
 
 const DoctorScheduleManagement: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const [schedule, setSchedule] = useState(mockScheduleData);
+    const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedWeek, setSelectedWeek] = useState('current');
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedDay, setSelectedDay] = useState<any>(null);
     const [selectedShift, setSelectedShift] = useState<any>(null);
     const [actionType, setActionType] = useState<'add' | 'edit' | 'delete'>('add');
+
+    // Load doctor's schedule from database
+    useEffect(() => {
+        const loadDoctorSchedule = async () => {
+            if (!user?.id) return;
+
+            setLoading(true);
+            try {
+                const scheduleData = await doctorService.getDoctorSchedule(user.id);
+                const formattedSchedule = formatScheduleData(scheduleData);
+                setSchedule(formattedSchedule);
+            } catch (error) {
+                console.error('Error loading doctor schedule:', error);
+                // Fallback to empty schedule
+                setSchedule(getEmptySchedule());
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDoctorSchedule();
+    }, [user?.id]);
+
+    // Convert API data to display format
+    const formatScheduleData = (apiData: DoctorScheduleDto[]): ScheduleDay[] => {
+        return apiData.map(day => ({
+            id: day.id || day.dayOfWeek.toString(),
+            dayOfWeek: day.dayOfWeek,
+            dayName: day.dayName,
+            shifts: day.timeSlots.map(slot => {
+                const startHour = parseInt(slot.startTime.split(':')[0]);
+                const type = startHour < 12 ? 'morning' : startHour < 17 ? 'afternoon' : 'evening';
+
+                return {
+                    id: slot.id,
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    type: type as 'morning' | 'afternoon' | 'evening',
+                    status: slot.isAvailable ? 'available' : 'unavailable'
+                };
+            })
+        }));
+    };
+
+    // Get empty schedule template
+    const getEmptySchedule = (): ScheduleDay[] => {
+        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        return dayNames.map((dayName, index) => ({
+            id: index.toString(),
+            dayOfWeek: index,
+            dayName,
+            shifts: []
+        }));
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -124,10 +134,6 @@ const DoctorScheduleManagement: React.FC = () => {
                 return 'success';
             case 'unavailable':
                 return 'error';
-            case 'sick':
-                return 'warning';
-            case 'vacation':
-                return 'info';
             default:
                 return 'default';
         }
@@ -139,10 +145,6 @@ const DoctorScheduleManagement: React.FC = () => {
                 return 'Có thể khám';
             case 'unavailable':
                 return 'Không có mặt';
-            case 'sick':
-                return 'Nghỉ ốm';
-            case 'vacation':
-                return 'Nghỉ phép';
             default:
                 return status;
         }
@@ -154,49 +156,12 @@ const DoctorScheduleManagement: React.FC = () => {
                 return <AvailableIcon />;
             case 'unavailable':
                 return <UnavailableIcon />;
-            case 'sick':
-                return <SickIcon />;
-            case 'vacation':
-                return <VacationIcon />;
             default:
                 return <ScheduleIcon />;
         }
     };
 
-    const handleAddShift = (day: any) => {
-        setSelectedDay(day);
-        setSelectedShift(null);
-        setActionType('add');
-        setOpenDialog(true);
-    };
 
-    const handleEditShift = (day: any, shift: any) => {
-        setSelectedDay(day);
-        setSelectedShift(shift);
-        setActionType('edit');
-        setOpenDialog(true);
-    };
-
-    const handleDeleteShift = (dayId: string, shiftId: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa ca làm việc này?')) {
-            const updatedSchedule = schedule.map(day => {
-                if (day.id === dayId) {
-                    return {
-                        ...day,
-                        shifts: day.shifts.filter(shift => shift.id !== shiftId)
-                    };
-                }
-                return day;
-            });
-            setSchedule(updatedSchedule);
-        }
-    };
-
-    const handleSaveShift = () => {
-        // Mock save functionality
-        setOpenDialog(false);
-        alert('Lịch làm việc đã được cập nhật!');
-    };
 
     const getTotalHours = () => {
         return schedule.reduce((total, day) => {
@@ -217,16 +182,42 @@ const DoctorScheduleManagement: React.FC = () => {
         ).length;
     };
 
+    const getCurrentWeekRange = () => {
+        const today = new Date();
+        const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+
+        const formatDate = (date: Date) => {
+            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        };
+
+        return `${formatDate(startOfWeek)} - ${formatDate(endOfWeek)}/${today.getFullYear()}`;
+    };
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                <CircularProgress />
+                <Typography variant="h6" sx={{ ml: 2 }}>
+                    Đang tải lịch làm việc...
+                </Typography>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ flexGrow: 1 }}>
             {/* Header */}
             <Box sx={{ mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    Quản lý lịch làm việc
+                    Lịch làm việc của tôi
                 </Typography>
                 <Typography variant="subtitle1" color="text.secondary">
-                    Quản lý ca trực và thời gian làm việc của bác sĩ {user?.name}
+                    Xem lịch làm việc và ca trực của bác sĩ {user?.firstName} {user?.lastName}
                 </Typography>
+                <Alert severity="info" sx={{ mt: 2 }}>
+                    Đây là lịch làm việc chỉ xem. Để chỉnh sửa lịch làm việc, vui lòng liên hệ quản trị viên.
+                </Alert>
             </Box>
 
             {/* Stats Cards */}
@@ -300,7 +291,7 @@ const DoctorScheduleManagement: React.FC = () => {
                                         Tuần hiện tại
                                     </Typography>
                                     <Typography variant="h6">
-                                        15-21/01/2024
+                                        {getCurrentWeekRange()}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -329,17 +320,17 @@ const DoctorScheduleManagement: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={4}>
                         <Alert severity="info" sx={{ py: 0.5 }}>
-                            Lịch làm việc tuần từ 15/01 - 21/01/2024
+                            Lịch làm việc tuần từ {getCurrentWeekRange()}
                         </Alert>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                         <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => alert('Tính năng tạo template lịch làm việc sẽ được phát triển')}
+                            variant="outlined"
+                            startIcon={<ScheduleIcon />}
+                            onClick={() => window.location.reload()}
                             fullWidth
                         >
-                            Tạo template
+                            Làm mới lịch
                         </Button>
                     </Grid>
                 </Grid>
@@ -351,16 +342,16 @@ const DoctorScheduleManagement: React.FC = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Ngày trong tuần</TableCell>
-                            <TableCell>Ca sáng (8:00-12:00)</TableCell>
-                            <TableCell>Ca chiều (13:00-17:00)</TableCell>
+                            <TableCell>Ca sáng</TableCell>
+                            <TableCell>Ca chiều</TableCell>
                             <TableCell>Tổng giờ</TableCell>
-                            <TableCell>Thao tác</TableCell>
+                            <TableCell>Trạng thái</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {schedule.map((day) => {
-                            const morningShift = day.shifts.find(shift => shift.type === 'morning');
-                            const afternoonShift = day.shifts.find(shift => shift.type === 'afternoon');
+                            const morningShifts = day.shifts.filter(shift => shift.type === 'morning');
+                            const afternoonShifts = day.shifts.filter(shift => shift.type === 'afternoon');
                             const totalHours = day.shifts.reduce((total, shift) => {
                                 if (shift.status === 'available') {
                                     const start = new Date(`2024-01-01 ${shift.startTime}`);
@@ -378,17 +369,21 @@ const DoctorScheduleManagement: React.FC = () => {
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {morningShift ? (
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Chip
-                                                    icon={getStatusIcon(morningShift.status)}
-                                                    label={`${morningShift.startTime}-${morningShift.endTime}`}
-                                                    color={getStatusColor(morningShift.status)}
-                                                    size="small"
-                                                />
-                                                <Typography variant="caption">
-                                                    {getStatusText(morningShift.status)}
-                                                </Typography>
+                                        {morningShifts.length > 0 ? (
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                {morningShifts.map((shift, index) => (
+                                                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Chip
+                                                            icon={getStatusIcon(shift.status)}
+                                                            label={`${shift.startTime}-${shift.endTime}`}
+                                                            color={getStatusColor(shift.status)}
+                                                            size="small"
+                                                        />
+                                                        <Typography variant="caption">
+                                                            {getStatusText(shift.status)}
+                                                        </Typography>
+                                                    </Box>
+                                                ))}
                                             </Box>
                                         ) : (
                                             <Typography variant="body2" color="text.secondary">
@@ -397,17 +392,21 @@ const DoctorScheduleManagement: React.FC = () => {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        {afternoonShift ? (
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Chip
-                                                    icon={getStatusIcon(afternoonShift.status)}
-                                                    label={`${afternoonShift.startTime}-${afternoonShift.endTime}`}
-                                                    color={getStatusColor(afternoonShift.status)}
-                                                    size="small"
-                                                />
-                                                <Typography variant="caption">
-                                                    {getStatusText(afternoonShift.status)}
-                                                </Typography>
+                                        {afternoonShifts.length > 0 ? (
+                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                {afternoonShifts.map((shift, index) => (
+                                                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                        <Chip
+                                                            icon={getStatusIcon(shift.status)}
+                                                            label={`${shift.startTime}-${shift.endTime}`}
+                                                            color={getStatusColor(shift.status)}
+                                                            size="small"
+                                                        />
+                                                        <Typography variant="caption">
+                                                            {getStatusText(shift.status)}
+                                                        </Typography>
+                                                    </Box>
+                                                ))}
                                             </Box>
                                         ) : (
                                             <Typography variant="body2" color="text.secondary">
@@ -417,32 +416,13 @@ const DoctorScheduleManagement: React.FC = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="body1" fontWeight="medium">
-                                            {totalHours}h
+                                            {totalHours.toFixed(1)}h
                                         </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <Box sx={{ display: 'flex', gap: 1 }}>
-                                            <Tooltip title="Thêm ca làm việc">
-                                                <IconButton
-                                                    size="small"
-                                                    color="primary"
-                                                    onClick={() => handleAddShift(day)}
-                                                >
-                                                    <AddIcon />
-                                                </IconButton>
-                                            </Tooltip>
-                                            {day.shifts.length > 0 && (
-                                                <Tooltip title="Chỉnh sửa lịch">
-                                                    <IconButton
-                                                        size="small"
-                                                        color="secondary"
-                                                        onClick={() => handleEditShift(day, day.shifts[0])}
-                                                    >
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            )}
-                                        </Box>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Chỉ xem
+                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                             );
@@ -451,88 +431,25 @@ const DoctorScheduleManagement: React.FC = () => {
                 </Table>
             </TableContainer>
 
-            {/* Schedule Dialog */}
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>
-                    {actionType === 'add' ? 'Thêm ca làm việc' : 'Chỉnh sửa ca làm việc'}
-                    {selectedDay && ` - ${selectedDay.dayName}`}
-                </DialogTitle>
-                <DialogContent>
-                    <Box sx={{ mt: 2 }}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Giờ bắt đầu"
-                                    type="time"
-                                    defaultValue={selectedShift?.startTime || '08:00'}
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    fullWidth
-                                    label="Giờ kết thúc"
-                                    type="time"
-                                    defaultValue={selectedShift?.endTime || '12:00'}
-                                    InputLabelProps={{ shrink: true }}
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Trạng thái</InputLabel>
-                                    <Select
-                                        defaultValue={selectedShift?.status || 'available'}
-                                        label="Trạng thái"
-                                    >
-                                        <MenuItem value="available">Có thể khám</MenuItem>
-                                        <MenuItem value="unavailable">Không có mặt</MenuItem>
-                                        <MenuItem value="sick">Nghỉ ốm</MenuItem>
-                                        <MenuItem value="vacation">Nghỉ phép</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    fullWidth
-                                    label="Ghi chú"
-                                    multiline
-                                    rows={3}
-                                    placeholder="Ghi chú về ca làm việc..."
-                                />
-                            </Grid>
-                        </Grid>
-                    </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenDialog(false)}>
-                        Hủy
-                    </Button>
-                    <Button onClick={handleSaveShift} variant="contained">
-                        {actionType === 'add' ? 'Thêm ca' : 'Cập nhật'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
             {/* Quick Actions */}
             <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
                 <Button
                     variant="outlined"
-                    onClick={() => alert('Tính năng copy lịch tuần trước sẽ được phát triển')}
+                    onClick={() => window.print()}
                 >
-                    Copy lịch tuần trước
+                    In lịch làm việc
                 </Button>
                 <Button
                     variant="outlined"
-                    onClick={() => alert('Tính năng xuất lịch làm việc sẽ được phát triển')}
+                    onClick={() => window.location.reload()}
                 >
-                    Xuất lịch làm việc
+                    Làm mới dữ liệu
                 </Button>
                 <Button
                     variant="contained"
-                    onClick={() => alert('Lịch làm việc đã được lưu!')}
+                    onClick={() => alert('Để chỉnh sửa lịch làm việc, vui lòng liên hệ quản trị viên.')}
                 >
-                    Lưu thay đổi
+                    Yêu cầu chỉnh sửa
                 </Button>
             </Box>
         </Box>

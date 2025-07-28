@@ -64,6 +64,22 @@ export interface WorkingHours {
     isAvailable: boolean;
 }
 
+export interface DoctorScheduleDto {
+    id: string;
+    doctorId: string;
+    dayOfWeek: number;
+    dayName: string;
+    isWorking: boolean;
+    timeSlots: TimeSlotDto[];
+}
+
+export interface TimeSlotDto {
+    id: string;
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+}
+
 export interface ConsultationForDoctor {
     id: string;
     patientId: string;
@@ -253,6 +269,17 @@ const doctorService = {
             return [];
         } catch (error) {
             console.error('Error fetching working hours:', error);
+            return [];
+        }
+    },
+
+    // Get doctor's schedule for schedule management page
+    getDoctorSchedule: async (doctorId: string): Promise<DoctorScheduleDto[]> => {
+        try {
+            const response = await appointmentApi.get(`/DoctorSchedule/${doctorId}`);
+            return response.data || [];
+        } catch (error) {
+            console.error('Error fetching doctor schedule:', error);
             return [];
         }
     },

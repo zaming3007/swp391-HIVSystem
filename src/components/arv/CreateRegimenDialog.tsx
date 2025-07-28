@@ -80,9 +80,14 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
 
     const loadDrugs = async () => {
         try {
-            const response = await arvService.getARVDrugs();
-            if (response.success) {
-                setDrugs(response.data);
+            // Try to get drugs from AuthApi first
+            const drugsData = await arvService.getDrugs();
+            if (drugsData && drugsData.length > 0) {
+                setDrugs(drugsData);
+            } else {
+                // Fallback to AppointmentApi
+                const regimenDrugs = await arvService.getARVDrugsForRegimen();
+                setDrugs(regimenDrugs);
             }
         } catch (error) {
             console.error('Error loading drugs:', error);
@@ -144,21 +149,48 @@ const CreateRegimenDialog: React.FC<CreateRegimenDialogProps> = ({
         setError('');
 
         try {
-            // Validation
+            // Enhanced Validation
             if (!formData.name.trim()) {
                 setError('Vui lòng nhập tên phác đồ');
                 return;
             }
 
+            if (!formData.description.trim()) {
+                setError('Vui lòng nhập mô tả phác đồ');
+                return;
+            }
+
+            if (!formData.category.trim()) {
+                setError('Vui lòng chọn danh mục phác đồ');
+                return;
+            }
+
+            if (!formData.lineOfTreatment.trim()) {
+                setError('Vui lòng chọn tuyến điều trị');
+                return;
+            }
+
             if (medications.length === 0) {
-                setError('Vui lòng thêm ít nhất một thuốc');
+                setError('Vui lòng thêm ít nhất một thuốc vào phác đồ');
                 return;
             }
 
             for (let i = 0; i < medications.length; i++) {
                 const med = medications[i];
-                if (!med.medicationName || !med.dosage || !med.frequency) {
-                    setError(`Vui lòng điền đầy đủ thông tin thuốc thứ ${i + 1}`);
+                if (!med.medicationName.trim()) {
+                    setError(`Vui lòng chọn tên thuốc cho thuốc thứ ${i + 1}`);
+                    return;
+                }
+                if (!med.dosage.trim()) {
+                    setError(`Vui lòng nhập liều dùng cho thuốc thứ ${i + 1}`);
+                    return;
+                }
+                if (!med.frequency.trim()) {
+                    setError(`Vui lòng nhập tần suất sử dụng cho thuốc thứ ${i + 1}`);
+                    return;
+                }
+                if (!med.instructions.trim()) {
+                    setError(`Vui lòng nhập hướng dẫn sử dụng cho thuốc thứ ${i + 1}`);
                     return;
                 }
             }

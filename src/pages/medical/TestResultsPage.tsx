@@ -164,12 +164,12 @@ const TestResultsPage: React.FC = () => {
     return (
         <Container maxWidth="lg">
             <Box sx={{ mt: 3, mb: 4 }}>
-                <Typography variant="h5" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                     <HealthAndSafetyIcon sx={{ mr: 1, color: 'primary.main' }} />
-                    Kết quả xét nghiệm và lịch sử khám bệnh
+                    Hồ sơ y tế của tôi
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Theo dõi kết quả xét nghiệm CD4, tải lượng virus, phác đồ ARV và lịch sử khám bệnh của bạn.
+                <Typography variant="body1" color="text.secondary">
+                    Theo dõi kết quả xét nghiệm, phác đồ ARV, đơn thuốc và lịch sử điều trị HIV của bạn.
                 </Typography>
             </Box>
 
@@ -305,17 +305,48 @@ const TestResultsPage: React.FC = () => {
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={2}>
+                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                        <MedicationIcon sx={{ mr: 1, color: 'primary.main' }} />
+                        Phác đồ ARV và đơn thuốc
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                        Theo dõi các phác đồ ARV và đơn thuốc mà bác sĩ đã kê cho bạn
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+
+                    {/* Current Active Regimen */}
+                    {activeRegimen && (
+                        <Box sx={{ mb: 4 }}>
+                            <Typography variant="h6" gutterBottom color="primary">
+                                Phác đồ hiện tại
+                            </Typography>
+                            <ARVRegimenCard regimen={activeRegimen} />
+                        </Box>
+                    )}
+
+                    {/* All Regimens History */}
                     <Typography variant="h6" gutterBottom>
                         Lịch sử phác đồ ARV
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
-
                     {arvRegimens.length === 0 ? (
-                        <Alert severity="info">Không có phác đồ ARV nào được tìm thấy</Alert>
+                        <Alert severity="info" sx={{ mt: 2 }}>
+                            <Typography variant="body1">
+                                Chưa có phác đồ ARV nào được kê.
+                            </Typography>
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Vui lòng liên hệ với bác sĩ để được tư vấn và kê đơn phác đồ điều trị phù hợp.
+                            </Typography>
+                        </Alert>
                     ) : (
-                        arvRegimens
-                            .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
-                            .map(regimen => <ARVRegimenCard key={regimen.id} regimen={regimen} />)
+                        <Grid container spacing={2}>
+                            {arvRegimens
+                                .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
+                                .map(regimen => (
+                                    <Grid item xs={12} key={regimen.id}>
+                                        <ARVRegimenCard regimen={regimen} />
+                                    </Grid>
+                                ))}
+                        </Grid>
                     )}
                 </TabPanel>
 
