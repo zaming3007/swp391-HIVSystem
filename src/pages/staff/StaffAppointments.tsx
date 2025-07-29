@@ -96,6 +96,7 @@ const StaffAppointments: React.FC = () => {
         loadStatistics();
     }, [page, statusFilter]);
 
+    // 📋 DEMO: Load tất cả lịch hẹn để staff quản lý (có thể lọc theo status)
     const loadAppointments = async () => {
         try {
             setLoading(true);
@@ -174,6 +175,7 @@ const StaffAppointments: React.FC = () => {
         setUpdateDialogOpen(true);
     };
 
+    // ✅ DEMO: Phê duyệt nhanh lịch hẹn → status "Confirmed" + gửi notification
     const quickApprove = async (appointmentId: string) => {
         try {
             setLoading(true);
@@ -196,6 +198,7 @@ const StaffAppointments: React.FC = () => {
         }
     };
 
+    // ❌ DEMO: Từ chối nhanh lịch hẹn → status "Cancelled" + gửi notification
     const quickReject = async (appointmentId: string) => {
         try {
             setLoading(true);

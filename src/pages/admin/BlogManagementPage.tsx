@@ -116,6 +116,7 @@ const BlogManagementPage: React.FC = () => {
         });
     };
 
+    // 📝 DEMO: Staff tạo/cập nhật blog với status 0=Draft, 1=Published
     const handleSubmit = async () => {
         try {
             if (editingPost) {
@@ -162,6 +163,7 @@ const BlogManagementPage: React.FC = () => {
         }
     };
 
+    // 🚀 DEMO: Xuất bản blog từ Draft → Published (customer mới thấy được)
     const handlePublish = async (postId: string, currentStatus: number) => {
         try {
             const success = currentStatus === 1

@@ -60,6 +60,7 @@ const AskQuestionForm: React.FC = () => {
         }));
     };
 
+    // 💬 DEMO: Customer tạo câu hỏi tư vấn mới với topic và nội dung
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 

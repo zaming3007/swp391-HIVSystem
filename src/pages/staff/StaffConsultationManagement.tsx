@@ -195,6 +195,7 @@ const StaffConsultationManagement: React.FC = () => {
         setOpenDialog(true);
     };
 
+    // 💬 DEMO: Staff trả lời câu hỏi tư vấn → status "answered" + gửi notification
     const handleReply = async () => {
         if (!selectedConsultation || !response.trim()) {
             return;

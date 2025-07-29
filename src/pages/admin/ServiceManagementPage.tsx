@@ -221,6 +221,7 @@ const ServiceManagementPage: React.FC = () => {
         setDeleteDialogOpen(true);
     };
 
+    // 🏥 DEMO: Admin tạo dịch vụ mới (customer sẽ thấy khi đặt lịch hẹn)
     const handleAddService = () => {
         setFormData({
             name: '',
@@ -273,6 +274,7 @@ const ServiceManagementPage: React.FC = () => {
         }
     };
 
+    // 👨‍⚕️ DEMO: Admin phân công bác sĩ cho dịch vụ (nếu không phân công → tất cả bác sĩ)
     const handleDoctorAssignment = (service: Service) => {
         setSelectedService(service);
         const assignedDoctorIds = service.assignedDoctors?.map(d => d.id) || [];

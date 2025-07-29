@@ -65,6 +65,7 @@ const CustomerARVPage: React.FC = () => {
         loadPatientRegimens();
     }, []);
 
+    // 👤 DEMO: Customer xem phác đồ ARV đã được doctor kê đơn
     const loadPatientRegimens = async () => {
         try {
             setLoading(true);

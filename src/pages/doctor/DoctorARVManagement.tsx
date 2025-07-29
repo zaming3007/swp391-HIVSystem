@@ -406,6 +406,7 @@ const DoctorARVManagement: React.FC = () => {
         }
     };
 
+    // 💊 DEMO: Doctor kê đơn phác đồ ARV cho bệnh nhân (chỉ bệnh nhân đã đặt lịch)
     const handlePrescribeRegimen = async () => {
         if (!selectedPatient || !selectedRegimen) return;
 

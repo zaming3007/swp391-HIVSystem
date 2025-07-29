@@ -90,7 +90,7 @@ const AppointmentPage: React.FC = () => {
         setAppointmentType(event.target.value);
     };
 
-    // Fetch services on component mount
+    // 📋 DEMO STEP 1: Load danh sách dịch vụ từ API để customer chọn
     useEffect(() => {
         const fetchServices = async () => {
             try {
@@ -106,7 +106,7 @@ const AppointmentPage: React.FC = () => {
         fetchServices();
     }, []);
 
-    // Fetch doctors when service is selected
+    // 👨‍⚕️ DEMO STEP 2: Load danh sách bác sĩ theo dịch vụ đã chọn
     useEffect(() => {
         const fetchDoctors = async () => {
             if (selectedService) {
@@ -126,7 +126,7 @@ const AppointmentPage: React.FC = () => {
         fetchDoctors();
     }, [selectedService]);
 
-    // Fetch available slots when doctor and date are selected
+    // ⏰ DEMO STEP 3: Load khung giờ có sẵn (xanh=trống, đỏ=đã đặt)
     useEffect(() => {
         const fetchAvailableSlots = async () => {
             if (selectedDoctor && selectedDate && selectedService) {
@@ -181,6 +181,7 @@ const AppointmentPage: React.FC = () => {
 
 
 
+    // 🔄 DEMO STEP 4: Tạo lịch hẹn với status "pending" và gửi notification
     const handleSubmit = async () => {
         try {
             if (!selectedService || !selectedDoctor || !selectedDate || !selectedTime) {

@@ -183,6 +183,7 @@ const UserManagementPage: React.FC = () => {
         setFilteredUsers(filtered);
     };
 
+    // ✏️ DEMO: Admin chỉnh sửa thông tin user (email, role, etc.)
     const handleEditUser = (user: User) => {
         setSelectedUser(user);
         setFormData({
@@ -208,6 +209,7 @@ const UserManagementPage: React.FC = () => {
         setDeleteDialogOpen(true);
     };
 
+    // 👤 DEMO: Admin tạo user mới với role và thông tin đăng nhập
     const handleAddUser = () => {
         setFormData({
             firstName: '',

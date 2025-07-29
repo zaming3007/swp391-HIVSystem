@@ -201,6 +201,7 @@ const DoctorConsultationManagement: React.FC = () => {
         setOpenDialog(true);
     };
 
+    // 👨‍⚕️ DEMO: Doctor trả lời câu hỏi tư vấn → status "answered" + gửi notification
     const handleSendResponse = async () => {
         if (!selectedConsultation || !response.trim() || !user?.id) {
             return;

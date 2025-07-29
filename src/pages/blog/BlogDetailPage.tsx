@@ -56,7 +56,7 @@ const BlogDetailPage: React.FC = () => {
 
                         setPost(fetchedPost);
 
-                        // Tăng lượt xem
+                        // 👁️ DEMO: Tăng view count mỗi khi user vào xem blog
                         await incrementViewCount(id);
 
                         // Lấy danh sách bình luận
@@ -83,6 +83,7 @@ const BlogDetailPage: React.FC = () => {
         fetchData();
     }, [id, navigate]);
 
+    // 💬 DEMO: User comment vào blog → tăng comment count + hiển thị comment mới
     const handleSubmitComment = async () => {
         if (!isAuthenticated) {
             setError('Vui lòng đăng nhập để bình luận');
