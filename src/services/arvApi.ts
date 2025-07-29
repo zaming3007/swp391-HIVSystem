@@ -1,67 +1,13 @@
-import axios from 'axios';
+import { createApiClient, apiClients } from './shared/apiClientFactory';
 
-const API_BASE_URL = 'http://localhost:5002/api';
-
-// Create axios instance with default config
-const arvApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+// Create API client for ARV services
+const arvApi = createApiClient({
+  baseURL: import.meta.env.VITE_APPOINTMENT_API_URL || 'http://localhost:5002/api',
+  serviceName: 'ARVApi'
 });
 
-// Add request interceptor to include auth token
-arvApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Add response interceptor for error handling
-arvApi.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('userRole');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-// Update JWT audience to match new frontend port
-const authApi = axios.create({
-  baseURL: 'http://localhost:5000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-authApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Export authApi for use in other services
-export { authApi };
+// Export authApi for use in other services (using shared factory)
+export const authApi = apiClients.auth();
 
 // Mock data for testing
 const mockRegimens = [

@@ -1,5 +1,6 @@
 import { LoginCredentials, RegisterData, User } from '../types';
 import authApi from './authApi';
+import { tokenManager } from './shared/tokenManager';
 
 // Mock users for testing different roles
 const mockUsers: User[] = [
@@ -71,10 +72,8 @@ export const authService = {
                 // Generate a mock token
                 const token = `mock-token-${user.role}-${Date.now()}`;
 
-                // Save token, user, and role to localStorage
-                localStorage.setItem('authToken', token);
-                localStorage.setItem('user', JSON.stringify(user));
-                localStorage.setItem('userRole', user.role);
+                // Save token, user, and role using tokenManager
+                tokenManager.setAuthData(token, user, user.role);
 
                 return { token, user };
             }
@@ -93,10 +92,8 @@ export const authService = {
                 profileImage: response.data.user.profileImage || ''
             };
 
-            // Save token, user, and role to localStorage
-            localStorage.setItem('authToken', response.data.token);
-            localStorage.setItem('user', JSON.stringify(user));
-            localStorage.setItem('userRole', user.role);
+            // Save token, user, and role using tokenManager
+            tokenManager.setAuthData(response.data.token, user, user.role);
             return { token: response.data.token, user };
         } catch (error: any) {
             console.error('Login error:', error);
@@ -151,10 +148,8 @@ export const authService = {
             // Generate a mock token
             const token = `mock-token-customer-${Date.now()}`;
 
-            // Store in localStorage
-            localStorage.setItem('authToken', token);
-            localStorage.setItem('user', JSON.stringify(newUser));
-            localStorage.setItem('userRole', newUser.role);
+            // Store using tokenManager
+            tokenManager.setAuthData(token, newUser, newUser.role);
 
             return { token, user: newUser };
         }
@@ -164,10 +159,8 @@ export const authService = {
             const response = await authApi.post<{ token: string; user: User }>('/Auth/register', userData);
             console.log('Register API response:', response.data);
 
-            // Save token, user, and role to localStorage
-            localStorage.setItem('authToken', response.data.token);
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            localStorage.setItem('userRole', response.data.user.role);
+            // Save token, user, and role using tokenManager
+            tokenManager.setAuthData(response.data.token, response.data.user, response.data.user.role);
             return response.data;
         } catch (error: any) {
             console.error('Register error:', error);
@@ -185,23 +178,17 @@ export const authService = {
     // Get current user profile
     getCurrentUser: async () => {
         if (USE_MOCK_DATA) {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) {
+            const user = tokenManager.getUser();
+            if (!user) {
                 throw new Error('Không tìm thấy thông tin người dùng');
             }
-
-            try {
-                const user = JSON.parse(userStr);
-                return user;
-            } catch (e) {
-                throw new Error('Không thể phân tích thông tin người dùng');
-            }
+            return user;
         }
 
         try {
             const response = await authApi.get<User>('/Auth/me');
-            // Update role in localStorage
-            localStorage.setItem('userRole', response.data.role);
+            // Update role using tokenManager
+            tokenManager.setUserRole(response.data.role);
             return response.data;
         } catch (error: any) {
             if (error.response && error.response.data && error.response.data.message) {
